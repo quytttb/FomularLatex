@@ -162,8 +162,8 @@ def standardize_math_expression(expr: str) -> str:
     # Rule 7: Handle coefficient 1 in fractions
     expr = re.sub(r'\\frac\{1([a-zA-Z])', r'\\frac{\1', expr)
     
-    # Rule 8: Simplify power notation
-    expr = re.sub(r'\^\{1\}', '', expr)
+    # Rule 8: Simplify power notation (only for actual powers after variables)
+    expr = re.sub(r'([a-zA-Z])\^\{1\}', r'\1', expr)  # x^{1} -> x
     
     # Rule 9: Remove multiplication by 1
     expr = re.sub(r'\b1\s*⋅\s*', '', expr)
@@ -171,8 +171,9 @@ def standardize_math_expression(expr: str) -> str:
     # Rule 10: Format decimal numbers
     expr = re.sub(r'(\d+)\.00\b', r'\1', expr)  # 4.00 -> 4
     
-    # Rule 11: Fix LaTeX power formatting
-    expr = re.sub(r'([a-zA-Z])\{(\d+)\}', r'\1^{\2}', expr)
+    # Rule 11: Fix LaTeX power formatting (avoid matching LaTeX fraction commands)
+    # Only match standalone variables followed by {number}, not within LaTeX commands
+    expr = re.sub(r'(?<!\\)(^|[^a-zA-Z])([a-zA-Z])\{(\d+)\}', r'\1\2^{\3}', expr)
     expr = re.sub(r'(\d+)([a-zA-Z])\{(\d+)\}', r'\1\2^{\3}', expr)
     
     return expr.strip()

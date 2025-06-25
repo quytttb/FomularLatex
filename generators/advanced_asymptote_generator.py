@@ -127,12 +127,27 @@ class AdvancedAsymptoteGenerator(TrueFalseGenerator):
         else:
             area_value = random.choice([wrong_area1, wrong_area2])
         
-        statement = f"Diện tích hình chữ nhật được tạo bởi các tiệm cận của hàm số $y = \\dfrac{{{format_polynomial([a, b])}}}{{{format_polynomial([c, d])}}}$ và các trục tọa độ bằng ${area_value}$."
+        # Format area value properly
+        if isinstance(area_value, float):
+            if area_value == int(area_value):
+                area_value_str = str(int(area_value))
+            else:
+                # Convert to fraction if it's a simple rational number
+                from fractions import Fraction
+                frac = Fraction(area_value).limit_denominator(100)
+                if abs(float(frac) - area_value) < 0.001:
+                    area_value_str = format_fraction_latex(frac.numerator, frac.denominator)
+                else:
+                    area_value_str = f"{area_value:.2f}"
+        else:
+            area_value_str = str(area_value)
+        
+        statement = f"Diện tích hình chữ nhật được tạo bởi các tiệm cận của hàm số $y = \\dfrac{{{format_polynomial([a, b])}}}{{{format_polynomial([c, d])}}}$ và các trục tọa độ bằng ${area_value_str}$."
         
         return {
             'statement': standardize_math_expression(statement),
             'is_correct': is_correct,
-            'area_data': {'true_area': true_area, 'given_area': area_value}
+            'area_data': {'true_area': true_area, 'given_area': area_value_str}
         }
     
     def _generate_asymptote_count_question(self) -> Dict[str, Any]:
