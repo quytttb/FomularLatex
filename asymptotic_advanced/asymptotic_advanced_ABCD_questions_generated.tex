@@ -1,0 +1,107 @@
+\documentclass{article}
+\usepackage{fontspec} % For XeLaTeX font support
+\usepackage{amsmath} % For advanced math environments
+\usepackage{amsfonts}
+\usepackage{amssymb}
+\usepackage{geometry} % For page layout
+\geometry{a4paper, margin=1in} % Set page margins
+\usepackage{polyglossia}
+\setmainlanguage{vietnamese}
+\setmainfont{Times New Roman}
+
+\begin{document}
+
+Câu 1: Cho hàm số \(y = \frac{(-m + 2)x}{-x + 1}\) có đường tiệm cận tạo hình chữ nhật diện tích 6. Tính tổng bình phương của các giá trị \(m\):
+
+A. \(16\)
+
+B. \(26\)
+
+*C. \(80\)
+
+D. \(16\)
+
+Lời giải:
+
+Hàm số \(y = \frac{(-m + 2)x}{-x + 1}\) có:
+
+\begin{itemize}
+\item Tiệm cận ngang: \(y = \frac{-m + 2}{-1}\)
+\item Tiệm cận đứng: \(x = \frac{-1}{-1} = 1\)
+\end{itemize}
+
+Diện tích hình chữ nhật tạo bởi hai đường tiệm cận và hai trục tọa độ:
+
+\(S = \left| \frac{-m + 2}{-1} \right| = \left| \frac{-m + 2}{-1} \right| = \frac{|-m + 2| \cdot |1|}{1}\)
+
+Theo đề bài: \(S = 6\)
+
+\(\Rightarrow \frac{|-m + 2|}{1} = 6\)
+
+\(\Leftrightarrow |-m + 2| = \frac{6}{1} = 6\)
+
+\(\Leftrightarrow -m + 2 = \pm 6\)
+
+Trường hợp 1: \(-m + 2 = 6 \Rightarrow m = -4\)
+
+Trường hợp 2: \(-m + 2 = -6 \Rightarrow m = 8\)
+
+Tổng bình phương các giá trị: \((-4)^2 + (8)^2 = 80\)
+
+
+
+Câu 2: Số giá trị nguyên \(m\) trong \([-10; 10]\) để hàm số \(y = \frac{x - 1}{x^2 + (m - 2)x + 1}\) có 2 tiệm cận đứng:
+
+*A. 16
+
+B. 15
+
+C. 17
+
+D. 16
+
+Lời giải:
+
+Để có 2 tiệm cận đứng:
+
+Điều kiện: \(f(1) \neq 0\) và mẫu số có 2 nghiệm phân biệt
+
+\(\Leftrightarrow \begin{cases}
+f(1) \neq 0 \\
+\Delta > 0
+\end{cases}\)
+
+\(\Leftrightarrow \begin{cases}
+m \neq 0 \\
+m^2 - 4m > 0
+\end{cases}\)
+
+\(\Leftrightarrow m \in (-\infty, 0) \cup (4, +\infty)\)
+
+Kết quả: Có \(16\) giá trị nguyên thỏa mãn
+
+
+
+Câu 3: Cho hàm số \(y = \frac{2x^2 + 3x + 2}{x + 1}\). Phương trình đường tiệm cận xiên của đồ thị hàm số này là:
+
+A. \(\frac{3}{2}x + 1\)
+
+*B. \(2x + 1\)
+
+C. \(2x + 2\)
+
+D. \(2x + 3\)
+
+Lời giải:
+
+Giải:
+
+Ta có: \(y = \frac{2x{2} + 3x + 2}{x + 1} = 2x + 1 + \frac{1}{x + 1}\)
+
+\(\Rightarrow \displaystyle\lim_{x \to +\infty} \left(\left(\frac{2x{2} + 3x + 2}{x + 1}\right) - \left(2x + 1 + \frac{1}{x + 1}\right)\right) = \displaystyle\lim_{x \to +\infty} \frac{1}{x + 1} = \displaystyle\lim_{x \to +\infty} \frac{1}{x \cdot 1 + \frac{1}{x}} = 0\)
+
+\(\Rightarrow\) Tiệm cận xiên: \(y = 2x + 1\)
+
+
+
+\end{document}

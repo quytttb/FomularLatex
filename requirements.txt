@@ -1,0 +1,16 @@
+# Math Question Generator Dependencies
+# No external Python packages required - uses only built-in libraries:
+# - fractions (for precise rational arithmetic)
+# - random (for randomization)
+# - logging (for debug output)
+# - sys, os (for system operations)
+
+# System requirements (not Python packages):
+# - XeLaTeX (for compiling LaTeX to PDF)
+# - Times New Roman font
+# - Python 3.6+ (for f-strings support)
+
+# To install XeLaTeX on Ubuntu/Debian:
+# sudo apt-get install texlive-xetex texlive-latex-extra
+
+# To install on other systems, search for "XeLaTeX" package

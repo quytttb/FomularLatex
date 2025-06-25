@@ -1,0 +1,83 @@
+Đây là nội dung tài liệu của bạn ở định dạng LaTeX. Bạn có thể sao chép và lưu thành file `.tex`, sau đó biên dịch bằng một trình biên dịch LaTeX (ví dụ: Overleaf, TeX Live, MiKTeX).
+
+```latex
+\documentclass{article}
+\usepackage[utf8]{inputenc} % Cho phép gõ tiếng Việt Unicode
+\usepackage[vietnamese]{babel} % Hỗ trợ các quy tắc ngắt từ, dấu câu của tiếng Việt
+\usepackage{amsmath} % Gói toán học cơ bản
+\usepackage{amssymb} % Các ký hiệu toán học bổ sung
+\usepackage{mathtools} % Các công cụ toán học mở rộng, hữu ích cho căn chỉnh
+
+% Định nghĩa lại một số ký hiệu nếu cần
+\newcommand{\triangleeq}{\ensuremath{\triangle}} % Ký hiệu tam giác
+
+\begin{document}
+
+\section*{Câu hỏi Đúng/Sai về $\triangleeq$}
+
+\subsection*{Lưu ý!}
+\begin{itemize}
+    \item Đáp án đúng là kết quả ở phần lời giải, đáp án sai sẽ thêm bớt giá trị ở kết quả nhé!
+    \item Ký hiệu $||$ là hoặc
+\end{itemize}
+
+\subsection*{1) Cho $\triangleeq$ ABC với: $A(x_a; y_a; z_a)$; B; C.}
+
+\begin{itemize}
+    \item \textbf{Các bộ điểm:}
+    \begin{itemize}
+        \item $B(x_a \pm 4; y_a; z_a \pm 3)$ và $C(x_a \pm 6; y_a \pm 8; z_a)$
+        \item $B(x_a \pm 4; y_a \pm 2; z_a \pm 6)$ và $C(x_a \pm 2; y_a \pm 1; z_a \pm 3)$
+        \item $B(x_a \pm 4; y_a \pm 2; z_a \pm 1)$ và $C(x_a \pm 13; y_a \pm 4; z_a \pm 2)$
+        \item $B(x_a \pm 3; y_a \pm 2; z_a)$ và $C(x_a + 10; y_a \pm 4; z_a + 1)$
+    \end{itemize}
+    Các bộ này có thể hoán đổi vị trí hoành độ, tung độ, cao độ.
+
+    \item \textbf{Ví dụ bộ:} $A(1;2;3)$, B$(4;5;6)$, C$(7;8;9)$
+    Hoán đổi: $A(2;1;3)$, B$(5;4;6)$, C$(8;7;9)$ etc\dots
+\end{itemize}
+
+\subsection*{a) Tọa độ chân đường vuông góc kẻ từ A xuống BC là D(Đáp án đúng || Đáp án sai)}
+
+\textbf{Giải:}
+\[
+\left.
+\begin{array}{l}
+AB = \ldots \\
+AC = \ldots \\
+\text{Do AD là đường phân giác của } \widehat{BAC}
+\end{array}
+\right\}
+\implies \frac{AB}{AC} = \frac{BD}{DC} = h \text{ (Thay AB và AC vào)}
+\]
+
+$\implies \overrightarrow{BD} = h \overrightarrow{DC} \iff D - B = h(C - D) \iff (h+1)D = hC + B$
+
+$\iff D = \frac{hC + B}{h+1}$
+
+\subsection*{b) Độ dài đường cao AH || BK || CI trong $\triangleeq$ ABC là (Đáp án đúng || Đáp án sai)}
+
+\textbf{Giải:}
+$[\overrightarrow{AB}, \overrightarrow{AC}] = ( \ldots ) \implies |[\overrightarrow{AB}, \overrightarrow{AC}]| = \ldots$ (độ dài của vector kia)
+$\implies S_{\triangle ABC} = \frac{1}{2} |[\overrightarrow{AB}, \overrightarrow{AC}]| = \ldots$
+
+Ta có: \\
+$BC = \ldots$   Ta có: $S_{\triangle ABC} = \frac{1}{2} AH \cdot BC \iff AH = \frac{2 \cdot S_{ABC}}{BC}$
+
+|| $AC = \ldots$   Ta có: $S_{\triangle ABC} = \frac{1}{2} BK \cdot AC \iff BK = \frac{2 \cdot S_{ABC}}{AC}$
+
+|| $AB = \ldots$   Ta có: $S_{\triangle ABC} = \frac{1}{2} CI \cdot AB \iff CI = \frac{2 \cdot S_{ABC}}{AB}$
+
+
+\subsection*{c) $\triangleeq$ ABC có góc $\widehat{BAC}$ || $\widehat{CBA}$ || $\widehat{ACB}$ là (Đáp án đúng || Đáp án sai):}
+
+\begin{itemize}
+    \item $\cos(\widehat{BAC}) = \frac{\overrightarrow{AB} \cdot \overrightarrow{AC}}{|\overrightarrow{AB}| \cdot |\overrightarrow{AC}|}$ => Góc\ldots
+    \item $\cos(\widehat{CBA}) = \frac{\overrightarrow{BA} \cdot \overrightarrow{BC}}{|\overrightarrow{BA}| \cdot |\overrightarrow{BC}|}$ => Góc\ldots
+    \item $\cos(\widehat{ACB}) = \frac{\overrightarrow{CA} \cdot \overrightarrow{CB}}{|\overrightarrow{CA}| \cdot |\overrightarrow{CB}|}$ => Góc\ldots
+\end{itemize}
+
+\subsection*{d) Bổ sung sau}
+
+\end{document}
+```
