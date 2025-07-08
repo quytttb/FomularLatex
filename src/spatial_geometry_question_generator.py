@@ -1,14 +1,5 @@
 """
-===================================================================================
-    TEMPLATE HỆ THỐNG SINH CÂU HỎI TOÁN TỐI ƯU HÓA VỚI ĐẠO HÀM - PHIÊN BẢN CẢI TIẾN
-===================================================================================
-
-Template này kết hợp ưu điểm từ math_optimization_template.py và thuc_te_hinh_hoc.py
-
-HƯỚNG DẪN SỬ DỤNG:
-- Để thêm dạng toán mới: Tìm phần "# ===== THÊM DẠNG TOÁN MỚI TẠI ĐÂY ====="
-- Để thêm hình vẽ mới: Tìm phần "# ===== THÊM TIKZ FIGURES MỚI TẠI ĐÂY ====="
-- Để thêm format LaTeX: Tìm phần "# ===== THÊM FORMAT LATEX MỚI TẠI ĐÂY ====="
+Giao điểm đường thẳng với mặt phẳng trong không gian 3D
 """
 
 import random
@@ -1121,7 +1112,7 @@ class SphericalCoordinateOptimization(BaseOptimizationQuestion):
 
     Công thức:
     - x = r × cos(β) × cos(α)
-    - y = r × cos(β) × sin(α)  
+    - y = r × cos(β) × sin(α)
     - z = r × sin(β)
     """
 
@@ -1204,19 +1195,20 @@ class SphericalCoordinateOptimization(BaseOptimizationQuestion):
 
         if q_type == 1:  # Tọa độ x
             return f"\\({format_number_clean(x)}\\)"
-        elif q_type == 2:  # Tọa độ y  
+        elif q_type == 2:  # Tọa độ y
             return f"\\({format_number_clean(y)}\\)"
         else:  # Tọa độ z
             return f"\\({format_number_clean(z)}\\)"
 
     def generate_wrong_answers(self) -> List[str]:
-        """Sinh 3 đáp án sai cho tọa độ cầu"""
+        """Sinh 3 đáp án sai cho tọa độ cầu, đảm bảo khác biệt với đáp án đúng"""
+        import random
         r = self.parameters['distance']
         alpha = math.radians(self.parameters['azimuth_angle'])
         beta = math.radians(self.parameters['elevation_angle'])
         q_type = self.parameters['question_type']
 
-        # Tính đáp án đúng
+        # Tính đáp án đúng (dạng số thực, chưa format)
         if q_type == 1:
             correct_value = r * math.cos(beta) * math.cos(alpha)
         elif q_type == 2:
@@ -1224,39 +1216,62 @@ class SphericalCoordinateOptimization(BaseOptimizationQuestion):
         else:
             correct_value = r * math.sin(beta)
 
-        # Sinh đáp án sai với các sai lầm thường gặp
-        wrong_values = []
+        def round2(val):
+            return round(val, 2)
 
+        # Sinh các đáp án sai với các sai lầm thường gặp
+        wrong_values = []
         # Sai lầm 1: Nhầm lẫn sin/cos
         if q_type == 1:
-            wrong1 = r * math.sin(beta) * math.cos(alpha)  # nhầm cos(β) thành sin(β)
+            wrong1 = r * math.sin(beta) * math.cos(alpha)
         elif q_type == 2:
-            wrong1 = r * math.sin(beta) * math.sin(alpha)  # nhầm cos(β) thành sin(β)
+            wrong1 = r * math.sin(beta) * math.sin(alpha)
         else:
-            wrong1 = r * math.cos(beta)  # nhầm sin(β) thành cos(β)
+            wrong1 = r * math.cos(beta)
         wrong_values.append(wrong1)
 
         # Sai lầm 2: Nhầm lẫn α và β
         if q_type == 1:
-            wrong2 = r * math.cos(alpha) * math.cos(beta)  # hoán đổi α và β
+            wrong2 = r * math.cos(alpha) * math.cos(beta)
         elif q_type == 2:
-            wrong2 = r * math.cos(alpha) * math.sin(beta)  # hoán đổi α và β
+            wrong2 = r * math.cos(alpha) * math.sin(beta)
         else:
-            wrong2 = r * math.sin(alpha)  # nhầm sin(β) thành sin(α)
+            wrong2 = r * math.sin(alpha)
         wrong_values.append(wrong2)
 
         # Sai lầm 3: Quên một thành phần
         if q_type in [1, 2]:
-            wrong3 = r * math.cos(alpha) if q_type == 1 else r * math.sin(alpha)  # quên cos(β)
+            wrong3 = r * math.cos(alpha) if q_type == 1 else r * math.sin(alpha)
         else:
-            wrong3 = r  # quên sin(β)
+            wrong3 = r
         wrong_values.append(wrong3)
 
-        # Format các đáp án sai
-        wrong_answers = []
+        # Đảm bảo các đáp án sai không trùng với đáp án đúng hoặc trùng nhau (sau khi làm tròn)
+        unique_wrongs = set()
+        final_wrongs = []
+        correct_rounded = round2(correct_value)
+        tries = 0
         for val in wrong_values:
-            wrong_answers.append(f"\\({format_number_clean(val)}\\)")
-
+            val_rounded = round2(val)
+            # Nếu trùng với đáp án đúng hoặc đã có, sinh lại bằng cách cộng/trừ ngẫu nhiên
+            while (val_rounded == correct_rounded or val_rounded in unique_wrongs) and tries < 10:
+                # Sinh giá trị mới bằng cách cộng/trừ 2-10% giá trị đúng (hoặc ±2 nếu đúng = 0)
+                delta = abs(correct_value) * random.uniform(0.02, 0.1) if abs(correct_value) > 1e-6 else random.uniform(1, 3)
+                sign = random.choice([-1, 1])
+                val_rounded = round2(correct_value + sign * delta)
+                tries += 1
+            unique_wrongs.add(val_rounded)
+            final_wrongs.append(val_rounded)
+        # Nếu vẫn chưa đủ 3 đáp án sai khác biệt, sinh thêm
+        while len(final_wrongs) < 3:
+            delta = abs(correct_value) * random.uniform(0.02, 0.1) if abs(correct_value) > 1e-6 else random.uniform(1, 3)
+            sign = random.choice([-1, 1])
+            val_rounded = round2(correct_value + sign * delta)
+            if val_rounded != correct_rounded and val_rounded not in unique_wrongs:
+                unique_wrongs.add(val_rounded)
+                final_wrongs.append(val_rounded)
+        # Format các đáp án sai
+        wrong_answers = [f"\\({format_number_clean(val)}\\)" for val in final_wrongs[:3]]
         return wrong_answers
 
     def generate_question_text(self) -> str:
@@ -1503,7 +1518,7 @@ if __name__ == "__main__":
 1. Tạo class mới kế thừa BaseOptimizationQuestion
 2. Implement 5 method bắt buộc:
    - generate_parameters(): Sinh tham số
-   - calculate_answer(): Tính đáp án đúng  
+   - calculate_answer(): Tính đáp án đúng
    - generate_wrong_answers(): Sinh đáp án sai
    - generate_question_text(): Sinh đề bài
    - generate_solution(): Sinh lời giải
