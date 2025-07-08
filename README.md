@@ -10,27 +10,21 @@ Bộ công cụ này giúp giáo viên và học sinh tạo ra các bài kiểm 
 - Định dạng LaTeX chuẩn
 - Hỗ trợ tiếng Việt
 
-## 📁 Cấu trúc thư mục
+## 📁 Cấu trúc thư mục (cập nhật)
 
 ```
 FomularLatex/
-├── 📂 asymptote_questions/          # Module câu hỏi tiệm cận
-│   ├── asymptote_mc.py             # Generator câu hỏi tiệm cận (hoàn chỉnh)
-│   ├── test_asymptote_fixed.py     # Test cases
-│   └── README.md                   # Hướng dẫn module
-├── 📂 asymptotic_advanced/         # Module tiệm cận nâng cao
+├── 📂 src/                         # Chứa các script sinh câu hỏi
+│   ├── asymptote_mc.py             # Generator câu hỏi tiệm cận
 │   ├── asymptotic_advanced.py      # Generator câu hỏi nâng cao
-│   ├── asymptotic_advanced_ABCD.py # Version ABCD
-│   └── README_CHAT_CONTEXT.md      # Context phát triển
-├── 📂 true_false_triangle/         # Module câu hỏi tam giác đúng/sai
-│   ├── true_false_triangle_questions.py  # Generator cơ bản
+│   ├── true_false_triangle_questions.py  # Generator tam giác đúng/sai
 │   ├── true_false_triangle_ABCD.py       # Version ABCD
-│   └── README.md                         # Hướng dẫn module
-├── 📂 base_template/              # Template cơ sở
-│   ├── math_question_base.py      # Template chính
-│   └── README.md                  # Hướng dẫn sử dụng template
-├── requirements.txt               # Dependencies
-└── README.md                     # Tài liệu này
+│   ├── ... (các file khác)
+├── 📂 base_template/               # Template cơ sở và các bài toán tối ưu hóa
+│   ├── math_question_base.py       # Template chính
+│   ├── ... (các file khác)
+├── requirements.txt                # Dependencies
+└── README.md                       # Tài liệu này
 ```
 
 ## 🚀 Bắt đầu nhanh
@@ -46,48 +40,38 @@ cd FomularLatex
 pip install -r requirements.txt
 ```
 
-### 2. Tạo câu hỏi tiệm cận
+### 2. Sinh câu hỏi (ví dụ)
 
 ```bash
-cd asymptote_questions
-python3 asymptote_mc.py 5
+# Sinh câu hỏi tiệm cận (5 câu)
+python3 src/asymptote_mc.py 5
 xelatex asymptote_mc_questions.tex
-```
 
-### 3. Tạo câu hỏi tiệm cận nâng cao
-
-```bash
-cd asymptotic_advanced
-python3 asymptotic_advanced.py 10
+# Sinh câu hỏi tiệm cận nâng cao (10 câu)
+python3 src/asymptotic_advanced.py 10
 xelatex asymptotic_advanced_questions_generated.tex
-```
 
-### 4. Tạo câu hỏi tam giác đúng/sai
-
-```bash
-cd true_false_triangle
-python3 true_false_triangle_questions.py 8
+# Sinh câu hỏi tam giác đúng/sai (8 câu)
+python3 src/true_false_triangle_questions.py 8
 xelatex true_false_triangle_questions.tex
 ```
 
 ## 📚 Các module có sẵn
 
 ### 🔢 Asymptote Questions
-- **Vị trí**: `asymptote_questions/`
+- **Vị trí**: `src/asymptote_mc.py`
 - **Chức năng**: Tạo câu hỏi về tiệm cận xiên
 - **Định dạng**: Trắc nghiệm 4 đáp án
 - **Trạng thái**: ✅ Hoàn chỉnh
 
 ### 📈 Asymptotic Advanced
-- **Vị trí**: `asymptotic_advanced/`
+- **Vị trí**: `src/asymptotic_advanced.py`
 - **Chức năng**: Câu hỏi tiệm cận nâng cao
-- **Định dạng**: Trắc nghiệm và tự luận
 - **Trạng thái**: ✅ Hoàn chỉnh
 
-### 📐 True/False Triangle
-- **Vị trí**: `true_false_triangle/`
-- **Chức năng**: Câu hỏi đúng/sai về tam giác
-- **Định dạng**: Đúng/Sai và ABCD
+### 🔺 True/False Triangle
+- **Vị trí**: `src/true_false_triangle_questions.py`
+- **Chức năng**: Câu hỏi tam giác đúng/sai
 - **Trạng thái**: ✅ Hoàn chỉnh
 
 ### 🏗️ Base Template
