@@ -128,18 +128,10 @@ class BaseOptimizationQuestion(ABC):
 # Danh sách các dạng toán có sẵn
 def get_available_question_types():
     """Trả về danh sách các dạng toán có sẵn"""
-    from production_optimization import ProductionOptimization
-    from export_profit_optimization import ExportProfitOptimization
-    from fuel_cost_optimization import FuelCostOptimization
-    from factory_profit_optimization import FactoryProfitOptimization
-    from lamp_cost_optimization import LampCostOptimization
+    from extremum_from_tikz import ExtremumFromTikz
 
     return [
-        ProductionOptimization,
-        ExportProfitOptimization,
-        FuelCostOptimization,
-        FactoryProfitOptimization,
-        LampCostOptimization
+        ExtremumFromTikz,
     ]
 
 

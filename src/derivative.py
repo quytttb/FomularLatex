@@ -1,6 +1,5 @@
-# ===== derivative/latex_utils.py =====
 """
-Các hàm tiện ích cho LaTeX formatting - cải thiện theo mẫu asymptote_mc.py
+Dạng bài toán tối ưu hóa với đạo hàm
 """
 import math
 import random
@@ -119,12 +118,14 @@ def format_money(amount: float, currency: str = "đồng") -> str:
         if amount % 1000000000 == 0:
             value = f"{int(amount // 1000000000)} tỷ"
         else:
-            value = f"{amount / 1000000000:.1f} tỷ"
+            # Sử dụng format_number_clean để tránh làm tròn sai
+            value = f"{format_number_clean(amount / 1000000000)} tỷ"
     elif amount >= 1000000:
         if amount % 1000000 == 0:
             value = f"{int(amount // 1000000)} triệu"
         else:
-            value = f"{amount / 1000000:.1f} triệu"
+            # Sử dụng format_number_clean để tránh làm tròn sai
+            value = f"{format_number_clean(amount / 1000000)} triệu"
     elif amount >= 1000:
         formatted = f"{int(amount):,}".replace(",", ".")
         value = formatted

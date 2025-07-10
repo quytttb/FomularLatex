@@ -171,14 +171,9 @@ xelatex output.tex
 
 Dự án được phát hành dưới MIT License. Xem file LICENSE để biết thêm chi tiết.
 
-## 👨‍💻 Tác giả
-
-**quytttb** - [GitHub](https://github.com/quytttb)
 
 ## 🙏 Cảm ơn
 
 Cảm ơn cộng đồng LaTeX và Python Việt Nam đã hỗ trợ phát triển dự án này!
 
 ---
-
-*Dự án này giúp giáo viên tạo câu hỏi trắc nghiệm toán học chuyên nghiệp một cách nhanh chóng! 🎓*

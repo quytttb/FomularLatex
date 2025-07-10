@@ -1,3 +1,7 @@
+"""
+Dạng bài tập trắc nghiệm về tiệm cận xiên của đồ thị hàm số bậc 2 trên bậc 1.
+"""
+
 import random
 import sys
 import logging

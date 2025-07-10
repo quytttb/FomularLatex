@@ -1,3 +1,7 @@
+"""
+Dạng câu hỏi trắc nghiệm về hợp lực của 3 lực đồng quy với các góc khác nhau.
+"""
+
 import math
 import random
 import sys

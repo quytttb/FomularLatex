@@ -1,12 +1,5 @@
 """
-===================================================================================
-    HỆ THỐNG SINH CÂU HỎI TOÁN TỐI ƯU HÓA VỚI ĐẠO HÀM - PHIÊN BẢN CẢI TIẾN
-===================================================================================
-
-HƯỚNG DẪN SỬ DỤNG:
-- Để thêm dạng toán mới: Tìm phần "# ===== THÊM DẠNG TOÁN MỚI TẠI ĐÂY ====="
-- Để thêm hình vẽ mới: Tìm phần "# ===== THÊM TIKZ FIGURES MỚI TẠI ĐÂY ====="
-- Để thêm format LaTeX: Tìm phần "# ===== THÊM FORMAT LATEX MỚI TẠI ĐÂY ====="
+Dạng bài toán: Tìm khoảng đồng biến, nghịch biến của hàm số bậc 2 phân thức
 """
 
 import random
@@ -1020,9 +1013,9 @@ class RationalQuadraticMonotonicity(BaseOptimizationQuestion):
         if discriminant < 0 or not is_perfect_square(discriminant):
             return [], x_p
 
-        sqrt_disc = int(discriminant ** 0.5)
-        x1 = round((-B - sqrt_disc) / (2 * A))  # Làm tròn gần nhất về số nguyên
-        x2 = round((-B + sqrt_disc) / (2 * A))  # Làm tròn gần nhất về số nguyên
+        sqrt_disc = discriminant ** 0.5
+        x1 = (-B - sqrt_disc) / (2 * A)
+        x2 = (-B + sqrt_disc) / (2 * A)
         critical_points = [x1, x2]
         critical_points.sort()
 
@@ -1327,8 +1320,8 @@ class RationalQuadraticMonotonicity(BaseOptimizationQuestion):
                 continue
 
             sqrt_disc = math.sqrt(discriminant)
-            x1 = round((-2 * b - sqrt_disc) / (2 * 3 * a))  # Làm tròn gần nhất về số nguyên
-            x2 = round((-2 * b + sqrt_disc) / (2 * 3 * a))  # Làm tròn gần nhất về số nguyên
+            x1 = (-2 * b - sqrt_disc) / (2 * 3 * a)
+            x2 = (-2 * b + sqrt_disc) / (2 * 3 * a)
 
             if x1 > x2:
                 x1, x2 = x2, x1
@@ -1337,11 +1330,11 @@ class RationalQuadraticMonotonicity(BaseOptimizationQuestion):
             if x1 == x2:
                 continue
 
-            # Áp dụng ràng buộc domain - chỉ giữ lại các điểm nguyên
+            # Áp dụng ràng buộc domain
             if x1 < domain_min or x1 > domain_max or x2 < domain_min or x2 > domain_max:
                 continue
 
-            critical_points = [int(x1), int(x2)]
+            critical_points = [x1, x2]
 
             # Xác định khoảng đồng biến, nghịch biến
             if a > 0:
@@ -1402,12 +1395,11 @@ class RationalQuadraticMonotonicity(BaseOptimizationQuestion):
             critical_points = [0]
             if -b / (2 * a) > 0:
                 sqrt_val = math.sqrt(-b / (2 * a))
-                sqrt_val_rounded = round(sqrt_val)  # Làm tròn gần nhất về số nguyên
-                if sqrt_val_rounded > 0:  # Đảm bảo không có nghiệm kép tại 0
-                    critical_points = [-sqrt_val_rounded, 0, sqrt_val_rounded]
+                if sqrt_val > 0:  # Đảm bảo không có nghiệm kép tại 0
+                    critical_points = [-sqrt_val, 0, sqrt_val]
 
-            # Áp dụng ràng buộc domain - chỉ giữ lại các điểm nguyên
-            critical_points = [int(x) for x in critical_points if domain_min <= x <= domain_max]
+            # Áp dụng ràng buộc domain
+            critical_points = [x for x in critical_points if domain_min <= x <= domain_max]
             
             # Loại bỏ các điểm trùng lặp
             critical_points = sorted(list(set(critical_points)))
@@ -1775,7 +1767,7 @@ Lập bảng xét dấu cho \\({derivative_symbol}'({var})\\) và kết luận: 
 
         # Tính đạo hàm
         A_prime = a * d
-        B_prime = 2 * a * e + b * d
+        B_prime = 2 * a * e
         C_prime = b * e - c * d
         
         # Format tử số của đạo hàm

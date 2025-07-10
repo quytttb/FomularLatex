@@ -1,8 +1,5 @@
-#!/usr/bin/env python3
 """
-Standalone Container Mechanics Question Generator
 Tạo câu hỏi trắc nghiệm về cơ học container treo 4 dây cáp
-File độc lập - không cần import thêm file khác
 """
 
 import random

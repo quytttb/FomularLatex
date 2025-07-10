@@ -1,3 +1,7 @@
+"""
+Dạng toán tối ưu hóa sản xuất và xuất khẩu
+"""
+
 import logging
 import random
 import sys
@@ -320,15 +324,16 @@ class BaseOptimizationQuestion(ABC):
 
     @staticmethod
     def create_latex_document_with_format(questions_data: List, title: str = "Câu hỏi Tối ưu hóa", fmt: int = 1) -> str:
-        """Tạo document LaTeX với format cụ thể"""
+        """Tạo document LaTeX với 2 format khác nhau"""
         latex_content = f"""\\documentclass[a4paper,12pt]{{article}}
-\\usepackage[utf8]{{inputenc}}
 \\usepackage{{amsmath}}
 \\usepackage{{amsfonts}}
 \\usepackage{{amssymb}}
 \\usepackage{{geometry}}
 \\geometry{{a4paper, margin=1in}}
-\\usepackage{{fontspec}}
+\\usepackage{{polyglossia}}
+\\setmainlanguage{{vietnamese}}
+\\setmainfont{{Times New Roman}}
 \\usepackage{{tikz}}
 \\usepackage{{tkz-tab}}
 \\usepackage{{tkz-euclide}}
@@ -338,9 +343,45 @@ class BaseOptimizationQuestion(ABC):
 \\maketitle
 
 """
-        for question_data in questions_data:
-            latex_content += f"{question_data}\n\n"
-        latex_content += "\n\\end{document}"
+
+        if fmt == 1:
+            # Format 1: đáp án ngay sau câu hỏi
+            for question_data in questions_data:
+                if isinstance(question_data, tuple):
+                    latex_content += f"{question_data[0]}\n\n"
+                else:
+                    latex_content += f"{question_data}\n\n"
+        else:
+            # Format 2: câu hỏi + lời giải, đáp án ở cuối
+            correct_answers = []
+            for question_data in questions_data:
+                if isinstance(question_data, tuple):
+                    question_content, correct_answer = question_data
+                    latex_content += question_content + "\n\n"
+                    correct_answers.append(correct_answer)
+                else:
+                    # Fallback cho format cũ
+                    latex_content += f"{question_data}\n\n"
+
+            # Thêm phần đáp án ở cuối
+            if correct_answers:
+                latex_content += "Đáp án\n\n"
+                for idx, answer in enumerate(correct_answers, 1):
+                    # Loại bỏ ký hiệu LaTeX để hiển thị đáp án sạch
+                    ans = answer
+                    if ans.startswith("\\(") and ans.endswith("\\)"):
+                        ans = ans[2:-2].strip()
+                    if ans.startswith("$") and ans.endswith("$"):
+                        ans = ans[1:-1].strip()
+                    
+                    # Nếu là số thập phân (có dấu phẩy), in thêm dạng dấu chấm
+                    if ',' in ans:
+                        ans_dot = ans.replace(',', '.')
+                        latex_content += f"Câu {idx}: {ans}|{ans_dot}\n\n"
+                    else:
+                        latex_content += f"Câu {idx}: {ans}\n\n"
+
+        latex_content += "\\end{document}"
         return latex_content
 
 
@@ -406,7 +447,7 @@ class ProductionOptimization(BaseOptimizationQuestion):
         optimal_t = -4
         optimal_hours = p["base_hours"] + optimal_t
 
-        return f"\\({optimal_hours}\\) giờ"
+        return f"\\({optimal_hours}\\)"
 
     def generate_wrong_answers(self) -> List[str]:
         """Sinh 3 đáp án sai hợp lý"""
@@ -415,31 +456,31 @@ class ProductionOptimization(BaseOptimizationQuestion):
 
         # Các sai lầm thường gặp
         wrong_answers = [
-            f"\\({base_hours + 2}\\) giờ",  # Tăng 2 giờ
-            f"\\({base_hours - 2}\\) giờ",  # Giảm 2 giờ
-            f"\\({base_hours}\\) giờ"  # Giữ nguyên
+            f"\\({base_hours + 2}\\)",  # Tăng 2 giờ
+            f"\\({base_hours - 2}\\)",  # Giảm 2 giờ
+            f"\\({base_hours}\\)"  # Giữ nguyên
         ]
 
         return wrong_answers
 
     PROBLEM_TEMPLATES = [
         # Đề bài gốc - Câu 1
-        '''Theo thống kê tại một nhà máy Z, nếu áp dụng tuần làm việc {base_hours} giờ thì mỗi tuần có {base_teams} tổ công nhân đi làm và mỗi tổ công nhân làm được {base_productivity} sản phẩm trong một giờ. Nếu tăng thời gian làm việc thêm {hour_increment} giờ mỗi tuần thì sẽ có {team_decrease} tổ công nhân nghỉ việc và năng suất lao động giảm {productivity_decrease} sản phẩm/1 tổ/1 giờ. Ngoài ra, số phế phẩm mỗi tuần ước tính là \\(P(x)={waste_formula}\\), với \\(x\\) là thời gian làm việc trong một tuần. Nhà máy cần áp dụng thời gian làm việc mỗi tuần mấy giờ để số lượng sản phẩm thu được mỗi tuần (sau khi trừ phế phẩm) là lớn nhất?''',
+        '''Theo thống kê tại một nhà máy Z, nếu áp dụng tuần làm việc {base_hours} giờ thì mỗi tuần có {base_teams} tổ công nhân đi làm và mỗi tổ công nhân làm được {base_productivity} sản phẩm trong một giờ. Nếu tăng thời gian làm việc thêm {hour_increment} giờ mỗi tuần thì sẽ có {team_decrease} tổ công nhân nghỉ việc và năng suất lao động giảm {productivity_decrease} sản phẩm/1 tổ/1 giờ. Ngoài ra, số phế phẩm mỗi tuần ước tính là \\(P(x)={waste_formula}\\), với \\(x\\) là thời gian làm việc trong một tuần. Nhà máy cần áp dụng thời gian làm việc mỗi tuần mấy giờ để số lượng sản phẩm thu được mỗi tuần (sau khi trừ phế phẩm) là lớn nhất? (Đơn vị: giờ)''',
 
         # Bài tương tự 1
-        '''Để cải thiện hiệu quả sản xuất, ban lãnh đạo nhà máy chế biến thực phẩm Z đang nghiên cứu phương án điều chỉnh thời gian làm việc trong tuần. Theo thực tế, nếu mỗi tuần công nhân làm việc \\(x\\) giờ thì số phế phẩm tạo ra ước tính theo công thức: \\( P(x) = {waste_formula} \\). Trong điều kiện hiện tại, nhà máy duy trì tuần làm việc {base_hours} giờ, với {base_teams} tổ công nhân hoạt động đều đặn và mỗi tổ sản xuất được {base_productivity} sản phẩm mỗi giờ. Tuy nhiên, khi tăng thêm mỗi {hour_increment} giờ làm việc mỗi tuần, sẽ có {team_decrease} tổ công nhân nghỉ việc và đồng thời năng suất giảm {productivity_decrease} sản phẩm/giờ cho mỗi tổ. Trong bối cảnh đó, nhà máy cần xác định số giờ làm việc \\(x\\) mỗi tuần sao cho tổng số sản phẩm đạt được sau khi trừ phế phẩm là lớn nhất.''',
+        '''Để cải thiện hiệu quả sản xuất, ban lãnh đạo nhà máy chế biến thực phẩm Z đang nghiên cứu phương án điều chỉnh thời gian làm việc trong tuần. Theo thực tế, nếu mỗi tuần công nhân làm việc \\(x\\) giờ thì số phế phẩm tạo ra ước tính theo công thức: \\( P(x) = {waste_formula} \\). Trong điều kiện hiện tại, nhà máy duy trì tuần làm việc {base_hours} giờ, với {base_teams} tổ công nhân hoạt động đều đặn và mỗi tổ sản xuất được {base_productivity} sản phẩm mỗi giờ. Tuy nhiên, khi tăng thêm mỗi {hour_increment} giờ làm việc mỗi tuần, sẽ có {team_decrease} tổ công nhân nghỉ việc và đồng thời năng suất giảm {productivity_decrease} sản phẩm/giờ cho mỗi tổ. Trong bối cảnh đó, nhà máy cần xác định số giờ làm việc \\(x\\) mỗi tuần sao cho tổng số sản phẩm đạt được sau khi trừ phế phẩm là lớn nhất. (Đơn vị: giờ)''',
 
         # Bài tương tự 2
-        '''Trong giai đoạn mở rộng sản xuất để đáp ứng đơn hàng cuối năm, nhà máy cơ khí Z cần điều chỉnh thời lượng làm việc của công nhân. Nếu duy trì thời gian làm việc là \\(x\\) giờ mỗi tuần thì số lượng phế phẩm trong tuần được mô hình hóa bởi hàm số: \\( P(x) = {waste_formula} \\). Hiện tại, nhà máy hoạt động {base_hours} giờ/tuần, có {base_teams} tổ công nhân và mỗi tổ làm ra {base_productivity} sản phẩm mỗi giờ. Tuy nhiên, để tránh quá tải, mỗi khi tăng thêm {hour_increment} giờ làm việc mỗi tuần thì một tổ nghỉ việc và năng suất của các tổ còn lại giảm {productivity_decrease} sản phẩm/giờ. Ban điều hành cần xác định số giờ làm việc tối ưu trong tuần để đảm bảo số sản phẩm hữu ích (sau khi loại trừ phế phẩm) là lớn nhất.''',
+        '''Trong giai đoạn mở rộng sản xuất để đáp ứng đơn hàng cuối năm, nhà máy cơ khí Z cần điều chỉnh thời lượng làm việc của công nhân. Nếu duy trì thời gian làm việc là \\(x\\) giờ mỗi tuần thì số lượng phế phẩm trong tuần được mô hình hóa bởi hàm số: \\( P(x) = {waste_formula} \\). Hiện tại, nhà máy hoạt động {base_hours} giờ/tuần, có {base_teams} tổ công nhân và mỗi tổ làm ra {base_productivity} sản phẩm mỗi giờ. Tuy nhiên, để tránh quá tải, mỗi khi tăng thêm {hour_increment} giờ làm việc mỗi tuần thì một tổ nghỉ việc và năng suất của các tổ còn lại giảm {productivity_decrease} sản phẩm/giờ. Ban điều hành cần xác định số giờ làm việc tối ưu trong tuần để đảm bảo số sản phẩm hữu ích (sau khi loại trừ phế phẩm) là lớn nhất. (Đơn vị: giờ)''',
 
         # Bài tương tự 3
-        '''Xưởng lắp ráp thiết bị điện gia dụng đang vận hành với tuần làm việc {base_hours} giờ, {base_teams} tổ công nhân và mỗi tổ sản xuất {base_productivity} thiết bị/giờ. Tuy nhiên, trong kế hoạch tăng năng suất cuối quý, xưởng cân nhắc tăng số giờ làm việc \\(x\\) mỗi tuần. Điều này kéo theo một số thay đổi:\\\\- Cứ mỗi {hour_increment} giờ tăng thêm, một tổ công nhân nghỉ việc.\\\\- Mỗi tổ còn lại giảm năng suất {productivity_decrease} thiết bị mỗi giờ.\\\\- Lượng phế phẩm tạo ra trong tuần được ước tính bởi hàm: \\( P(x) = {waste_formula} \\).\\\\Xưởng cần xác định \\(x\\) bao nhiêu để tối đa hóa số lượng thiết bị đạt chuẩn sau khi loại trừ phế phẩm. Đây là quyết định quan trọng giúp đảm bảo mục tiêu sản xuất mà không gia tăng lãng phí.''',
+        '''Xưởng lắp ráp thiết bị điện gia dụng đang vận hành với tuần làm việc {base_hours} giờ, {base_teams} tổ công nhân và mỗi tổ sản xuất {base_productivity} thiết bị/giờ. Tuy nhiên, trong kế hoạch tăng năng suất cuối quý, xưởng cân nhắc tăng số giờ làm việc \\(x\\) mỗi tuần. Điều này kéo theo một số thay đổi:\\\\- Cứ mỗi {hour_increment} giờ tăng thêm, một tổ công nhân nghỉ việc.\\\\- Mỗi tổ còn lại giảm năng suất {productivity_decrease} thiết bị mỗi giờ.\\\\- Lượng phế phẩm tạo ra trong tuần được ước tính bởi hàm: \\( P(x) = {waste_formula} \\).\\\\Xưởng cần xác định \\(x\\) bao nhiêu để tối đa hóa số lượng thiết bị đạt chuẩn sau khi loại trừ phế phẩm. Đây là quyết định quan trọng giúp đảm bảo mục tiêu sản xuất mà không gia tăng lãng phí. (Đơn vị: giờ)''',
 
         # Bài tương tự 4
-        '''Trước tình hình đơn hàng xuất khẩu tăng đột biến, xí nghiệp dệt may Z cân nhắc phương án tăng giờ làm trong tuần. Tuy nhiên, mỗi thay đổi kéo theo hệ lụy:\\\\- Cứ tăng {hour_increment} giờ làm/tuần thì có một tổ xin nghỉ do quá tải.\\\\- Năng suất mỗi tổ giảm {productivity_decrease} áo/giờ.\\\\- Tổng phế phẩm hàng tuần ước tính bởi: \\( P(x) = {waste_formula} \\).\\\\Ban đầu, xí nghiệp có {base_teams} tổ, làm {base_hours} giờ/tuần, mỗi tổ sản xuất {base_productivity} áo/giờ. Hãy xác định số giờ làm việc \\(x\\) mỗi tuần để số lượng sản phẩm thu được (sau khi trừ phế phẩm) đạt giá trị lớn nhất, từ đó đảm bảo hiệu suất tối ưu.''',
+        '''Trước tình hình đơn hàng xuất khẩu tăng đột biến, xí nghiệp dệt may Z cân nhắc phương án tăng giờ làm trong tuần. Tuy nhiên, mỗi thay đổi kéo theo hệ lụy:\\\\- Cứ tăng {hour_increment} giờ làm/tuần thì có một tổ xin nghỉ do quá tải.\\\\- Năng suất mỗi tổ giảm {productivity_decrease} áo/giờ.\\\\- Tổng phế phẩm hàng tuần ước tính bởi: \\( P(x) = {waste_formula} \\).\\\\Ban đầu, xí nghiệp có {base_teams} tổ, làm {base_hours} giờ/tuần, mỗi tổ sản xuất {base_productivity} áo/giờ. Hãy xác định số giờ làm việc \\(x\\) mỗi tuần để số lượng sản phẩm thu được (sau khi trừ phế phẩm) đạt giá trị lớn nhất, từ đó đảm bảo hiệu suất tối ưu. (Đơn vị: giờ)''',
 
         # Bài tương tự 5
-        '''Một cơ sở sản xuất nhựa dân dụng tại miền Trung đang cần xác định thời lượng làm việc tối ưu trong tuần nhằm đảm bảo sản lượng thực tế cao nhất. Cơ sở hiện duy trì {base_teams} tổ lao động, mỗi tổ làm việc {base_hours} giờ/tuần và sản xuất {base_productivity} đơn vị sản phẩm mỗi giờ. Khi mở rộng ca làm, xảy ra các biến đổi sau:\\\\- Cứ mỗi {hour_increment} giờ tăng thêm, giảm 1 tổ làm việc.\\\\- Năng suất mỗi tổ giảm {productivity_decrease} đơn vị mỗi giờ.\\\\- Số lượng sản phẩm hư hỏng phát sinh trong tuần theo công thức: \\( P(x) = {waste_formula} \\).\\\\Bài toán yêu cầu tìm số giờ làm việc \\(x\\) sao cho số sản phẩm thực tế (tổng sản phẩm sản xuất trừ đi phế phẩm) đạt giá trị lớn nhất.'''
+        '''Một cơ sở sản xuất nhựa dân dụng tại miền Trung đang cần xác định thời lượng làm việc tối ưu trong tuần nhằm đảm bảo sản lượng thực tế cao nhất. Cơ sở hiện duy trì {base_teams} tổ lao động, mỗi tổ làm việc {base_hours} giờ/tuần và sản xuất {base_productivity} đơn vị sản phẩm mỗi giờ. Khi mở rộng ca làm, xảy ra các biến đổi sau:\\\\- Cứ mỗi {hour_increment} giờ tăng thêm, giảm 1 tổ làm việc.\\\\- Năng suất mỗi tổ giảm {productivity_decrease} đơn vị mỗi giờ.\\\\- Số lượng sản phẩm hư hỏng phát sinh trong tuần theo công thức: \\( P(x) = {waste_formula} \\).\\\\Bài toán yêu cầu tìm số giờ làm việc \\(x\\) sao cho số sản phẩm thực tế (tổng sản phẩm sản xuất trừ đi phế phẩm) đạt giá trị lớn nhất. (Đơn vị: giờ)'''
     ]
 
     def generate_question_text(self) -> str:
@@ -459,8 +500,11 @@ class ProductionOptimization(BaseOptimizationQuestion):
         p = self.parameters
 
         # Tính toán các giá trị phân số để format đúng
-        waste_a_half = format_dfrac(p["waste_a"], 2)
-        waste_b_half_c = format_dfrac(p["waste_b"], 2 * p["waste_c"])
+        # Sửa lại: đạo hàm của phế phẩm P(x) = [ax^2 + bx]/c
+        # P'(x) = [2ax + b]/c = (2a/c)x + (b/c)
+        # Với x = base_hours + t, ta có P'(base_hours + t) = (2a/c)(base_hours + t) + (b/c)
+        waste_derivative_coeff = format_dfrac(2 * p["waste_a"], p["waste_c"])  # 2a/c
+        waste_derivative_const = format_dfrac(p["waste_b"], p["waste_c"])      # b/c
 
         # Các hệ số trong đạo hàm (từ bài toán cụ thể)
         # f'(t) = (15/4)t^2 - (1135/2)t - 2330
@@ -498,7 +542,7 @@ Số sản phẩm thu được là:
 
 \\(f(t) = \\left({p["base_teams"]} - \\dfrac{{t}}{{{p["hour_increment"]}}}\\right)\\left({p["base_productivity"]} - \\dfrac{{{p["productivity_decrease"]}t}}{{{p["hour_increment"]}}}\\right)({p["base_hours"]} + t) - \\dfrac{{{p["waste_a"]}({p["base_hours"]} + t)^2 + {p["waste_b"]}({p["base_hours"]} + t)}}{{{p["waste_c"]}}}\\)
 
-\\(f'(t) = {neg_one}\\left({p["base_productivity"]} - {productivity_decrease_frac}t\\right)({p["base_hours"]} + t) - {productivity_decrease_frac}\\left({p["base_teams"]} - {teams_frac}t\\right)({p["base_hours"]} + t) + \\left({p["base_teams"]} - {teams_frac}t\\right)\\left({p["base_productivity"]} - {productivity_decrease_frac}t\\right) - {waste_a_half}({p["base_hours"]} + t) - {waste_b_half_c} \\\\ = {coeff_t2} t^2 - {coeff_t} t - {constant}\\)
+\\(f'(t) = {neg_one}\\left({p["base_productivity"]} - {productivity_decrease_frac}t\\right)({p["base_hours"]} + t) - {productivity_decrease_frac}\\left({p["base_teams"]} - {teams_frac}t\\right)({p["base_hours"]} + t) + \\left({p["base_teams"]} - {teams_frac}t\\right)\\left({p["base_productivity"]} - {productivity_decrease_frac}t\\right) - {waste_derivative_coeff}({p["base_hours"]} + t) - {waste_derivative_const} \\\\ = {coeff_t2} t^2 - {coeff_t} t - {constant}\\)
 
 Ta có \\(f'(t) = 0 \\Leftrightarrow \\left[\\begin{{array}}{{l}}t = {solution_t1} \\\\ t = {solution_t2}(L)\\end{{array}}\\right.\\).
 
@@ -584,42 +628,43 @@ class ExportProfitOptimization(BaseOptimizationQuestion):
 
     PROBLEM_TEMPLATES = [
         # Đề bài gốc - Câu 2
-        '''Một doanh nghiệp kinh doanh một loại sản phẩm T được sản xuất trong nước. Qua nghiên cứu thấy rằng nếu chi phí sản xuất mỗi sản phẩm T là \\(x(\$)\\) thì số sản phẩm T các nhà máy sản xuất sẽ là \\(R(x)=x-{c1}\\) và số sản phẩm T mà doanh nghiệp bán được trên thị trường trong nước sẽ là \\(Q(x)={c2}-x\\). Số sản phẩm còn dư doanh nghiệp xuất khẩu ra thị trường quốc tế với giá bán mỗi sản phẩm ổn định trên thị trường quốc tế là \\(x_0={x0} \$\\) . Nhà nước đánh thuế trên mỗi sản phẩm xuất khẩu là \\(a(\$)\\) và luôn đảm bảo tỉ lệ giữa lãi xuất khẩu của doanh nghiệp và thuế thu được của nhà nước tương ứng là \\(4: 1\\). Hãy xác định giá trị của \\(a\\) biết lãi mà doanh nghiệp thu được do xuất khẩu là nhiều nhất.''',
+        '''Một doanh nghiệp kinh doanh một loại sản phẩm T được sản xuất trong nước. Qua nghiên cứu thấy rằng nếu chi phí sản xuất mỗi sản phẩm T là \\(x\\) USD thì số sản phẩm T các nhà máy sản xuất sẽ là \\(R(x)=x-{c1}\\) và số sản phẩm T mà doanh nghiệp bán được trên thị trường trong nước sẽ là \\(Q(x)={c2}-x\\). Số sản phẩm còn dư doanh nghiệp xuất khẩu ra thị trường quốc tế với giá bán mỗi sản phẩm ổn định trên thị trường quốc tế là \\(x_0={x0} \$\\) . Nhà nước đánh thuế trên mỗi sản phẩm xuất khẩu là \\(a\\) USD và luôn đảm bảo tỉ lệ giữa lãi xuất khẩu của doanh nghiệp và thuế thu được của nhà nước tương ứng là \\(4: 1\\). Hãy xác định giá trị của \\(a\\) biết lãi mà doanh nghiệp thu được do xuất khẩu là nhiều nhất? (Đơn vị: USD)''',
 
         # Bài tương tự 1
-        '''Công ty TNHH T chuyên sản xuất cà phê bột để tiêu thụ trong nước và xuất khẩu. Giá bán cố định của cà phê bột trên thị trường quốc tế là \\(x_0 = {x0}\\) USD mỗi tấn. Phần sản phẩm không tiêu thụ trong nước sẽ được xuất khẩu, và mỗi tấn cà phê xuất khẩu phải chịu mức thuế \\(a\\) USD. Nếu chi phí sản xuất mỗi tấn cà phê là \\(x\\) USD thì doanh nghiệp sản xuất được \\(R(x) = x - {c1}\\) tấn và tiêu thụ nội địa là \\(Q(x) = {c2} - x\\) tấn. Chính sách quốc gia yêu cầu tỷ lệ giữa lợi nhuận từ xuất khẩu và số thuế thu được là \\(4 : 1\\). Tìm giá trị \\(a\\) để lợi nhuận từ hoạt động xuất khẩu là lớn nhất.''',
+        '''Công ty TNHH T chuyên sản xuất cà phê bột để tiêu thụ trong nước và xuất khẩu. Giá bán cố định của cà phê bột trên thị trường quốc tế là \\(x_0 = {x0}\\) USD mỗi tấn. Phần sản phẩm không tiêu thụ trong nước sẽ được xuất khẩu, và mỗi tấn cà phê xuất khẩu phải chịu mức thuế \\(a\\) USD. Nếu chi phí sản xuất mỗi tấn cà phê là \\(x\\) USD thì doanh nghiệp sản xuất được \\(R(x) = x - {c1}\\) tấn và tiêu thụ nội địa là \\(Q(x) = {c2} - x\\) tấn. Chính sách quốc gia yêu cầu tỷ lệ giữa lợi nhuận từ xuất khẩu và số thuế thu được là \\(4 : 1\\). Tìm giá trị \\(a\\) để lợi nhuận từ hoạt động xuất khẩu là lớn nhất. (Đơn vị: USD)''',
 
         # Bài tương tự 2
-        '''Nhà nước quy định rằng tỷ lệ giữa lợi nhuận từ hoạt động xuất khẩu của doanh nghiệp và số thuế thu được phải luôn giữ ở mức \\(4 : 1\\). Một doanh nghiệp sản xuất thiết bị điện tử tiêu dùng quyết định mở rộng xuất khẩu, với giá bán cố định trên thị trường quốc tế là \\(x_0 = {x0}\\) USD mỗi thiết bị. Mỗi thiết bị xuất khẩu chịu thuế \\(a\\) USD. Nếu chi phí sản xuất một thiết bị là \\(x\\) USD thì doanh nghiệp sản xuất được \\(R(x) = x - {c1}\\) sản phẩm, trong đó \\(Q(x) = {c2} - x\\) được tiêu thụ tại thị trường trong nước. Hỏi mức thuế \\(a\\) cần đặt là bao nhiêu để lợi nhuận từ xuất khẩu là lớn nhất.''',
+        '''Nhà nước quy định rằng tỷ lệ giữa lợi nhuận từ hoạt động xuất khẩu của doanh nghiệp và số thuế thu được phải luôn giữ ở mức \\(4 : 1\\). Một doanh nghiệp sản xuất thiết bị điện tử tiêu dùng quyết định mở rộng xuất khẩu, với giá bán cố định trên thị trường quốc tế là \\(x_0 = {x0}\\) USD mỗi thiết bị. Mỗi thiết bị xuất khẩu chịu thuế \\(a\\) USD. Nếu chi phí sản xuất một thiết bị là \\(x\\) USD thì doanh nghiệp sản xuất được \\(R(x) = x - {c1}\\) sản phẩm, trong đó \\(Q(x) = {c2} - x\\) được tiêu thụ tại thị trường trong nước. Hỏi mức thuế \\(a\\) cần đặt là bao nhiêu để lợi nhuận từ xuất khẩu là lớn nhất. (Đơn vị: USD)''',
 
         # Bài tương tự 3
-        '''Một công ty dệt may chuyên sản xuất áo khoác gió thể thao phục vụ thị trường trong nước và xuất khẩu. Nếu chi phí sản xuất mỗi áo là \\(x\\) USD thì nhu cầu nội địa là \\(Q(x) = {c2} - x\\) và sản lượng sản xuất được là \\(R(x) = x - {c1}\\). Các sản phẩm không tiêu thụ hết được xuất khẩu với giá cố định là \\(x_0 = {x0}\\) USD mỗi áo. Mỗi sản phẩm xuất khẩu chịu mức thuế \\(a\\) USD. Nhà nước yêu cầu doanh nghiệp duy trì tỷ lệ giữa lãi và thuế ở mức \\(4 : 1\\). Tìm giá trị \\(a\\) sao cho lợi nhuận từ hoạt động xuất khẩu đạt cực đại.''',
+        '''Một công ty dệt may chuyên sản xuất áo khoác gió thể thao phục vụ thị trường trong nước và xuất khẩu. Nếu chi phí sản xuất mỗi áo là \\(x\\) USD thì nhu cầu nội địa là \\(Q(x) = {c2} - x\\) và sản lượng sản xuất được là \\(R(x) = x - {c1}\\). Các sản phẩm không tiêu thụ hết được xuất khẩu với giá cố định là \\(x_0 = {x0}\\) USD mỗi áo. Mỗi sản phẩm xuất khẩu chịu mức thuế \\(a\\) USD. Nhà nước yêu cầu doanh nghiệp duy trì tỷ lệ giữa lãi và thuế ở mức \\(4 : 1\\). Tìm giá trị \\(a\\) sao cho lợi nhuận từ hoạt động xuất khẩu đạt cực đại. (Đơn vị: USD)''',
 
         # Bài tương tự 4
-        '''Một nhà máy thực phẩm sản xuất dầu ăn đóng chai với mục tiêu phục vụ thị trường nội địa và xuất khẩu. Khi chi phí sản xuất mỗi chai là \\(x\\) USD thì sản lượng đạt được là \\(R(x) = x - {c1}\\), và lượng tiêu thụ trong nước là \\(Q(x) = {c2} - x\\). Phần còn lại được xuất khẩu với giá ổn định là \\(x_0 = {x0}\\) USD/chai. Mỗi sản phẩm xuất khẩu chịu thuế \\(a\\) USD. Nhà nước yêu cầu tỷ lệ giữa lợi nhuận từ xuất khẩu và số thuế thu được là \\(4 : 1\\). Xác định mức thuế \\(a\\) để lợi nhuận từ xuất khẩu lớn nhất.''',
+        '''Một nhà máy thực phẩm sản xuất dầu ăn đóng chai với mục tiêu phục vụ thị trường nội địa và xuất khẩu. Khi chi phí sản xuất mỗi chai là \\(x\\) USD thì sản lượng đạt được là \\(R(x) = x - {c1}\\), và lượng tiêu thụ trong nước là \\(Q(x) = {c2} - x\\). Phần còn lại được xuất khẩu với giá ổn định là \\(x_0 = {x0}\\) USD/chai. Mỗi sản phẩm xuất khẩu chịu thuế \\(a\\) USD. Nhà nước yêu cầu tỷ lệ giữa lợi nhuận từ xuất khẩu và số thuế thu được là \\(4 : 1\\). Xác định mức thuế \\(a\\) để lợi nhuận từ xuất khẩu lớn nhất. (Đơn vị: USD)''',
 
         # Bài tương tự 5
-        '''Một công ty khởi nghiệp đang phát triển robot dọn nhà loại mini để bán trong nước và xuất khẩu. Các sản phẩm dư ra được bán ra thị trường quốc tế với giá cố định là \\(x_0 = {x0}\\) USD mỗi thiết bị. Nếu chi phí sản xuất là \\(x\\) USD mỗi thiết bị, thì sản lượng là \\(R(x) = x - {c1}\\) và lượng tiêu thụ nội địa là \\(Q(x) = {c2} - x\\). Theo quy định nhà nước, mỗi sản phẩm xuất khẩu chịu mức thuế \\(a\\) USD và tỉ lệ giữa lợi nhuận và thuế thu được phải là \\(4 : 1\\). Hỏi giá trị của \\(a\\) để lợi nhuận từ xuất khẩu đạt cực đại.''',
+        '''Một công ty khởi nghiệp đang phát triển robot dọn nhà loại mini để bán trong nước và xuất khẩu. Các sản phẩm dư ra được bán ra thị trường quốc tế với giá cố định là \\(x_0 = {x0}\\) USD mỗi thiết bị. Nếu chi phí sản xuất là \\(x\\) USD mỗi thiết bị, thì sản lượng là \\(R(x) = x - {c1}\\) và lượng tiêu thụ nội địa là \\(Q(x) = {c2} - x\\). Theo quy định nhà nước, mỗi sản phẩm xuất khẩu chịu mức thuế \\(a\\) USD và tỉ lệ giữa lợi nhuận và thuế thu được phải là \\(4 : 1\\). Hỏi giá trị của \\(a\\) để lợi nhuận từ xuất khẩu đạt cực đại. (Đơn vị: USD)''',
 
         # Bài tương tự 6
-        '''Một công ty công nghệ trẻ đang phát triển robot lau nhà mini để phục vụ thị trường nội địa và xuất khẩu sang nước ngoài. Do điều kiện thị trường, phần sản phẩm dư thừa sau tiêu thụ nội địa sẽ được bán ra quốc tế với mức giá ổn định là \\(x_0 = {x0}\\) USD cho mỗi thiết bị. Nếu chi phí sản xuất một thiết bị là \\(x\\) USD thì số lượng sản phẩm công ty có thể sản xuất là \\(R(x) = x - {c1}\\), và lượng tiêu thụ trong nước được dự báo là \\(Q(x) = {c2} - x\\). Theo quy định của nhà nước, mỗi thiết bị xuất khẩu chịu thuế \\(a\\) USD và tỉ lệ giữa lợi nhuận từ hoạt động xuất khẩu với số thuế thu được phải luôn là \\(4 : 1\\). Hỏi mức thuế \\(a\\) cần quy định là bao nhiêu để lợi nhuận thu được từ hoạt động xuất khẩu của công ty là lớn nhất.''',
+        '''Một công ty công nghệ trẻ đang phát triển robot lau nhà mini để phục vụ thị trường nội địa và xuất khẩu sang nước ngoài. Do điều kiện thị trường, phần sản phẩm dư thừa sau tiêu thụ nội địa sẽ được bán ra quốc tế với mức giá ổn định là \\(x_0 = {x0}\\) USD cho mỗi thiết bị. Nếu chi phí sản xuất một thiết bị là \\(x\\) USD thì số lượng sản phẩm công ty có thể sản xuất là \\(R(x) = x - {c1}\\), và lượng tiêu thụ trong nước được dự báo là \\(Q(x) = {c2} - x\\). Theo quy định của nhà nước, mỗi thiết bị xuất khẩu chịu thuế \\(a\\) USD và tỉ lệ giữa lợi nhuận từ hoạt động xuất khẩu với số thuế thu được phải luôn là \\(4 : 1\\). Hỏi mức thuế \\(a\\) cần quy định là bao nhiêu để lợi nhuận thu được từ hoạt động xuất khẩu của công ty là lớn nhất. (Đơn vị: USD)''',
 
         # Bài tương tự 7
-        '''Nhằm đảm bảo cân đối giữa lợi ích doanh nghiệp và ngân sách nhà nước, mỗi đèn LED thông minh xuất khẩu bị đánh thuế \\(a\\) USD. Nhà nước yêu cầu doanh nghiệp phải duy trì tỉ lệ giữa lợi nhuận thu được từ xuất khẩu và số thuế nộp là \\(4 : 1\\). Giá bán trên thị trường quốc tế của mỗi đèn LED là \\(x_0 = {x0}\\) USD. Qua khảo sát, nếu chi phí sản xuất mỗi đèn là \\(x\\) USD thì số sản phẩm sản xuất được là \\(R(x) = x - {c1}\\), trong khi số lượng tiêu thụ trong nước là \\(Q(x) = {c2} - x\\). Hỏi doanh nghiệp cần chọn mức thuế \\(a\\) là bao nhiêu để lợi nhuận từ xuất khẩu đạt lớn nhất.''',
+        '''Nhằm đảm bảo cân đối giữa lợi ích doanh nghiệp và ngân sách nhà nước, mỗi đèn LED thông minh xuất khẩu bị đánh thuế \\(a\\) USD. Nhà nước yêu cầu doanh nghiệp phải duy trì tỉ lệ giữa lợi nhuận thu được từ xuất khẩu và số thuế nộp là \\(4 : 1\\). Giá bán trên thị trường quốc tế của mỗi đèn LED là \\(x_0 = {x0}\\) USD. Qua khảo sát, nếu chi phí sản xuất mỗi đèn là \\(x\\) USD thì số sản phẩm sản xuất được là \\(R(x) = x - {c1}\\), trong khi số lượng tiêu thụ trong nước là \\(Q(x) = {c2} - x\\). Hỏi doanh nghiệp cần chọn mức thuế \\(a\\) là bao nhiêu để lợi nhuận từ xuất khẩu đạt lớn nhất. (Đơn vị: USD)''',
 
         # Bài tương tự 8
-        '''Một công ty điện tử chuyên sản xuất loa Bluetooth chống nước phục vụ cho cả thị trường nội địa và quốc tế. Nếu chi phí sản xuất mỗi loa là \\(x\\) USD, thì số lượng sản phẩm sản xuất được là \\(R(x) = x - {c1}\\) và lượng tiêu thụ trong nước là \\(Q(x) = {c2} - x\\). Các sản phẩm không tiêu thụ trong nước sẽ được xuất khẩu với mức giá ổn định là \\(x_0 = {x0}\\) USD mỗi chiếc. Theo quy định, mỗi sản phẩm xuất khẩu bị đánh thuế \\(a\\) USD và tỷ lệ giữa lãi và thuế thu được phải luôn là \\(4 : 1\\). Tính giá trị \\(a\\) sao cho lợi nhuận từ xuất khẩu là lớn nhất.''',
+        '''Một công ty điện tử chuyên sản xuất loa Bluetooth chống nước phục vụ cho cả thị trường nội địa và quốc tế. Nếu chi phí sản xuất mỗi loa là \\(x\\) USD, thì số lượng sản phẩm sản xuất được là \\(R(x) = x - {c1}\\) và lượng tiêu thụ trong nước là \\(Q(x) = {c2} - x\\). Các sản phẩm không tiêu thụ trong nước sẽ được xuất khẩu với mức giá ổn định là \\(x_0 = {x0}\\) USD mỗi chiếc. Theo quy định, mỗi sản phẩm xuất khẩu bị đánh thuế \\(a\\) USD và tỷ lệ giữa lãi và thuế thu được phải luôn là \\(4 : 1\\). Tính giá trị \\(a\\) sao cho lợi nhuận từ xuất khẩu là lớn nhất. (Đơn vị: USD)''',
 
         # Bài tương tự 9
-        '''Nhằm khuyến khích phát triển sản phẩm thân thiện với môi trường, chính phủ yêu cầu rằng đối với mỗi đèn năng lượng mặt trời xuất khẩu, tỷ lệ giữa lợi nhuận thu được và số thuế thu phải là \\(4 : 1\\). Một công ty chuyên sản xuất đèn năng lượng mặt trời bán phần sản phẩm dư ra thị trường quốc tế với mức giá ổn định \\(x_0 = {x0}\\) USD mỗi đèn. Nếu chi phí sản xuất là \\(x\\) USD thì số lượng sản phẩm sản xuất được là \\(R(x) = x - {c1}\\), còn số sản phẩm tiêu thụ trong nước là \\(Q(x) = {c2} - x\\). Hãy xác định mức thuế \\(a\\) sao cho lợi nhuận từ xuất khẩu là lớn nhất.''',
+        '''Nhằm khuyến khích phát triển sản phẩm thân thiện với môi trường, chính phủ yêu cầu rằng đối với mỗi đèn năng lượng mặt trời xuất khẩu, tỷ lệ giữa lợi nhuận thu được và số thuế thu phải là \\(4 : 1\\). Một công ty chuyên sản xuất đèn năng lượng mặt trời bán phần sản phẩm dư ra thị trường quốc tế với mức giá ổn định \\(x_0 = {x0}\\) USD mỗi đèn. Nếu chi phí sản xuất là \\(x\\) USD thì số lượng sản phẩm sản xuất được là \\(R(x) = x - {c1}\\), còn số sản phẩm tiêu thụ trong nước là \\(Q(x) = {c2} - x\\). Hãy xác định mức thuế \\(a\\) sao cho lợi nhuận từ xuất khẩu là lớn nhất. (Đơn vị: USD)''',
 
         # Bài tương tự 10
-        '''Giá bán quốc tế cố định của mỗi đèn LED thông minh là \\(x_0 = {x0}\\) USD. Nhà máy dự kiến rằng với chi phí sản xuất là \\(x\\) USD thì có thể sản xuất được \\(R(x) = x - {c1}\\) sản phẩm. Mỗi đèn được xuất khẩu phải chịu mức thuế \\(a\\) USD. Theo chính sách nhà nước, tỷ lệ giữa lợi nhuận thu được từ xuất khẩu và số thuế phải luôn đạt mức \\(4 : 1\\). Sản lượng tiêu thụ trong nước dự kiến là \\(Q(x) = {c2} - x\\). Hãy xác định giá trị \\(a\\) sao cho lợi nhuận từ xuất khẩu đạt giá trị lớn nhất.'''
+        '''Giá bán quốc tế cố định của mỗi đèn LED thông minh là \\(x_0 = {x0}\\) USD. Nhà máy dự kiến rằng với chi phí sản xuất là \\(x\\) USD thì có thể sản xuất được \\(R(x) = x - {c1}\\) sản phẩm. Mỗi đèn được xuất khẩu phải chịu mức thuế \\(a\\) USD. Theo chính sách nhà nước, tỷ lệ giữa lợi nhuận thu được từ xuất khẩu và số thuế phải luôn đạt mức \\(4 : 1\\). Sản lượng tiêu thụ trong nước dự kiến là \\(Q(x) = {c2} - x\\). Hãy xác định giá trị \\(a\\) sao cho lợi nhuận từ xuất khẩu đạt giá trị lớn nhất. (Đơn vị: USD)'''
     ]
 
     def generate_question_text(self) -> str:
         """Sinh đề bài bằng LaTeX"""
         p = self.parameters
+
         template = random.choice(self.PROBLEM_TEMPLATES)
         return template.format(**p)
 
@@ -685,22 +730,22 @@ class FuelCostOptimization(BaseOptimizationQuestion):
 
     PROBLEM_TEMPLATES = [
         # Đề bài gốc
-        '''Trên một khúc sông có dòng nước lặng, một chiếc tàu chạy với tốc độ không đổi, chi phí nhiên liệu được tính bởi hai phần: Phần thứ nhất không phụ thuộc vào tốc độ và mất chi phí {fixed_cost} nghìn đồng/giờ; Phần thứ hai tỉ lệ thuận với bình phương của tốc độ, khi \\(v={ref_speed}(\\mathrm{{~km}} / \\mathrm{{h}})\\) thì chi phí phần thứ hai là {ref_variable_cost} nghìn đồng/giờ. Tìm tốc độ của tàu để tổng chi phí nhiên liệu khi tàu chạy 1 km trên sông là ít nhất (kết quả làm tròn đến hàng phần trăm).''',
+        '''Trên một khúc sông có dòng nước lặng, một chiếc tàu chạy với tốc độ không đổi, chi phí nhiên liệu được tính bởi hai phần: Phần thứ nhất không phụ thuộc vào tốc độ và mất chi phí {fixed_cost} nghìn đồng/giờ; Phần thứ hai tỉ lệ thuận với bình phương của tốc độ, khi \\(v={ref_speed}(\\mathrm{{~km}} / \\mathrm{{h}})\\) thì chi phí phần thứ hai là {ref_variable_cost} nghìn đồng/giờ. Tìm tốc độ của tàu để tổng chi phí nhiên liệu khi tàu chạy 1 km trên sông là ít nhất (kết quả làm tròn đến hàng phần trăm). (Đơn vị: km/h)''',
 
         # Bài tương tự 1
-        '''Một đơn vị vận tải đường thủy đang nghiên cứu phương án giảm thiểu chi phí nhiên liệu trong quá trình vận hành tàu chở hàng trên khúc sông có dòng nước lặng. Việc tối ưu chi phí trở nên quan trọng trong bối cảnh giá nhiên liệu ngày càng tăng và nhu cầu vận chuyển liên tục. Tổng chi phí nhiên liệu cho mỗi giờ hành trình được cấu thành từ hai phần: phần thứ nhất là chi phí cố định, không phụ thuộc vào vận tốc, trị giá {fixed_cost} nghìn đồng/giờ; phần thứ hai là chi phí phụ thuộc vào vận tốc, cụ thể tỉ lệ thuận với bình phương vận tốc của tàu. Tại vận tốc \\(v = {ref_speed}\\) km/h, chi phí phần biến thiên này được xác định là {ref_variable_cost} nghìn đồng/giờ. Bài toán đặt ra là tìm tốc độ \\(v\\) (km/h) để tổng chi phí nhiên liệu cho mỗi km hành trình là ít nhất. Kết quả làm tròn đến hàng phần trăm.''',
+        '''Một đơn vị vận tải đường thủy đang nghiên cứu phương án giảm thiểu chi phí nhiên liệu trong quá trình vận hành tàu chở hàng trên khúc sông có dòng nước lặng. Việc tối ưu chi phí trở nên quan trọng trong bối cảnh giá nhiên liệu ngày càng tăng và nhu cầu vận chuyển liên tục. Tổng chi phí nhiên liệu cho mỗi giờ hành trình được cấu thành từ hai phần: phần thứ nhất là chi phí cố định, không phụ thuộc vào vận tốc, trị giá {fixed_cost} nghìn đồng/giờ; phần thứ hai là chi phí phụ thuộc vào vận tốc, cụ thể tỉ lệ thuận với bình phương vận tốc của tàu. Tại vận tốc \\(v = {ref_speed}\\) km/h, chi phí phần biến thiên này được xác định là {ref_variable_cost} nghìn đồng/giờ. Bài toán đặt ra là tìm tốc độ \\(v\\) (km/h) để tổng chi phí nhiên liệu cho mỗi km hành trình là ít nhất. Kết quả làm tròn đến hàng phần trăm. (Đơn vị: km/h)''',
 
         # Bài tương tự 2
-        '''Một công ty lữ hành đang khai thác tuyến sông nội địa với các tàu du lịch cao cấp phục vụ khách tham quan. Để duy trì lợi nhuận trong mùa thấp điểm, công ty cần tối ưu hóa chi phí nhiên liệu. Qua khảo sát kỹ thuật, người ta xác định rằng chi phí nhiên liệu trong mỗi giờ hành trình bao gồm hai phần: chi phí cố định là {fixed_cost} nghìn đồng, không phụ thuộc vào tốc độ tàu, và chi phí biến thiên phụ thuộc vào bình phương vận tốc. Khi tàu chạy với vận tốc {ref_speed} km/h, chi phí biến thiên đo được là {ref_variable_cost} nghìn đồng mỗi giờ. Hãy xác định vận tốc \\(v\\) (km/h) sao cho chi phí nhiên liệu trên mỗi km hành trình là ít nhất. Làm tròn kết quả đến hàng phần trăm.''',
+        '''Một công ty lữ hành đang khai thác tuyến sông nội địa với các tàu du lịch cao cấp phục vụ khách tham quan. Để duy trì lợi nhuận trong mùa thấp điểm, công ty cần tối ưu hóa chi phí nhiên liệu. Qua khảo sát kỹ thuật, người ta xác định rằng chi phí nhiên liệu trong mỗi giờ hành trình bao gồm hai phần: chi phí cố định là {fixed_cost} nghìn đồng, không phụ thuộc vào tốc độ tàu, và chi phí biến thiên phụ thuộc vào bình phương vận tốc. Khi tàu chạy với vận tốc {ref_speed} km/h, chi phí biến thiên đo được là {ref_variable_cost} nghìn đồng mỗi giờ. Hãy xác định vận tốc \\(v\\) (km/h) sao cho chi phí nhiên liệu trên mỗi km hành trình là ít nhất. Làm tròn kết quả đến hàng phần trăm. (Đơn vị: km/h)''',
 
         # Bài tương tự 3
-        '''Trên tuyến kênh đào thẳng, không có dòng chảy và thường xuyên được dùng để vận chuyển hàng hóa nặng, một tàu container đang vận hành ổn định. Ban điều hành tuyến vận tải mong muốn tiết kiệm chi phí nhiên liệu nhằm tăng lợi nhuận. Theo phân tích, chi phí nhiên liệu gồm hai phần: phần cố định {fixed_cost} nghìn đồng/giờ, và phần phụ thuộc bình phương vận tốc. Khi tàu chạy với tốc độ {ref_speed} km/h, phần biến thiên này là {ref_variable_cost} nghìn đồng/giờ. Xác định vận tốc \\(v\\) (km/h) sao cho chi phí nhiên liệu để đi hết quãng đường 1 km là ít nhất. Làm tròn đến hàng phần trăm.''',
+        '''Trên tuyến kênh đào thẳng, không có dòng chảy và thường xuyên được dùng để vận chuyển hàng hóa nặng, một tàu container đang vận hành ổn định. Ban điều hành tuyến vận tải mong muốn tiết kiệm chi phí nhiên liệu nhằm tăng lợi nhuận. Theo phân tích, chi phí nhiên liệu gồm hai phần: phần cố định {fixed_cost} nghìn đồng/giờ, và phần phụ thuộc bình phương vận tốc. Khi tàu chạy với tốc độ {ref_speed} km/h, phần biến thiên này là {ref_variable_cost} nghìn đồng/giờ. Xác định vận tốc \\(v\\) (km/h) sao cho chi phí nhiên liệu để đi hết quãng đường 1 km là ít nhất. Làm tròn đến hàng phần trăm. (Đơn vị: km/h)''',
 
         # Bài tương tự 4
-        '''Trên sông lớn với mặt nước êm đềm, một chiếc tàu chở khách được vận hành nhằm phục vụ nhu cầu di chuyển liên tỉnh. Để kiểm soát chi phí vận hành, nhà điều hành tàu cần tính toán vận tốc hợp lý để giảm thiểu lượng nhiên liệu tiêu thụ. Biết rằng chi phí nhiên liệu bao gồm phần không đổi là {fixed_cost} nghìn đồng mỗi giờ và phần biến thiên phụ thuộc bình phương vận tốc. Khi vận tốc tàu là {ref_speed} km/h, phần chi phí biến thiên đo được là {ref_variable_cost} nghìn đồng/giờ. Tìm tốc độ \\(v\\) sao cho chi phí nhiên liệu cho mỗi km hành trình là nhỏ nhất. Làm tròn đến hàng phần trăm.''',
+        '''Trên sông lớn với mặt nước êm đềm, một chiếc tàu chở khách được vận hành nhằm phục vụ nhu cầu di chuyển liên tỉnh. Để kiểm soát chi phí vận hành, nhà điều hành tàu cần tính toán vận tốc hợp lý để giảm thiểu lượng nhiên liệu tiêu thụ. Biết rằng chi phí nhiên liệu bao gồm phần không đổi là {fixed_cost} nghìn đồng mỗi giờ và phần biến thiên phụ thuộc bình phương vận tốc. Khi vận tốc tàu là {ref_speed} km/h, phần chi phí biến thiên đo được là {ref_variable_cost} nghìn đồng/giờ. Tìm tốc độ \\(v\\) sao cho chi phí nhiên liệu cho mỗi km hành trình là nhỏ nhất. Làm tròn đến hàng phần trăm. (Đơn vị: km/h)''',
 
         # Bài tương tự 5
-        '''Trong công tác cứu hộ trên hồ nước ngọt, thời gian và nhiên liệu đều là những yếu tố cần được tối ưu. Một tàu cứu hộ hiện đang hoạt động thường xuyên và cần xác định tốc độ vận hành hiệu quả nhất. Chi phí nhiên liệu trong mỗi giờ di chuyển bao gồm phần cố định {fixed_cost} nghìn đồng và phần tỉ lệ thuận với bình phương vận tốc. Khi vận tốc là {ref_speed} km/h, phần chi phí biến thiên được đo là {ref_variable_cost} nghìn đồng/giờ. Hãy xác định vận tốc \\(v\\) (km/h) sao cho tổng chi phí nhiên liệu để tàu đi được 1 km là thấp nhất. Làm tròn kết quả đến hàng phần trăm.'''
+        '''Trong công tác cứu hộ trên hồ nước ngọt, thời gian và nhiên liệu đều là những yếu tố cần được tối ưu. Một tàu cứu hộ hiện đang hoạt động thường xuyên và cần xác định tốc độ vận hành hiệu quả nhất. Chi phí nhiên liệu trong mỗi giờ di chuyển bao gồm phần cố định {fixed_cost} nghìn đồng và phần tỉ lệ thuận với bình phương vận tốc. Khi vận tốc là {ref_speed} km/h, phần chi phí biến thiên được đo là {ref_variable_cost} nghìn đồng/giờ. Hãy xác định vận tốc \\(v\\) (km/h) sao cho tổng chi phí nhiên liệu để tàu đi được 1 km là thấp nhất. Làm tròn kết quả đến hàng phần trăm. (Đơn vị: km/h)'''
     ]
 
     def generate_parameters(self) -> Dict[str, Any]:
@@ -735,7 +780,7 @@ class FuelCostOptimization(BaseOptimizationQuestion):
 
         optimal_speed = math.sqrt(a / k)
 
-        return f"\\({format_number_clean(optimal_speed, precision=2)}\\) km/h"
+        return f"\\({format_number_clean(optimal_speed, precision=2)}\\)"
 
     def generate_wrong_answers(self) -> List[str]:
         """Sinh 3 đáp án sai hợp lý"""
@@ -747,9 +792,9 @@ class FuelCostOptimization(BaseOptimizationQuestion):
 
         # Các sai lầm thường gặp
         wrong_answers = [
-            f"\\({format_number_clean(optimal_speed * 1.1, precision=2)}\\) km/h",  # Cao hơn 10%
-            f"\\({format_number_clean(optimal_speed * 0.9, precision=2)}\\) km/h",  # Thấp hơn 10%
-            f"\\({p['ref_speed']}\\) km/h"  # Lấy vận tốc tham chiếu
+            f"\\({format_number_clean(optimal_speed * 1.1, precision=2)}\\)",  # Cao hơn 10%
+            f"\\({format_number_clean(optimal_speed * 0.9, precision=2)}\\)",  # Thấp hơn 10%
+            f"\\({p['ref_speed']}\\)"  # Lấy vận tốc tham chiếu
         ]
 
         return wrong_answers
@@ -872,31 +917,31 @@ class FactoryProfitOptimization(BaseOptimizationQuestion):
 
     PROBLEM_TEMPLATES = [
         # Đề bài gốc - Câu 4
-        '''Nhà máy A chuyên sản suất một loại sản phẩm cho nhà máy B. Hai nhà máy thỏa thuận rằng, hàng tháng nhà máy A cung cấp cho nhà máy B số lượng sản phẩm theo đơn đặt hàng của nhà máy B (tối đa {max_production} tấn sản phẩm). Nếu số lượng đặt hàng là \(x\) tấn sản phẩm. Thì giá bán cho mỗi tấn sản phẩm là \(p(x)={price_a}-{price_b} x^2\) (đơn vị triệu đồng). Chi phí để nhà máy A sản suất \(x\) tấn sản phẩm trong một tháng là \(C(x)=\dfrac{{1}}{{2}}({cost_c}+{cost_d} x)\) (đơn vị: triệu đồng), thuế giá trị gia tăng mà nhà máy A phải đóng cho nhà nước là {vat_rate_percent}\% tổng doanh thu mỗi tháng. Hỏi nhà máy A bán cho nhà máy B bao nhiêu tấn sản phẩm mỗi tháng để thu được lợi nhuận (sau khi đã trừ thuế giá trị gia tăng) cao nhất?''',
+        '''Nhà máy A chuyên sản suất một loại sản phẩm cho nhà máy B. Hai nhà máy thỏa thuận rằng, hàng tháng nhà máy A cung cấp cho nhà máy B số lượng sản phẩm theo đơn đặt hàng của nhà máy B (tối đa {max_production} tấn sản phẩm). Nếu số lượng đặt hàng là \\(x\\)  tấn sản phẩm. Thì giá bán cho mỗi tấn sản phẩm là \(p(x)={price_a}-{price_b} x^2\) (đơn vị triệu đồng). Chi phí để nhà máy A sản suất \\(x\\)  tấn sản phẩm trong một tháng là \(C(x)=\dfrac{{1}}{{2}}({cost_c}+{cost_d} x)\) (đơn vị: triệu đồng), thuế giá trị gia tăng mà nhà máy A phải đóng cho nhà nước là {vat_rate_percent}\% tổng doanh thu mỗi tháng. Hỏi nhà máy A bán cho nhà máy B bao nhiêu tấn sản phẩm mỗi tháng để thu được lợi nhuận (sau khi đã trừ thuế giá trị gia tăng) cao nhất? (Đơn vị: tấn)''',
 
         # Bài tương tự 1
-        '''Trong bối cảnh thị trường xây dựng đang có xu hướng phục hồi sau khủng hoảng, nhiều doanh nghiệp sản xuất vật liệu xây dựng chuyên cung cấp gạch ốp lát cho các công trình dân dụng và đối tác lớn. Tuy nhiên, để đảm bảo chất lượng và tiến độ, công ty giới hạn lượng hàng cung cấp mỗi tháng không vượt quá {max_production} tấn. Doanh thu bán hàng chịu thuế GTGT {vat_rate_percent}\%. Chi phí sản xuất \(x\) tấn mỗi tháng là \(C(x) = \dfrac{{1}}{{2}}({cost_c} + {cost_d}x)\) (triệu đồng). Giá bán mỗi tấn sản phẩm được tính theo công thức \(p(x) = {price_a} - {price_b}x^2\) (triệu đồng). Hỏi doanh nghiệp nên bán bao nhiêu tấn mỗi tháng để thu được lợi nhuận sau thuế lớn nhất?''',
+        '''Trong bối cảnh thị trường xây dựng đang có xu hướng phục hồi sau khủng hoảng, nhiều doanh nghiệp sản xuất vật liệu xây dựng chuyên cung cấp gạch ốp lát cho các công trình dân dụng và đối tác lớn. Tuy nhiên, để đảm bảo chất lượng và tiến độ, công ty giới hạn lượng hàng cung cấp mỗi tháng không vượt quá {max_production} tấn. Doanh thu bán hàng chịu thuế GTGT {vat_rate_percent}\%. Chi phí sản xuất \\(x\\)  tấn mỗi tháng là \(C(x) = \dfrac{{1}}{{2}}({cost_c} + {cost_d}x)\) (triệu đồng). Giá bán mỗi tấn sản phẩm được tính theo công thức \(p(x) = {price_a} - {price_b}x^2\) (triệu đồng). Hỏi doanh nghiệp nên bán bao nhiêu tấn mỗi tháng để thu được lợi nhuận sau thuế lớn nhất? (Đơn vị: tấn)''',
 
         # Bài tương tự 2
-        '''Đáp ứng nhu cầu sử dụng thực phẩm sạch ngày càng cao tại các thành phố lớn, một nông trại rau hữu cơ tại vùng ven đô mở rộng sản lượng để cung cấp cho chuỗi siêu thị nội địa. Tuy nhiên, do giới hạn vận chuyển và bảo quản, nông trại chỉ có thể cung cấp tối đa {max_production} tấn rau mỗi tháng. Doanh thu từ việc bán rau bị đánh thuế GTGT {vat_rate_percent}\%. Chi phí sản xuất khi cung ứng \(x\) tấn là \(C(x) = \dfrac{{1}}{{2}}({cost_c} + {cost_d}x)\) (triệu đồng). Giá bán mỗi tấn rau được mô hình hóa theo hàm \(p(x) = {price_a} - {price_b}x^2\) (triệu đồng). Nên bán bao nhiêu tấn rau để tối ưu lợi nhuận sau thuế?''',
+        '''Đáp ứng nhu cầu sử dụng thực phẩm sạch ngày càng cao tại các thành phố lớn, một nông trại rau hữu cơ tại vùng ven đô mở rộng sản lượng để cung cấp cho chuỗi siêu thị nội địa. Tuy nhiên, do giới hạn vận chuyển và bảo quản, nông trại chỉ có thể cung cấp tối đa {max_production} tấn rau mỗi tháng. Doanh thu từ việc bán rau bị đánh thuế GTGT {vat_rate_percent}\%. Chi phí sản xuất khi cung ứng \\(x\\)  tấn là \(C(x) = \dfrac{{1}}{{2}}({cost_c} + {cost_d}x)\) (triệu đồng). Giá bán mỗi tấn rau được mô hình hóa theo hàm \(p(x) = {price_a} - {price_b}x^2\) (triệu đồng). Nên bán bao nhiêu tấn rau để tối ưu lợi nhuận sau thuế? (Đơn vị: tấn)''',
 
         # Bài tương tự 3
-        '''Một công ty sản xuất nước giải khát tại miền Trung vừa ra mắt dòng sản phẩm nước hoa quả lên men không đường nhằm phục vụ nhóm khách hàng quan tâm đến sức khỏe. Sản phẩm được phân phối đến chuỗi siêu thị lớn tại các thành phố lớn như Hà Nội và Đà Nẵng. Do hạn chế về hệ thống kho lạnh và phương tiện vận chuyển chuyên dụng, mỗi tháng công ty chỉ có thể xuất không quá {max_production} tấn sản phẩm ra thị trường. Toàn bộ doanh thu từ việc phân phối sản phẩm sẽ chịu thuế GTGT {vat_rate_percent}\%. Chi phí sản xuất lượng hàng \(x\) tấn là \(C(x) = \dfrac{{1}}{{2}}({cost_c} + {cost_d}x)\) (triệu đồng), và giá bán mỗi tấn phụ thuộc vào sản lượng tiêu thụ: \(p(x) = {price_a} - {price_b}x^2\) (triệu đồng). Hỏi công ty nên bán bao nhiêu tấn mỗi tháng để lợi nhuận sau thuế đạt tối đa?''',
+        '''Một công ty sản xuất nước giải khát tại miền Trung vừa ra mắt dòng sản phẩm nước hoa quả lên men không đường nhằm phục vụ nhóm khách hàng quan tâm đến sức khỏe. Sản phẩm được phân phối đến chuỗi siêu thị lớn tại các thành phố lớn như Hà Nội và Đà Nẵng. Do hạn chế về hệ thống kho lạnh và phương tiện vận chuyển chuyên dụng, mỗi tháng công ty chỉ có thể xuất không quá {max_production} tấn sản phẩm ra thị trường. Toàn bộ doanh thu từ việc phân phối sản phẩm sẽ chịu thuế GTGT {vat_rate_percent}\%. Chi phí sản xuất lượng hàng \\(x\\)  tấn là \(C(x) = \dfrac{{1}}{{2}}({cost_c} + {cost_d}x)\) (triệu đồng), và giá bán mỗi tấn phụ thuộc vào sản lượng tiêu thụ: \(p(x) = {price_a} - {price_b}x^2\) (triệu đồng). Hỏi công ty nên bán bao nhiêu tấn mỗi tháng để lợi nhuận sau thuế đạt tối đa? (Đơn vị: tấn)''',
 
         # Bài tương tự 4
-        '''Một cơ sở chế biến thủy sản tại Khánh Hòa chuyên sản xuất cá phi lê đông lạnh theo tiêu chuẩn HACCP để cung ứng cho chuỗi nhà hàng hải sản và khách sạn 4–5 sao tại TP. Hồ Chí Minh và Nha Trang. Do hệ thống kho đông và phương tiện bảo quản còn giới hạn, mỗi tháng cơ sở chỉ có thể vận chuyển tối đa {max_production} tấn cá thành phẩm ra thị trường. Doanh thu từ hoạt động kinh doanh phải chịu thuế GTGT {vat_rate_percent}\% theo quy định hiện hành. Chi phí chế biến cá \(x\) tấn được mô hình hóa theo hàm \(C(x) = \dfrac{{1}}{{2}}({cost_c} + {cost_d}x)\) (triệu đồng). Giá bán mỗi tấn sản phẩm phụ thuộc vào khối lượng tiêu thụ, được tính theo công thức: \(p(x) = {price_a} - {price_b}x^2\) (triệu đồng). Hỏi cơ sở nên bán bao nhiêu tấn cá mỗi tháng để lợi nhuận sau thuế là lớn nhất?''',
+        '''Một cơ sở chế biến thủy sản tại Khánh Hòa chuyên sản xuất cá phi lê đông lạnh theo tiêu chuẩn HACCP để cung ứng cho chuỗi nhà hàng hải sản và khách sạn 4–5 sao tại TP. Hồ Chí Minh và Nha Trang. Do hệ thống kho đông và phương tiện bảo quản còn giới hạn, mỗi tháng cơ sở chỉ có thể vận chuyển tối đa {max_production} tấn cá thành phẩm ra thị trường. Doanh thu từ hoạt động kinh doanh phải chịu thuế GTGT {vat_rate_percent}\% theo quy định hiện hành. Chi phí chế biến cá \\(x\\)  tấn được mô hình hóa theo hàm \(C(x) = \dfrac{{1}}{{2}}({cost_c} + {cost_d}x)\) (triệu đồng). Giá bán mỗi tấn sản phẩm phụ thuộc vào khối lượng tiêu thụ, được tính theo công thức: \(p(x) = {price_a} - {price_b}x^2\) (triệu đồng). Hỏi cơ sở nên bán bao nhiêu tấn cá mỗi tháng để lợi nhuận sau thuế là lớn nhất? (Đơn vị: tấn)''',
 
         # Bài tương tự 5
-        '''Một xưởng gỗ tại Tây Nguyên hợp tác với một chuỗi công ty nội thất chuyên sản xuất bàn, tủ và giường cho thị trường nội địa và xuất khẩu. Trong bối cảnh giá nguyên vật liệu tăng và yêu cầu về chứng nhận nguồn gỗ hợp pháp ngày càng chặt chẽ, xưởng phải giới hạn sản lượng tối đa ở mức {max_production} tấn gỗ mỗi tháng để đảm bảo chất lượng và đáp ứng tiêu chuẩn bền vững. Mọi doanh thu từ việc bán gỗ đều phải nộp thuế GTGT {vat_rate_percent}\%. Chi phí sản xuất gỗ theo sản lượng \(x\) tấn là \(C(x) = \dfrac{{1}}{{2}}({cost_c} + {cost_d}x)\) (triệu đồng), trong khi giá bán mỗi tấn được điều chỉnh theo lượng cung ứng và được cho bởi \(p(x) = {price_a} - {price_b}x^2\) (triệu đồng). Công ty nên đặt hàng bao nhiêu tấn mỗi tháng để xưởng thu được lợi nhuận cao nhất sau thuế?''',
+        '''Một xưởng gỗ tại Tây Nguyên hợp tác với một chuỗi công ty nội thất chuyên sản xuất bàn, tủ và giường cho thị trường nội địa và xuất khẩu. Trong bối cảnh giá nguyên vật liệu tăng và yêu cầu về chứng nhận nguồn gỗ hợp pháp ngày càng chặt chẽ, xưởng phải giới hạn sản lượng tối đa ở mức {max_production} tấn gỗ mỗi tháng để đảm bảo chất lượng và đáp ứng tiêu chuẩn bền vững. Mọi doanh thu từ việc bán gỗ đều phải nộp thuế GTGT {vat_rate_percent}\%. Chi phí sản xuất gỗ theo sản lượng \\(x\\)  tấn là \(C(x) = \dfrac{{1}}{{2}}({cost_c} + {cost_d}x)\) (triệu đồng), trong khi giá bán mỗi tấn được điều chỉnh theo lượng cung ứng và được cho bởi \(p(x) = {price_a} - {price_b}x^2\) (triệu đồng). Công ty nên đặt hàng bao nhiêu tấn mỗi tháng để xưởng thu được lợi nhuận cao nhất sau thuế? (Đơn vị: tấn)''',
 
         # Bài tương tự 6
-        '''Một trang trại bò sữa tại Đà Lạt có hệ thống chăn nuôi khép kín với sản lượng cung ứng ổn định quanh năm. Trang trại ký hợp đồng với một công ty chế biến sữa hộp để cung cấp sữa tươi nguyên liệu. Tuy nhiên, do giới hạn công suất xe lạnh và hệ thống bảo quản tại điểm tiếp nhận, lượng sữa được phép giao tối đa mỗi tháng là {max_production} tấn. Doanh thu từ việc bán sữa phải chịu thuế GTGT {vat_rate_percent}\%. Chi phí để sản xuất ra \(x\) tấn sữa là \(C(x) = \dfrac{{1}}{{2}}({cost_c} + {cost_d}x)\) (triệu đồng). Giá bán mỗi tấn sữa tươi phụ thuộc vào lượng cung cấp, được cho bởi \(p(x) = {price_a} - {price_b}x^2\) (triệu đồng). Trang trại nên cung cấp bao nhiêu tấn mỗi tháng để đạt được lợi nhuận sau thuế lớn nhất?''',
+        '''Một trang trại bò sữa tại Đà Lạt có hệ thống chăn nuôi khép kín với sản lượng cung ứng ổn định quanh năm. Trang trại ký hợp đồng với một công ty chế biến sữa hộp để cung cấp sữa tươi nguyên liệu. Tuy nhiên, do giới hạn công suất xe lạnh và hệ thống bảo quản tại điểm tiếp nhận, lượng sữa được phép giao tối đa mỗi tháng là {max_production} tấn. Doanh thu từ việc bán sữa phải chịu thuế GTGT {vat_rate_percent}\% theo quy định hiện hành. Chi phí để sản xuất ra \\(x\\)  tấn sữa là \(C(x) = \dfrac{{1}}{{2}}({cost_c} + {cost_d}x)\) (triệu đồng). Giá bán mỗi tấn sữa tươi phụ thuộc vào lượng cung cấp, được cho bởi \(p(x) = {price_a} - {price_b}x^2\) (triệu đồng). Trang trại nên cung cấp bao nhiêu tấn mỗi tháng để đạt được lợi nhuận sau thuế lớn nhất? (Đơn vị: tấn)''',
 
         # Bài tương tự 7
-        '''Một công ty hóa chất công nghiệp có trụ sở tại khu công nghiệp Biên Hòa chuyên sản xuất chất phụ gia cho ngành dệt nhuộm và xử lý nước. Trước những quy định khắt khe về môi trường, công ty buộc phải giới hạn lượng nguyên liệu hóa chất bán ra ở mức không quá {max_production} tấn mỗi tháng để đảm bảo an toàn vận hành và quy trình xử lý chất thải. Doanh thu bán hàng mỗi tháng chịu thuế GTGT {vat_rate_percent}\%. Chi phí để sản xuất ra \(x\) tấn sản phẩm là \(C(x) = \dfrac{{1}}{{2}}({cost_c} + {cost_d}x)\) (triệu đồng). Giá bán mỗi tấn sản phẩm tùy theo quy mô đơn hàng và được xác định bởi hàm \(p(x) = {price_a} - {price_b}x^2\) (triệu đồng). Công ty nên cung cấp bao nhiêu tấn mỗi tháng để đạt lợi nhuận sau thuế cao nhất?''',
+        '''Một công ty hóa chất công nghiệp có trụ sở tại khu công nghiệp Biên Hòa chuyên sản xuất chất phụ gia cho ngành dệt nhuộm và xử lý nước. Trước những quy định khắt khe về môi trường, công ty buộc phải giới hạn lượng nguyên liệu hóa chất bán ra ở mức không quá {max_production} tấn mỗi tháng để đảm bảo an toàn vận hành và quy trình xử lý chất thải. Doanh thu bán hàng mỗi tháng chịu thuế GTGT {vat_rate_percent}\%. Chi phí để sản xuất ra \\(x\\)  tấn sản phẩm là \(C(x) = \dfrac{{1}}{{2}}({cost_c} + {cost_d}x)\) (triệu đồng). Giá bán mỗi tấn sản phẩm tùy theo quy mô đơn hàng và được xác định bởi hàm \(p(x) = {price_a} - {price_b}x^2\) (triệu đồng). Công ty nên cung cấp bao nhiêu tấn mỗi tháng để đạt lợi nhuận sau thuế cao nhất? (Đơn vị: tấn)''',
 
         # Bài tương tự 8
-        '''Một hợp tác xã nông nghiệp tại Đồng bằng sông Cửu Long đầu tư dây chuyền sản xuất phân bón hữu cơ phục vụ các tỉnh lân cận và xuất khẩu tiểu ngạch sang Campuchia. Do đặc thù vận chuyển bằng ghe tàu, kho chứa hạn chế và điều kiện bảo quản phân hữu cơ, hợp tác xã chỉ có thể cung ứng tối đa {max_production} tấn phân bón mỗi tháng. Mọi doanh thu thu được đều phải chịu thuế giá trị gia tăng {vat_rate_percent}\%. Chi phí sản xuất \(x\) tấn phân là \(C(x) = \dfrac{{1}}{{2}}({cost_c} + {cost_d}x)\) (triệu đồng). Giá bán mỗi tấn phân bón được xác định theo công thức \(p(x) = {price_a} - {price_b}x^2\) (triệu đồng). Hợp tác xã nên cung cấp bao nhiêu tấn mỗi tháng để tối đa hóa lợi nhuận sau thuế?''',
+        '''Một hợp tác xã nông nghiệp tại Đồng bằng sông Cửu Long đầu tư dây chuyền sản xuất phân bón hữu cơ phục vụ các tỉnh lân cận và xuất khẩu tiểu ngạch sang Campuchia. Do đặc thù vận chuyển bằng ghe tàu, kho chứa hạn chế và điều kiện bảo quản phân hữu cơ, hợp tác xã chỉ có thể cung ứng tối đa {max_production} tấn phân bón mỗi tháng. Mọi doanh thu thu được đều phải chịu thuế giá trị gia tăng {vat_rate_percent}\%. Chi phí sản xuất \\(x\\)  tấn phân là \(C(x) = \dfrac{{1}}{{2}}({cost_c} + {cost_d}x)\) (triệu đồng). Giá bán mỗi tấn phân bón được xác định theo công thức \(p(x) = {price_a} - {price_b}x^2\) (triệu đồng). Hợp tác xã nên cung cấp bao nhiêu tấn mỗi tháng để tối đa hóa lợi nhuận sau thuế? (Đơn vị: tấn)''',
     ]
 
     def generate_parameters(self) -> Dict[str, Any]:
@@ -939,7 +984,7 @@ class FactoryProfitOptimization(BaseOptimizationQuestion):
         # x² = -coef_x / (3*coef_x3)
         optimal_production = int((coef_x / (3 * abs(coef_x3))) ** 0.5)
 
-        return f"${optimal_production}$ tấn"
+        return f"\\({optimal_production}\\)"
 
     def generate_wrong_answers(self) -> List[str]:
         """Sinh 3 đáp án sai hợp lý"""
@@ -952,9 +997,9 @@ class FactoryProfitOptimization(BaseOptimizationQuestion):
 
         # Các sai lầm thường gặp
         wrong_answers = [
-            f"${correct_answer + 10}$ tấn",  # Cao hơn
-            f"${max(0, correct_answer - 10)}$ tấn",  # Thấp hơn
-            f"${p['max_production']}$ tấn"  # Tối đa
+            f"\\({correct_answer + 10}\\)",  # Cao hơn 10 tấn
+            f"\\({max(0, correct_answer - 10)}\\)",  # Thấp hơn 10 tấn
+            f"\\({p['max_production']}\\)",  # Lấy sản lượng tối đa
         ]
 
         return wrong_answers
@@ -1001,7 +1046,7 @@ Thuế giá trị gia tăng \\(T(x) = {format_number_clean(p["vat_rate"] * 100)}
 
 Lợi nhuận = Doanh thu - Chi phí - Thuế:
 
-\\(L(x) = B(x) - C(x) - T(x) = x({p["price_a"]} - {p["price_b"]}x^2) - {one_half}({p["cost_c"]} + {p["cost_d"]}x) - {one_tenth} x({p["price_a"]} - {p["price_b"]}x^2) = {format_number_clean(coef_x3)}x^3 + {format_number_clean(coef_x)}x {format_number_clean(const_term)}\\).
+\\(L(x) = B(x) - C(x) - T(x) = x({p["price_a"]} - {p["price_b"]}x^2) - {one_half}({p["cost_c"]} + {p["cost_d"]}x) - {one_tenth} x({p["price_a"]} - {p["price_b"]}x^2) = {format_number_clean(coef_x3)}x^3 + {format_number_clean(coef_x)}x + {format_number_clean(const_term)}\\).
 
 \\(L'(x) = {format_number_clean(3 * coef_x3)}x^2 + {format_number_clean(coef_x)} = 0 \\Leftrightarrow x = {optimal_x}\\).
 
@@ -1054,7 +1099,7 @@ class LampCostOptimization(BaseOptimizationQuestion):
 
         optimal_x = -b + math.sqrt(b * b + a)
 
-        return f"\\(x = {format_number_clean(optimal_x)}\\) dm"
+        return f"\\({format_number_clean(optimal_x)}\\)"
 
     def generate_wrong_answers(self) -> List[str]:
         """Sinh 3 đáp án sai hợp lý"""
@@ -1066,36 +1111,37 @@ class LampCostOptimization(BaseOptimizationQuestion):
 
         # Các sai lầm thường gặp
         wrong_answers = [
-            f"\\(x = {format_number_clean(optimal_x * 1.1)}\\) dm",  # Cao hơn 10%
-            f"\\(x = {format_number_clean(optimal_x * 0.9)}\\) dm",  # Thấp hơn 10%
-            f"\\(x = {format_number_clean(math.sqrt(a))}\\) dm"  # Lấy sqrt(a)
+            f"\\({format_number_clean(optimal_x * 1.1)}\\)",  # Cao hơn 10%
+            f"\\({format_number_clean(optimal_x * 0.9)}\\)",  # Thấp hơn 10%
+            f"\\({format_number_clean(math.sqrt(a))}\\)"  # Lấy sqrt(a)
         ]
 
         return wrong_answers
 
     PROBLEM_TEMPLATES = [
         # Đề bài gốc - Câu 5
-        '''Một xưởng thủ công mỹ nghệ sản xuất loại chụp đèn trang trí dạng hình chóp cụt tứ giác đều. Gọi \\(x\\) là độ dài cạnh đáy lớn (đơn vị:dm). Tính toán cho thấy tổng chi phí vật liệu (tính bằng nghìn đồng) cho một chụp đèn là \\(C(x)=x^2+{cost_a}\\) (nghìn đồng). Thời gian sản xuất cho một chụp đèn được xác định là \\(T(x)=x+{time_b}\\) (giờ). Xưởng muốn xác định kích thước \\(x\\) để chi phí vật liệu trung bình trên một giờ sản xuất là thấp nhất, nhằm tối ưu hóa hiệu quả sử dụng thời gian và vật liệu.''',
+        '''Một xưởng thủ công mỹ nghệ sản xuất loại chụp đèn trang trí dạng hình chóp cụt tứ giác đều. Gọi \\(x\\) là độ dài cạnh đáy lớn (đơn vị:dm). Tính toán cho thấy tổng chi phí vật liệu (tính bằng nghìn đồng) cho một chụp đèn là \\(C(x)=x^2+{cost_a}\\) (nghìn đồng). Thời gian sản xuất cho một chụp đèn được xác định là \\(T(x)=x+{time_b}\\) (giờ). Xưởng muốn xác định kích thước \\(x\\) để chi phí vật liệu trung bình trên một giờ sản xuất là thấp nhất, nhằm tối ưu hóa hiệu quả sử dụng thời gian và vật liệu. (Đơn vị: dm)''',
 
         # Bài tương tự 1
-        '''Một xưởng chế tác thủ công tại Hội An chuyên sản xuất chao đèn trang trí bằng tre cho các khu nghỉ dưỡng cao cấp. Một loại chao đèn đặc biệt có dạng hình chóp cụt tứ giác đều, được thiết kế tinh xảo để tạo hiệu ứng ánh sáng mềm mại. Để cân đối giữa chi phí vật liệu và thời gian sản xuất cho mỗi sản phẩm, chủ xưởng cần xác định kích thước đáy lớn phù hợp. Gọi \\(x\\) (đơn vị: dm) là độ dài cạnh đáy lớn. Chi phí vật liệu để sản xuất một chao đèn được tính theo công thức \\(C(x) = x^2 + {cost_a}\\) (nghìn đồng), còn thời gian để hoàn thiện một sản phẩm là \\(T(x) = x + {time_b}\\) (giờ). Để sử dụng hiệu quả nguyên vật liệu và công sức lao động, xưởng mong muốn tìm giá trị của \\(x\\) sao cho chi phí vật liệu trung bình trên mỗi giờ sản xuất là nhỏ nhất.''',
+        '''Một xưởng chế tác thủ công tại Hội An chuyên sản xuất chao đèn trang trí bằng tre cho các khu nghỉ dưỡng cao cấp. Một loại chao đèn đặc biệt có dạng hình chóp cụt tứ giác đều, được thiết kế tinh xảo để tạo hiệu ứng ánh sáng mềm mại. Để cân đối giữa chi phí vật liệu và thời gian sản xuất cho mỗi sản phẩm, chủ xưởng cần xác định kích thước đáy lớn phù hợp. Gọi \\(x\\) (đơn vị: dm) là độ dài cạnh đáy lớn. Chi phí vật liệu để sản xuất một chao đèn được tính theo công thức \\(C(x) = x^2 + {cost_a}\\) (nghìn đồng), còn thời gian để hoàn thiện một sản phẩm là \\(T(x) = x + {time_b}\\) (giờ). Để sử dụng hiệu quả nguyên vật liệu và công sức lao động, xưởng mong muốn tìm giá trị của \\(x\\) sao cho chi phí vật liệu trung bình trên mỗi giờ sản xuất là nhỏ nhất. (Đơn vị: dm)''',
 
         # Bài tương tự 2
-        '''Một xưởng gốm ở Bát Tràng sản xuất các loại chân đèn gốm theo đơn đặt hàng từ các cửa hàng nội thất. Một mẫu đèn có phần chụp được thiết kế theo dạng hình chóp cụt tứ giác đều với cạnh đáy lớn là \\(x\\) (dm). Chủ xưởng mong muốn tính toán để tiết kiệm nguyên liệu đất sét và công sức lao động. Chi phí vật liệu (nghìn đồng) là \\(C(x) = x^2 + {cost_a}\\), còn thời gian sản xuất mỗi sản phẩm là \\(T(x) = x + {time_b}\\) (giờ). Họ cần xác định kích thước \\(x\\) sao cho chi phí vật liệu trung bình trên mỗi giờ làm việc là thấp nhất.''',
+        '''Một xưởng gốm ở Bát Tràng sản xuất các loại chân đèn gốm theo đơn đặt hàng từ các cửa hàng nội thất. Một mẫu đèn có phần chụp được thiết kế theo dạng hình chóp cụt tứ giác đều với cạnh đáy lớn là \\(x\\) (dm). Chủ xưởng mong muốn tính toán để tiết kiệm nguyên liệu đất sét và công sức lao động. Chi phí vật liệu (nghìn đồng) là \\(C(x) = x^2 + {cost_a}\\), còn thời gian sản xuất mỗi sản phẩm là \\(T(x) = x + {time_b}\\) (giờ). Họ cần xác định kích thước \\(x\\) sao cho chi phí vật liệu trung bình trên mỗi giờ làm việc là thấp nhất. (Đơn vị: dm)''',
 
         # Bài tương tự 3
-        '''Một công ty thiết kế đèn trang trí nhận hợp đồng sản xuất loạt đèn bàn theo mẫu hình chóp cụt tứ giác đều. Để tiết kiệm chi phí và đẩy nhanh tiến độ sản xuất, bộ phận kỹ thuật cần tính toán kích thước đáy lớn tối ưu. Gọi \\(x\\) (dm) là độ dài cạnh đáy lớn, khi đó chi phí vật liệu để làm một chiếc đèn là \\(C(x) = x^2 + {cost_a}\\) (nghìn đồng) và thời gian cần thiết để hoàn thành một sản phẩm là \\(T(x) = x + {time_b}\\) (giờ). Công ty mong muốn biết với kích thước \\(x\\) nào thì chi phí vật liệu trung bình trên mỗi giờ sản xuất sẽ đạt giá trị thấp nhất.''',
+        '''Một công ty thiết kế đèn trang trí nhận hợp đồng sản xuất loạt đèn bàn theo mẫu hình chóp cụt tứ giác đều. Để tiết kiệm chi phí và đẩy nhanh tiến độ sản xuất, bộ phận kỹ thuật cần tính toán kích thước đáy lớn tối ưu. Gọi \\(x\\) (dm) là độ dài cạnh đáy lớn, khi đó chi phí vật liệu để làm một chiếc đèn là \\(C(x) = x^2 + {cost_a}\\) (nghìn đồng) và thời gian cần thiết để hoàn thành một sản phẩm là \\(T(x) = x + {time_b}\\) (giờ). Công ty mong muốn biết với kích thước \\(x\\) nào thì chi phí vật liệu trung bình trên mỗi giờ sản xuất sẽ đạt giá trị thấp nhất. (Đơn vị: dm)''',
 
         # Bài tương tự 4
-        '''Một nhóm sinh viên khởi nghiệp sản xuất đèn handmade từ giấy kraft tái chế để phục vụ phân khúc quà tặng sáng tạo. Mẫu đèn chóp cụt tứ giác đều của nhóm rất được ưa chuộng nhờ kiểu dáng độc đáo và tinh tế. Trong quá trình thiết kế và sản xuất, nhóm cần xác định kích thước cạnh đáy lớn \\(x\\) (dm) sao cho hiệu quả sử dụng giấy và thời gian hoàn thiện sản phẩm được tối ưu. Chi phí giấy là \\(C(x) = x^2 + {cost_a}\\) (nghìn đồng) và thời gian sản xuất mỗi đèn là \\(T(x) = x + {time_b}\\) (giờ). Họ cần tìm giá trị của \\(x\\) sao cho chi phí vật liệu trung bình trên một giờ làm việc là nhỏ nhất.''',
+        '''Một nhóm sinh viên khởi nghiệp sản xuất đèn handmade từ giấy kraft tái chế để phục vụ phân khúc quà tặng sáng tạo. Mẫu đèn chóp cụt tứ giác đều của nhóm rất được ưa chuộng nhờ kiểu dáng độc đáo và tinh tế. Trong quá trình thiết kế và sản xuất, nhóm cần xác định kích thước cạnh đáy lớn \\(x\\) (dm) sao cho hiệu quả sử dụng giấy và thời gian hoàn thiện sản phẩm được tối ưu. Chi phí giấy là \\(C(x) = x^2 + {cost_a}\\) (nghìn đồng) và thời gian sản xuất mỗi đèn là \\(T(x) = x + {time_b}\\) (giờ). Họ cần tìm giá trị của \\(x\\) sao cho chi phí vật liệu trung bình trên một giờ làm việc là nhỏ nhất. (Đơn vị: dm)''',
 
         # Bài tương tự 5
-        '''Một cơ sở sản xuất đồ thủ công mỹ nghệ đang thực hiện đơn hàng xuất khẩu lô đèn trang trí kiểu cổ điển sang thị trường châu Âu. Mỗi chiếc đèn có phần chụp được thiết kế theo dạng hình chóp cụt tứ giác đều, đòi hỏi sự tỉ mỉ trong từng công đoạn gia công. Để đạt hiệu quả cao trong sản xuất hàng loạt, kỹ sư thiết kế của cơ sở cần xác định độ dài cạnh đáy lớn \\(x\\) (dm) sao cho chi phí vật liệu trung bình trên mỗi giờ sản xuất là thấp nhất. Biết rằng chi phí vật liệu là \\(C(x) = x^2 + {cost_a}\\) (nghìn đồng) và thời gian hoàn thành một chiếc đèn là \\(T(x) = x + {time_b}\\) (giờ).'''
+        '''Một cơ sở sản xuất đồ thủ công mỹ nghệ đang thực hiện đơn hàng xuất khẩu lô đèn trang trí kiểu cổ điển sang thị trường châu Âu. Mỗi chiếc đèn có phần chụp được thiết kế theo dạng hình chóp cụt tứ giác đều, đòi hỏi sự tỉ mỉ trong từng công đoạn gia công. Để đạt hiệu quả cao trong sản xuất hàng loạt, kỹ sư thiết kế của cơ sở cần xác định độ dài cạnh đáy lớn \\(x\\) (dm) sao cho chi phí vật liệu trung bình trên mỗi giờ sản xuất là thấp nhất. Biết rằng chi phí vật liệu là \\(C(x) = x^2 + {cost_a}\\) (nghìn đồng) và thời gian hoàn thành một chiếc đèn là \\(T(x) = x + {time_b}\\) (giờ). (Đơn vị: dm)'''
     ]
 
     def generate_question_text(self) -> str:
         """Sinh đề bài bằng LaTeX"""
         p = self.parameters
+
         template = random.choice(self.PROBLEM_TEMPLATES)
         return template.format(**p)
 

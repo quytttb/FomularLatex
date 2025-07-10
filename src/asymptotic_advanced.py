@@ -1,3 +1,7 @@
+"""
+Dạng nâng cao của các câu hỏi về tiệm cận trong toán học, bao gồm các hàm số có dạng phân thức với các tham số m và n.
+"""
+
 import random
 import sys
 import logging

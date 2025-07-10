@@ -1,16 +1,5 @@
-#!/usr/bin/env python3
 """
-Generator for True/False questions about triangles in 3D space.
-
-This script generates Vietnamese true/false questions about:
-- Foot of angle bisector from vertex to opposite side
-- Length of altitudes in triangles
-- Angles in triangles
-- Other triangle properties
-
-Usage:
-python3 true_false_triangle_questions.py [number_of_questions]
-xelatex true_false_triangle_questions.tex
+Dạng câu hỏi ABCD về tam giác với các câu hỏi về đường phân giác, đường cao, góc và điều kiện đồng phẳng của 4 điểm.
 """
 
 import random
