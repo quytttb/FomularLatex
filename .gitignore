@@ -1,0 +1,44 @@
+# Python cache files
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+.Python
+
+# LaTeX temporary files
+*.aux
+*.log
+*.fls
+*.fdb_latexmk
+*.synctex.gz
+*.synctex.gz(busy)
+*.out
+*.toc
+*.nav
+*.snm
+*.vrb
+
+# Generated PDFs and LaTeX files (temporary)
+questions.tex
+questions.pdf
+questions.aux
+questions.log
+*_questions.pdf
+
+# Test files
+test_*.py
+demo_*.py
+
+# IDE files
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Temporary directories
+tmp/
+temp/
