@@ -990,6 +990,99 @@ class BaseOptimizationQuestion(ABC):
 # ███████████████████████████████████████████████████████████████████████████████
 
 class RationalQuadraticMonotonicity(BaseOptimizationQuestion):
+    def get_valid_coefficients_poly3(self, nice_numbers, coeff_range=(-5, 5), domain_min=-5, domain_max=5):
+        """Sinh hệ số hợp lệ cho bậc 3 sao cho nghiệm đạo hàm là nghiệm đẹp (chọn nghiệm trước, dựng hệ số sau).
+        
+        Với hàm y = ax³ + bx² + cx + d, đạo hàm y' = 3ax² + 2bx + c
+        Chọn trước 2 nghiệm đẹp x₁, x₂ cho đạo hàm, sau đó dựng hệ số:
+        y' = 3a(x - x₁)(x - x₂) = 3ax² - 3a(x₁ + x₂)x + 3ax₁x₂
+        Suy ra: 2b = -3a(x₁ + x₂) và c = 3ax₁x₂
+        """
+        valid_configs = []
+        a_choices = [a for a in [1, -1, 2, -2]]  # Chọn a đơn giản
+        d_choices = list(range(coeff_range[0], coeff_range[1] + 1))
+        
+        for x1 in nice_numbers:
+            for x2 in nice_numbers:
+                if x1 == x2:  # Tránh nghiệm kép
+                    continue
+                # Kiểm tra nghiệm trong domain
+                if x1 < domain_min or x1 > domain_max or x2 < domain_min or x2 > domain_max:
+                    continue
+                    
+                for a in a_choices:
+                    # Tính hệ số từ nghiệm đạo hàm
+                    # y' = 3ax² + 2bx + c = 3a(x - x₁)(x - x₂)
+                    # = 3ax² - 3a(x₁ + x₂)x + 3ax₁x₂
+                    # Suy ra: 2b = -3a(x₁ + x₂) và c = 3ax₁x₂
+                    
+                    sum_roots = x1 + x2
+                    product_roots = x1 * x2
+                    
+                    # Tính b từ: 2b = -3a(x₁ + x₂)
+                    if isinstance(sum_roots, Fraction):
+                        b_fraction = Fraction(-3 * a) * sum_roots / 2
+                        # Chỉ chấp nhận nếu b là số nguyên hoặc phân số đơn giản
+                        if b_fraction.denominator <= 4:  # Cho phép mẫu tối đa 4
+                            b = b_fraction
+                        else:
+                            continue
+                    else:
+                        b_temp = -3 * a * sum_roots / 2
+                        if b_temp == int(b_temp):  # b phải là số nguyên
+                            b = int(b_temp)
+                        else:
+                            continue
+                    
+                    # Tính c từ: c = 3ax₁x₂
+                    if isinstance(product_roots, Fraction):
+                        c_fraction = 3 * a * product_roots
+                        # Chỉ chấp nhận nếu c là số nguyên hoặc phân số đơn giản
+                        if c_fraction.denominator <= 4:  # Cho phép mẫu tối đa 4
+                            c = c_fraction
+                        else:
+                            continue
+                    else:
+                        c = 3 * a * product_roots
+                    
+                    # Kiểm tra hệ số trong phạm vi cho phép
+                    if isinstance(b, Fraction):
+                        b_val = float(b)
+                    else:
+                        b_val = b
+                    if isinstance(c, Fraction):
+                        c_val = float(c)
+                    else:
+                        c_val = c
+                        
+                    if coeff_range[0] <= b_val <= coeff_range[1] and coeff_range[0] <= c_val <= coeff_range[1]:
+                        for d in d_choices:
+                            valid_configs.append((a, b, c, d))
+        
+        logging.debug(f"Found {len(valid_configs)} valid polynomial 3 coefficient sets")
+        return valid_configs
+
+    def get_valid_coefficients_poly4(self, nice_numbers, coeff_range=(-3, 3), domain_min=-5, domain_max=5):
+        """Sinh hệ số hợp lệ cho bậc 4 dạng y = a x^4 + b x^2 + c sao cho nghiệm đạo hàm cấp 2 thuộc nice_numbers."""
+        valid_configs = []
+        a_choices = [a for a in range(coeff_range[0], coeff_range[1] + 1) if a != 0]
+        for a in a_choices:
+            for b in range(coeff_range[0], coeff_range[1] + 1):
+                for c in range(coeff_range[0], coeff_range[1] + 1):
+                    # y' = 4a x^3 + 2b x = 2x(2a x^2 + b)
+                    # nghiệm: x = 0, x^2 = -b/(2a) nếu -b/(2a) > 0
+                    critical_points = [Fraction(0)]
+                    if -b/(2*a) > 0:
+                        sqrt_val = (-b/(2*a)) ** 0.5
+                        if is_perfect_square(-b/(2*a)):
+                            sqrt_frac = Fraction(int(sqrt_val))
+                            critical_points.extend([sqrt_frac, -sqrt_frac])
+                    # kiểm tra tất cả nghiệm (trừ 0) phải thuộc nice_numbers nếu có
+                    if all((x in nice_numbers) for x in critical_points):
+                        # domain check
+                        if all(domain_min <= x <= domain_max for x in critical_points):
+                            valid_configs.append((a, b, c))
+        return valid_configs
     r"""
     Dạng toán đa dạng về đồng biến, nghịch biến của hàm số với các ngữ cảnh thực tế.
     
@@ -1002,8 +1095,8 @@ class RationalQuadraticMonotonicity(BaseOptimizationQuestion):
     """
 
     def get_critical_points(self, a, b, c, d, e):
-        """Tính điểm tới hạn và điểm gián đoạn cho f(x) = (ax^2 + bx + c)/(dx + e) - chỉ trả về số nguyên."""
-        x_p = round(-e / d) if d != 0 else 0  # Làm tròn gần nhất về số nguyên
+        """Tính điểm tới hạn và điểm gián đoạn cho f(x) = (ax^2 + bx + c)/(dx + e)."""
+        x_p = Fraction(-e, d)
 
         A = a * d
         B = 2 * a * e
@@ -1013,9 +1106,9 @@ class RationalQuadraticMonotonicity(BaseOptimizationQuestion):
         if discriminant < 0 or not is_perfect_square(discriminant):
             return [], x_p
 
-        sqrt_disc = discriminant ** 0.5
-        x1 = (-B - sqrt_disc) / (2 * A)
-        x2 = (-B + sqrt_disc) / (2 * A)
+        sqrt_disc = int(discriminant ** 0.5)
+        x1 = Fraction(-B - sqrt_disc, 2 * A)
+        x2 = Fraction(-B + sqrt_disc, 2 * A)
         critical_points = [x1, x2]
         critical_points.sort()
 
@@ -1055,11 +1148,10 @@ class RationalQuadraticMonotonicity(BaseOptimizationQuestion):
         return increasing, decreasing
 
     def get_valid_coefficients(self, nice_numbers, coeff_range=(-5, 5), domain_min=-5):
-        """Sinh hệ số hợp lệ đảm bảo điểm tới hạn thực trong nice_numbers."""
+        """Sinh hệ số hợp lệ đảm bảo nghiệm đạo hàm (critical points) thuộc nice_numbers."""
         valid_configs = []
         a_choices = [a for a in range(coeff_range[0], coeff_range[1] + 1) if a != 0]
         d_choices = [d for d in range(coeff_range[0], coeff_range[1] + 1) if d != 0]
-
         for a in a_choices:
             for b in range(coeff_range[0], coeff_range[1] + 1):
                 for c in range(coeff_range[0], coeff_range[1] + 1):
@@ -1069,23 +1161,18 @@ class RationalQuadraticMonotonicity(BaseOptimizationQuestion):
                             if not critical_points:
                                 continue
                             x1, x2 = critical_points
+                            # Only accept if both critical points are in nice_numbers
                             if x1 not in nice_numbers or x2 not in nice_numbers:
                                 continue
-                            if abs(x2 - x1) < 1:
+                            # Avoid degenerate/close roots
+                            if abs(x2 - x1) < 1e-6:
                                 continue
-                            
-                            # Kiểm tra ràng buộc domain cho ngữ cảnh thời gian
-                            if domain_min >= 0:  # Ngữ cảnh thời gian (t >= 0)
-                                # Loại bỏ nếu có điểm tới hạn âm
+                            # For time context, skip if any root is out of domain
+                            if domain_min >= 0:
                                 if x1 < domain_min or x2 < domain_min:
                                     continue
-                                # Loại bỏ nếu điểm gián đoạn âm
-                                if x_p < domain_min:
-                                    continue
-                            
                             valid_configs.append((a, b, c, d, e))
-
-        logging.debug(f"Đã tìm thấy {len(valid_configs)} bộ hệ số hợp lệ")
+        logging.debug(f"Found {len(valid_configs)} valid coefficient sets")
         return valid_configs
 
     def generate_parameters(self) -> Dict[str, Any]:
@@ -1210,80 +1297,59 @@ class RationalQuadraticMonotonicity(BaseOptimizationQuestion):
         """Sinh hàm phân thức bậc hai/bậc nhất với ràng buộc theo ngữ cảnh"""
         max_attempts = 200
         constraints = context.get("constraints", {})
-        
-        # Điều chỉnh nice_numbers theo ràng buộc domain
         domain_min = constraints.get("domain_min", -5)
         domain_max = constraints.get("domain_max", 5)
-        
-        # Tạo nice_numbers theo ràng buộc domain - chỉ sử dụng số nguyên
-        if domain_min >= 0:  # Ngữ cảnh thời gian (t >= 0)
-            nice_numbers = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10]
+        # Build a set of nice numbers (integers and simple fractions)
+        if domain_min >= 0:
+            nice_numbers = [
+                0, Fraction(1, 4), Fraction(1, 2), Fraction(3, 4), 1,
+                Fraction(5, 4), Fraction(3, 2), Fraction(7, 4), 2, 3, 4, 5, 6, 7, 8, 9, 10
+            ]
         else:
-            nice_numbers = [-10, -9, -8, -7, -6, -5, -4, -3, -2, -1, 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10]
-        
-        # Thêm các điểm trong domain
+            nice_numbers = [
+                -5, -4, -3, -2, -1, Fraction(-3, 4), Fraction(-1, 2), Fraction(-1, 4),
+                0, Fraction(1, 4), Fraction(1, 2), Fraction(3, 4), 1, 2, 3, 4, 5
+            ]
+        # Add all integer points in domain
         for i in range(max(0, int(domain_min)), int(domain_max) + 1):
             if i not in nice_numbers:
                 nice_numbers.append(i)
-        
-        # Thêm thêm một số điểm nguyên trong khoảng
-        for i in range(max(1, int(domain_min)), int(domain_max) + 1):
-            nice_numbers.extend([i + 5, i + 10])  # Thêm các số nguyên lớn hơn
-        
-        # Lọc bỏ các số âm nếu domain_min >= 0
         if domain_min >= 0:
             nice_numbers = [n for n in nice_numbers if n >= domain_min]
-        
-        nice_numbers = list(set(nice_numbers))  # Remove duplicates
+        nice_numbers = list(set(nice_numbers))
         nice_numbers.sort()
-        
         coeff_range = (-5, 5)
         valid_configs = self.get_valid_coefficients(nice_numbers, coeff_range, domain_min)
         if not valid_configs:
-            # Nếu không có config hợp lệ, thử với range lớn hơn
             coeff_range = (-10, 10)
             valid_configs = self.get_valid_coefficients(nice_numbers, coeff_range, domain_min)
             if not valid_configs:
                 raise RuntimeError("Không tìm thấy bộ hệ số hợp lệ.")
-
         for attempt in range(max_attempts):
             a, b, c, d, e = random.choice(valid_configs)
             critical_points, x_p = self.get_critical_points(a, b, c, d, e)
             if not critical_points:
                 continue
             x1, x2 = critical_points
-            
-            # Kiểm tra ràng buộc domain nghiêm ngặt cho ngữ cảnh thời gian
-            if domain_min >= 0:  # Ngữ cảnh thời gian (t >= 0)
-                # Loại bỏ nếu có điểm tới hạn âm
+            # For time context, skip if any root is out of domain
+            if domain_min >= 0:
                 if x1 < domain_min or x2 < domain_min:
                     continue
-                # Loại bỏ nếu điểm gián đoạn âm hoặc quá gần biên
                 if x_p < domain_min or abs(x_p - domain_min) < 0.1:
                     continue
             else:
-                # Nới lỏng ràng buộc domain - chỉ yêu cầu 1 điểm trong domain
                 if not (domain_min <= x1 <= domain_max or domain_min <= x2 <= domain_max):
                     continue
-                # Nới lỏng ràng buộc điểm gián đoạn - chỉ loại bỏ nếu quá gần
                 if abs(x_p - domain_min) < 0.1 or abs(x_p - domain_max) < 0.1:
                     continue
-            
             increasing_intervals, decreasing_intervals = self.get_monotonicity_intervals(a, d, critical_points, x_p)
-            
-            # Lọc các khoảng theo domain constraints
             increasing_intervals = self._filter_intervals_by_domain(increasing_intervals, domain_min, domain_max)
             decreasing_intervals = self._filter_intervals_by_domain(decreasing_intervals, domain_min, domain_max)
-
             monotonicity = context["ask_format"]
-
             if monotonicity == "tăng" and not increasing_intervals:
                 continue
             if monotonicity == "giảm" and not decreasing_intervals:
                 continue
-
-            # Bỏ qua kiểm tra ràng buộc giá trị để tăng tỷ lệ thành công
-
             return {
                 'context': context,
                 'function_type': 'rational',
@@ -1294,48 +1360,81 @@ class RationalQuadraticMonotonicity(BaseOptimizationQuestion):
                 'decreasing_intervals': decreasing_intervals,
                 'monotonicity': monotonicity
             }
-
         raise RuntimeError("Không thể sinh câu hỏi hợp lệ sau số lần thử tối đa.")
 
     def _generate_polynomial_3(self, context):
-        """Sinh hàm bậc 3: y = ax³ + bx² + cx + d với ràng buộc theo ngữ cảnh"""
+        """Sinh hàm bậc 3 với nghiệm đạo hàm đẹp."""
         max_attempts = 100
         constraints = context.get("constraints", {})
-        
-        # Điều chỉnh domain theo ràng buộc
         domain_min = constraints.get("domain_min", -5)
         domain_max = constraints.get("domain_max", 5)
+        
+        # Xây dựng nice_numbers với cả số nguyên và phân số đơn giản
+        nice_numbers = [Fraction(i) for i in range(int(domain_min), int(domain_max)+1)]
+        nice_numbers += [Fraction(1,2), Fraction(1,3), Fraction(2,3), Fraction(1,4), Fraction(3,4), 
+                        Fraction(-1,2), Fraction(-1,3), Fraction(-2,3), Fraction(-1,4), Fraction(-3,4)]
+        # Lọc theo domain
+        nice_numbers = [n for n in nice_numbers if domain_min <= n <= domain_max]
+        nice_numbers = list(set(nice_numbers))
+        nice_numbers.sort()
+        
+        coeff_range = (-5, 5)
+        valid_configs = self.get_valid_coefficients_poly3(nice_numbers, coeff_range, domain_min, domain_max)
+        if not valid_configs:
+            # Thử mở rộng phạm vi hệ số
+            coeff_range = (-10, 10)
+            valid_configs = self.get_valid_coefficients_poly3(nice_numbers, coeff_range, domain_min, domain_max)
+            if not valid_configs:
+                raise RuntimeError("Không tìm thấy bộ hệ số bậc 3 nghiệm đẹp.")
 
         for attempt in range(max_attempts):
-            # Sinh hệ số cho hàm bậc 3
-            a = random.choice([1, -1, 2, -2])  # a ≠ 0
-            b = random.randint(-3, 3)
-            c = random.randint(-5, 5)
-            d = random.randint(-5, 5)
-
-            # Tính đạo hàm: y' = 3ax² + 2bx + c
-            # Tìm nghiệm của y' = 0
-            discriminant = (2 * b) ** 2 - 4 * (3 * a) * c
-            if discriminant <= 0:
+            a, b, c, d = random.choice(valid_configs)
+            
+            # Tính nghiệm đạo hàm từ hệ số
+            # y' = 3ax² + 2bx + c = 0
+            A = 3 * a
+            if isinstance(b, Fraction):
+                B = 2 * b
+            else:
+                B = 2 * b
+            C = c
+            
+            # Tính discriminant
+            discriminant = B * B - 4 * A * C
+            
+            # Kiểm tra discriminant là số chính phương
+            if discriminant < 0:
                 continue
-
-            sqrt_disc = math.sqrt(discriminant)
-            x1 = (-2 * b - sqrt_disc) / (2 * 3 * a)
-            x2 = (-2 * b + sqrt_disc) / (2 * 3 * a)
-
+                
+            # Với cách dựng từ nghiệm đẹp, discriminant phải là số chính phương
+            if isinstance(discriminant, Fraction):
+                # Kiểm tra xem discriminant có phải số chính phương không
+                num_sqrt = discriminant.numerator ** 0.5
+                den_sqrt = discriminant.denominator ** 0.5
+                if num_sqrt == int(num_sqrt) and den_sqrt == int(den_sqrt):
+                    sqrt_disc = Fraction(int(num_sqrt), int(den_sqrt))
+                else:
+                    continue
+            else:
+                if not is_perfect_square(discriminant):
+                    continue
+                sqrt_disc = int(discriminant ** 0.5)
+            
+            # Tính nghiệm
+            x1 = (-B - sqrt_disc) / (2 * A)
+            x2 = (-B + sqrt_disc) / (2 * A)
+            
             if x1 > x2:
                 x1, x2 = x2, x1
-
-            # Đảm bảo x1 != x2 (tránh nghiệm kép)
-            if x1 == x2:
+            if x1 == x2:  # Tránh nghiệm kép
                 continue
-
-            # Áp dụng ràng buộc domain
+                
+            # Kiểm tra nghiệm trong domain
             if x1 < domain_min or x1 > domain_max or x2 < domain_min or x2 > domain_max:
                 continue
-
+                
             critical_points = [x1, x2]
-
+            
             # Xác định khoảng đồng biến, nghịch biến
             if a > 0:
                 increasing_intervals = [(domain_min, x1), (x2, domain_max)]
@@ -1343,24 +1442,23 @@ class RationalQuadraticMonotonicity(BaseOptimizationQuestion):
             else:
                 decreasing_intervals = [(domain_min, x1), (x2, domain_max)]
                 increasing_intervals = [(x1, x2)]
-
+            
             # Lọc khoảng theo domain
             increasing_intervals = self._filter_intervals_by_domain(increasing_intervals, domain_min, domain_max)
             decreasing_intervals = self._filter_intervals_by_domain(decreasing_intervals, domain_min, domain_max)
-
+            
             monotonicity = context["ask_format"]
-
             if monotonicity == "tăng" and not increasing_intervals:
                 continue
             if monotonicity == "giảm" and not decreasing_intervals:
                 continue
-
-            # Kiểm tra ràng buộc giá trị (chỉ kiểm tra nếu có ràng buộc nghiêm ngặt)
+                
+            # Kiểm tra ràng buộc nếu cần
             if constraints.get("must_be_positive", False):
-                coeffs = [d, c, b, a]  # Thứ tự từ bậc 0 đến bậc 3
+                coeffs = [d, c, b, a]
                 if not self._check_polynomial_constraints(coeffs, domain_min, domain_max, constraints):
                     continue
-
+            
             return {
                 'context': context,
                 'function_type': 'polynomial_3',
@@ -1370,52 +1468,43 @@ class RationalQuadraticMonotonicity(BaseOptimizationQuestion):
                 'decreasing_intervals': decreasing_intervals,
                 'monotonicity': monotonicity
             }
-
-        raise RuntimeError("Không thể sinh hàm bậc 3 hợp lệ.")
+        
+        raise RuntimeError("Không thể sinh hàm bậc 3 nghiệm đẹp.")
 
     def _generate_polynomial_4(self, context):
-        """Sinh hàm bậc 4 dạng đơn giản: y = ax⁴ + bx² + c với ràng buộc theo ngữ cảnh"""
+        """Sinh hàm bậc 4 với nghiệm đạo hàm đẹp."""
         max_attempts = 100
         constraints = context.get("constraints", {})
-        
-        # Điều chỉnh domain theo ràng buộc
         domain_min = constraints.get("domain_min", -5)
         domain_max = constraints.get("domain_max", 5)
-
+        nice_numbers = [Fraction(i) for i in range(int(domain_min), int(domain_max)+1)]
+        nice_numbers += [Fraction(1,2), Fraction(1,3), Fraction(2,3), Fraction(1,4), Fraction(3,4), Fraction(-1,2), Fraction(-1,3), Fraction(-2,3), Fraction(-1,4), Fraction(-3,4)]
+        nice_numbers = list(set(nice_numbers))
+        nice_numbers.sort()
+        valid_configs = self.get_valid_coefficients_poly4(nice_numbers, (-3,3), domain_min, domain_max)
+        if not valid_configs:
+            raise RuntimeError("Không tìm thấy bộ hệ số bậc 4 nghiệm đẹp.")
         for attempt in range(max_attempts):
-            # Sinh hệ số cho hàm bậc 4 dạng đơn giản
-            a = random.choice([1, -1])  # a ≠ 0
-            b = random.randint(-5, 5)
-            c = random.randint(-5, 5)
-
-            # Hàm y = ax⁴ + bx² + c
-            # Đạo hàm: y' = 4ax³ + 2bx = 2x(2ax² + b)
-            # Nghiệm: x = 0 và x² = -b/(2a) (nếu -b/(2a) > 0)
-
-            critical_points = [0]
-            if -b / (2 * a) > 0:
-                sqrt_val = math.sqrt(-b / (2 * a))
-                if sqrt_val > 0:  # Đảm bảo không có nghiệm kép tại 0
-                    critical_points = [-sqrt_val, 0, sqrt_val]
-
+            a, b, c = random.choice(valid_configs)
+            # y' = 4a x^3 + 2b x = 2x(2a x^2 + b)
+            critical_points = [Fraction(0)]
+            if -b/(2*a) > 0 and is_perfect_square(-b/(2*a)):
+                sqrt_val = int((-b/(2*a)) ** 0.5)
+                critical_points.extend([Fraction(sqrt_val), Fraction(-sqrt_val)])
             # Áp dụng ràng buộc domain
             critical_points = [x for x in critical_points if domain_min <= x <= domain_max]
-            
-            # Loại bỏ các điểm trùng lặp
             critical_points = sorted(list(set(critical_points)))
-            
             if not critical_points:
                 continue
-
             # Xác định khoảng đồng biến, nghịch biến cho trường hợp đơn giản
-            if len(critical_points) == 1:  # Chỉ có x = 0
+            if len(critical_points) == 1:
                 if a > 0:
                     increasing_intervals = [(0, domain_max)]
                     decreasing_intervals = [(domain_min, 0)]
                 else:
                     decreasing_intervals = [(0, domain_max)]
                     increasing_intervals = [(domain_min, 0)]
-            elif len(critical_points) == 3:  # Có 3 điểm tới hạn
+            elif len(critical_points) == 3:
                 x1, x2, x3 = sorted(critical_points)
                 if a > 0:
                     increasing_intervals = [(domain_min, x1), (x2, x3)]
@@ -1424,7 +1513,6 @@ class RationalQuadraticMonotonicity(BaseOptimizationQuestion):
                     decreasing_intervals = [(domain_min, x1), (x2, x3)]
                     increasing_intervals = [(x1, x2), (x3, domain_max)]
             else:
-                # Trường hợp khác (có thể chỉ có 2 điểm do lọc domain)
                 critical_points_sorted = sorted(critical_points)
                 if len(critical_points_sorted) == 2:
                     x1, x2 = critical_points_sorted
@@ -1436,24 +1524,17 @@ class RationalQuadraticMonotonicity(BaseOptimizationQuestion):
                         increasing_intervals = [(x1, x2)]
                 else:
                     continue
-
-            # Lọc khoảng theo domain
             increasing_intervals = self._filter_intervals_by_domain(increasing_intervals, domain_min, domain_max)
             decreasing_intervals = self._filter_intervals_by_domain(decreasing_intervals, domain_min, domain_max)
-
             monotonicity = context["ask_format"]
-
             if monotonicity == "tăng" and not increasing_intervals:
                 continue
             if monotonicity == "giảm" and not decreasing_intervals:
                 continue
-
-            # Kiểm tra ràng buộc giá trị (chỉ kiểm tra nếu có ràng buộc nghiêm ngặt)
             if constraints.get("must_be_positive", False):
-                coeffs = [c, 0, b, 0, a]  # Thứ tự từ bậc 0 đến bậc 4
+                coeffs = [c, 0, b, 0, a]
                 if not self._check_polynomial_constraints(coeffs, domain_min, domain_max, constraints):
                     continue
-
             return {
                 'context': context,
                 'function_type': 'polynomial_4',
@@ -1463,8 +1544,7 @@ class RationalQuadraticMonotonicity(BaseOptimizationQuestion):
                 'decreasing_intervals': decreasing_intervals,
                 'monotonicity': monotonicity
             }
-
-        raise RuntimeError("Không thể sinh hàm bậc 4 hợp lệ.")
+        raise RuntimeError("Không thể sinh hàm bậc 4 nghiệm đẹp.")
 
     def calculate_answer(self) -> str:
         """Tính đáp án đúng dựa trên loại hàm và ngữ cảnh với ràng buộc."""
@@ -1900,12 +1980,12 @@ Lập bảng xét dấu cho \\({derivative_symbol}'({var})\\) và kết luận: 
                                                        physical_interpretation, conclusion, var)
 
     def _filter_intervals_by_domain(self, intervals, domain_min, domain_max):
-        """Lọc các khoảng theo giới hạn domain và trả về số nguyên."""
+        """Lọc các khoảng theo giới hạn domain."""
         filtered_intervals = []
         for start, end in intervals:
-            # Điều chỉnh khoảng theo domain constraints và làm tròn gần nhất về số nguyên
-            actual_start = max(round(start), domain_min) if start != float('-inf') else domain_min
-            actual_end = min(round(end), domain_max) if end != float('inf') else domain_max
+            # Giữ nguyên giá trị Fraction, không làm tròn
+            actual_start = max(start, domain_min) if start != float('-inf') else domain_min
+            actual_end = min(end, domain_max) if end != float('inf') else domain_max
             
             # Chỉ giữ khoảng nếu có độ dài dương và nằm trong domain hợp lệ
             if actual_start < actual_end and actual_start >= domain_min and actual_end <= domain_max:
