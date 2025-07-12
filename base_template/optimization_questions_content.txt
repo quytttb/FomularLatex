@@ -1,0 +1,87 @@
+Câu hỏi Tối ưu hóa
+Ngày 11 tháng 7 năm 2025
+Câu 1: Cho đồ thị hàm số y = f (x) như hình vẽ dưới đây:
+3
+y
+
+1
+−2
+
+O
+
+1
+
+x
+
+Hàm số có cực tiểu là giá trị nào?
+A. (−5, −4)
+B. x = 1
+*C. y = 1
+D. x = 1
+Lời giải:
+Quan sát đồ thị hàm số, ta thấy:
+- Hàm số có các điểm cực trị tại: x = −2, x = 1
+- Đỉnh cao nhất (cực đại) tại điểm (1, 3)
+- Đỉnh thấp nhất (cực tiểu) tại điểm (−2, 1)
+- Các giá trị số nguyên tương ứng trên đồ thị
+Từ đó suy ra đáp án cho câu hỏi đã cho.
+Câu 2: Cho đồ thị hàm số y = f (x) như hình vẽ dưới đây:
+
+1
+
+4
+
+y
+1
+2
+−3
+
+x
+
+O
+
+Đồ thị hàm số có điểm cực đại là điểm nào?
+A. x = 4
+B. (2, 1)
+*C. (−3, 4)
+D. (4, 1)
+Lời giải:
+Quan sát đồ thị hàm số, ta thấy:
+- Hàm số có các điểm cực trị tại: x = −3, x = 2
+- Đỉnh cao nhất (cực đại) tại điểm (−3, 4)
+- Đỉnh thấp nhất (cực tiểu) tại điểm (2, 1)
+- Các giá trị số nguyên tương ứng trên đồ thị
+Từ đó suy ra đáp án cho câu hỏi đã cho.
+Câu 3: Cho đồ thị hàm số y = f (x) như hình vẽ dưới đây:
+3
+y
+
+−3
+
+O
+
+1
+
+x
+
+−1
+
+Hàm số đạt cực đại tại điểm nào?
+A. x = −1
+*B. x = 1
+C. (−2, −4)
+D. y = 4
+Lời giải:
+
+2
+
+Quan sát đồ thị hàm số, ta thấy:
+- Hàm số có các điểm cực trị tại: x = −3, x = 1
+- Đỉnh cao nhất (cực đại) tại điểm (1, 3)
+- Đỉnh thấp nhất (cực tiểu) tại điểm (−3, −1)
+- Các giá trị số nguyên tương ứng trên đồ thị
+Từ đó suy ra đáp án cho câu hỏi đã cho.
+
+3
+
+
