@@ -183,7 +183,8 @@ class ExtremumFromTikzQuestion(BaseOptimizationQuestion):
         if style == "tkztab":
             # Bảng biến thiên có đầy đủ 3 điểm cực trị
             if "cực trị tại điểm" in q:
-                return f"\\(x={A}\\) hoặc \\(x={B}\\) hoặc \\(x={C}\\)"
+                # Chọn random 1 trong 3 điểm cực trị
+                return f"\\(x={random.choice([A, B, C])}\\)"
             if "cực đại tại điểm" in q:
                 return f"\\(x={A}\\)"  # A là điểm cực đại
             if "cực tiểu tại điểm" in q:
@@ -201,7 +202,8 @@ class ExtremumFromTikzQuestion(BaseOptimizationQuestion):
         elif style in ["cubic_type1", "cubic_type2", "tikzpicture"]:
             # Hàm bậc 3 chỉ có 2 điểm cực trị (bao gồm cả tikzpicture cũ)
             if "cực trị tại điểm" in q:
-                return f"\\(x={A}\\) hoặc \\(x={B_actual}\\)"
+                # Chọn random 1 trong 2 điểm cực trị
+                return f"\\(x={random.choice([A, B_actual])}\\)"
             if style in ["cubic_type1", "tikzpicture"]:
                 # A là cực đại, B_actual là cực tiểu
                 if "cực đại tại điểm" in q:
@@ -235,7 +237,8 @@ class ExtremumFromTikzQuestion(BaseOptimizationQuestion):
         elif style == "quartic":
             # Hàm bậc 4 có 3 điểm: A (cực tiểu), 0 (cực đại), C (cực tiểu)
             if "cực trị tại điểm" in q:
-                return f"\\(x={A}\\) hoặc \\(x=0\\) hoặc \\(x={C}\\)"
+                # Chọn random 1 trong 3 điểm cực trị
+                return f"\\(x={random.choice([A, 0, C])}\\)"
             if "cực đại tại điểm" in q:
                 return f"\\(x=0\\)"
             if "cực tiểu tại điểm" in q:
@@ -252,7 +255,8 @@ class ExtremumFromTikzQuestion(BaseOptimizationQuestion):
                 return f"\\(({A};0)\\)"
         else:  # tikzpicture - generic case với 2 điểm
             if "cực trị tại điểm" in q:
-                return f"\\(x={A}\\) hoặc \\(x={B}\\)"
+                # Chọn random 1 trong 2 điểm cực trị
+                return f"\\(x={random.choice([A, B])}\\)"
             if "cực đại tại điểm" in q:
                 return f"\\(x={A}\\)"
             if "cực tiểu tại điểm" in q:
