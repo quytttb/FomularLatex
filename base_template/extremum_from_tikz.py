@@ -1,15 +1,15 @@
 """
-Dạng toán nhận diện cực trị, giá trị cực trị, điểm cực trị, hoặc tính đơn điệu của hàm số dựa trên bảng biến thiên (tkzTabInit) hoặc đồ thị (tikzpicture).
+Dạng toán nhận diện cực trị, giá trị cực trị, điểm cực trị, hoặc tính đơn điệu của hàm số dựa trên bảng biến thiên.
 Tham khảo format từ production_optimization.py
 """
 import random
 from typing import Dict, Any, List
 from base_optimization_question import BaseOptimizationQuestion
 from tikz_figure_library import (
-    generate_tkztabinit_latex, 
-    generate_cubic_type1_latex,
-    generate_cubic_type2_latex, 
-    generate_quartic_latex
+    # generate_tkztabinit_latex, 
+    # generate_cubic_type1_latex,
+    # generate_cubic_type2_latex, 
+    # generate_quartic_latex
 )
 
 class ExtremumFromTikzQuestion(BaseOptimizationQuestion):
@@ -18,7 +18,8 @@ class ExtremumFromTikzQuestion(BaseOptimizationQuestion):
     Dựa trên bảng biến thiên hoặc đồ thị hàm số (tkzTabInit hoặc tikzpicture)
     """
     # Danh sách các câu hỏi dạng cực trị, loại bỏ trùng lặp
-    QUESTION_TEMPLATES = [
+    QUESTIONS = [
+        "Hàm số đồng biến/nghịch biến trên khoảng nào dưới đây?",
         "Hàm số đạt cực trị tại điểm nào?",
         "Hàm số đạt cực đại tại điểm nào?",
         "Hàm số đạt cực tiểu tại điểm nào?",
@@ -26,7 +27,7 @@ class ExtremumFromTikzQuestion(BaseOptimizationQuestion):
         "Hàm số có cực tiểu là giá trị nào?",
         "Đồ thị hàm số có điểm cực đại là điểm nào?",
         "Đồ thị hàm số có điểm cực tiểu là điểm nào?",
-        "Hàm số đồng biến/nghịch biến trên khoảng nào dưới đây?"
+
     ]
 
     def generate_parameters(self) -> Dict[str, Any]:
@@ -151,7 +152,7 @@ class ExtremumFromTikzQuestion(BaseOptimizationQuestion):
         
         # Sử dụng câu hỏi đã được chọn trong calculate_answer
         if not hasattr(self, '_current_question'):
-            self._current_question = random.choice(self.QUESTION_TEMPLATES)
+            self._current_question = random.choice(self.QUESTIONS)
         question = self._current_question
         
         return f"""{intro}
@@ -169,7 +170,7 @@ class ExtremumFromTikzQuestion(BaseOptimizationQuestion):
         p = self.parameters
         # Lưu trữ câu hỏi hiện tại để có thể phân tích
         if not hasattr(self, '_current_question'):
-            self._current_question = random.choice(self.QUESTION_TEMPLATES)
+            self._current_question = random.choice(self.QUESTIONS)
         q = self._current_question
         
         # Lấy giá trị số nguyên từ parameters
