@@ -1,9 +1,4 @@
-"""
-Lớp cơ sở cho các dạng bài toán tối ưu hóa
-Tách từ math_template.py - PHẦN 3
-"""
 import random
-import logging
 from abc import ABC, abstractmethod
 from typing import List, Dict, Any
 
@@ -26,124 +21,118 @@ class BaseOptimizationQuestion(ABC):
 
     @abstractmethod
     def calculate_answer(self) -> str:
-        """Tính đáp án đúng dựa trên parameters"""
+        """
+        Tính đáp án đúng dựa trên parameters
+        LƯU Ý: Không được dùng các hàm format hoặc f-string trong hàm này
+        vì tính toán phải chuẩn, không làm tròn hoặc định dạng
+        """
         pass
 
     @abstractmethod
     def generate_wrong_answers(self) -> List[str]:
-        """Sinh 3 đáp án sai hợp lý"""
+        """
+        Sinh 3 đáp án sai hợp lý
+
+        Returns:
+            List[str]: Danh sách chứa đúng 3 đáp án sai, không trùng với đáp án đúng
+
+        Note:
+            - Phải đảm bảo trả về đúng 3 đáp án
+            - Các đáp án phải khác nhau và khác với đáp án đúng
+            - Các đáp án sai nên hợp lý và có tính nhiễu cao
+        """
         pass
 
     @abstractmethod
     def generate_question_text(self) -> str:
-        """Sinh đề bài bằng LaTeX"""
+        """
+        Sinh đề bài câu hỏi
+
+        Returns:
+            str: Nội dung đề bài dạng LaTeX
+
+        Note:
+            - Sử dụng định dạng LaTeX cho các công thức toán học
+            - Đề bài phải rõ ràng, đầy đủ thông tin
+        """
         pass
 
     @abstractmethod
     def generate_solution(self) -> str:
-        """Sinh lời giải chi tiết bằng LaTeX"""
+        """
+        Sinh lời giải chi tiết bằng LaTeX
+
+        Returns:
+            str: Lời giải chi tiết dạng LaTeX
+
+        Note:
+            1. Có thể sử dụng các hàm format hoặc f-string trong hàm này,
+               vì phần này chỉ để hiển thị, không ảnh hưởng đến tính toán
+            2. Không được tính toán lại đáp án trong hàm này,
+               vì đáp án đã được tính toán trong calculate_answer()
+            3. Lời giải phải chi tiết, dễ hiểu và có các bước logic
+        """
         pass
 
-    def generate_full_question(self, question_number: int = 1) -> str:
-        """Tạo câu hỏi hoàn chỉnh với 4 đáp án A/B/C/D"""
-        logging.info(f"Đang tạo câu hỏi {question_number}")
+    def generate_question(self, question_number: int = 1, include_multiple_choice: bool = True):
+        """
+        Tạo câu hỏi
+
+        Args:
+            question_number (int): Số thứ tự câu hỏi (mặc định: 1)
+            include_multiple_choice (bool): True để tạo câu hỏi trắc nghiệm A/B/C/D,
+                                          False để chỉ tạo đề bài và lời giải
+
+        Returns:
+            str | tuple: 
+                - Nếu include_multiple_choice=True: str (câu hỏi hoàn chỉnh với đáp án)
+                - Nếu include_multiple_choice=False: tuple (question_content, correct_answer)
+
+        Raises:
+            ValueError: Khi include_multiple_choice=True và generate_wrong_answers() 
+                       không trả về đúng 3 đáp án hoặc có đáp án trùng nhau
+        """
+        print(f"Đang tạo câu hỏi {question_number}")
+        
+        # Sinh tham số và tính toán chung
         self.parameters = self.generate_parameters()
         self.correct_answer = self.calculate_answer()
-        self.wrong_answers = self.generate_wrong_answers()
         question_text = self.generate_question_text()
         solution = self.generate_solution()
-        all_answers = [self.correct_answer] + self.wrong_answers
-        random.shuffle(all_answers)
-        correct_index = all_answers.index(self.correct_answer)
+        
+        # Tạo nội dung cơ bản
         question_content = f"Câu {question_number}: {question_text}\n\n"
-        for j, ans in enumerate(all_answers):
-            letter = chr(65 + j)
-            marker = "*" if j == correct_index else ""
-            question_content += f"{marker}{letter}. {ans}\n\n"
-        question_content += f"Lời giải:\n\n{solution}\n\n"
-        return question_content
+        
+        if include_multiple_choice:
+            # Tạo câu hỏi trắc nghiệm với 4 đáp án A/B/C/D
+            self.wrong_answers = self.generate_wrong_answers()
 
-    def generate_question_only(self, question_number: int = 1) -> tuple:
-        """Tạo câu hỏi chỉ có đề bài và lời giải"""
-        logging.info(f"Đang tạo câu hỏi {question_number}")
-        self.parameters = self.generate_parameters()
-        self.correct_answer = self.calculate_answer()
-        question_text = self.generate_question_text()
-        solution = self.generate_solution()
-        question_content = f"Câu {question_number}: {question_text}\n\n"
-        question_content += f"Lời giải:\n\n{solution}\n\n"
-        return question_content, self.correct_answer
+            # Kiểm soát số lượng đáp án sai
+            if len(self.wrong_answers) != 3:
+                raise ValueError(
+                    f"generate_wrong_answers() phải trả về đúng 3 đáp án sai, nhưng đã trả về {len(self.wrong_answers)} đáp án"
+                )
 
-    @staticmethod
-    def create_latex_document(questions: List[str], title: str = "Câu hỏi Tối ưu hóa") -> str:
-        """Tạo document LaTeX hoàn chỉnh"""
-        latex_content = f"""\\documentclass[a4paper,12pt]{{article}}
-\\usepackage{{amsmath}}
-\\usepackage{{amsfonts}}
-\\usepackage{{amssymb}}
-\\usepackage{{geometry}}
-\\geometry{{a4paper, margin=1in}}
-\\usepackage{{polyglossia}}
-\\setmainlanguage{{vietnamese}}
-\\setmainfont{{Times New Roman}}
-\\usepackage{{tikz}}
-\\usepackage{{tkz-tab}}
-\\usepackage{{tkz-euclide}}
-\\usetikzlibrary{{calc,decorations.pathmorphing,decorations.pathreplacing}}
-\\begin{{document}}
-\\title{{{title}}}
-\\maketitle
+            # Kiểm tra đáp án trùng nhau
+            all_answers = [self.correct_answer] + self.wrong_answers
+            if len(set(all_answers)) != 4:
+                duplicates = [ans for ans in all_answers if all_answers.count(ans) > 1]
+                raise ValueError(
+                    f"Có đáp án trùng nhau: {duplicates}. Tất cả 4 đáp án phải khác nhau."
+                )
 
-"""
-        latex_content += "\n\n".join(questions)
-        latex_content += "\n\\end{document}"
-        return latex_content
-
-    @staticmethod
-    def create_latex_document_with_format(questions_data: List, title: str = "Câu hỏi Tối ưu hóa", fmt: int = 1) -> str:
-        """Tạo document LaTeX với format cụ thể"""
-        latex_content = f"""\\documentclass[a4paper,12pt]{{article}}
-\\usepackage[utf8]{{inputenc}}
-\\usepackage{{amsmath}}
-\\usepackage{{amsfonts}}
-\\usepackage{{amssymb}}
-\\usepackage{{geometry}}
-\\geometry{{a4paper, margin=1in}}
-\\usepackage{{fontspec}}
-\\usepackage{{tikz}}
-\\usepackage{{tkz-tab}}
-\\usepackage{{tkz-euclide}}
-\\usetikzlibrary{{calc,decorations.pathmorphing,decorations.pathreplacing}}
-\\begin{{document}}
-\\title{{{title}}}
-\\maketitle
-
-"""
-        for question_data in questions_data:
-            latex_content += f"{question_data}\n\n"
-        latex_content += "\n\\end{document}"
-        return latex_content
-
-
-# Danh sách các dạng toán có sẵn
-def get_available_question_types():
-    """Trả về danh sách các dạng toán có sẵn"""
-    from extremum_from_tikz import ExtremumFromTikz
-
-    return [
-        ExtremumFromTikz,
-    ]
-
-
-def generate_mixed_questions(num_questions: int = 9) -> str:
-    """Sinh nhiều câu hỏi từ các dạng toán khác nhau"""
-    question_types = get_available_question_types()
-    questions = []
-
-    for i in range(num_questions):
-        question_type = random.choice(question_types)
-        question_generator = question_type()
-        question_content, _ = question_generator.generate_question_only(i + 1)
-        questions.append(question_content)
-
-    return BaseOptimizationQuestion.create_latex_document(questions, "Tổng hợp Câu hỏi Tối ưu hóa từ bai2.tex")
+            # Trộn đáp án và tạo format trắc nghiệm
+            random.shuffle(all_answers)
+            correct_index = all_answers.index(self.correct_answer)
+            
+            for j, ans in enumerate(all_answers):
+                letter = chr(65 + j)
+                marker = "*" if j == correct_index else ""
+                question_content += f"{marker}{letter}. {ans}\n\n"
+            
+            question_content += f"Lời giải:\n\n{solution}\n\n"
+            return question_content
+        else:
+            # Chỉ tạo đề bài và lời giải (không có đáp án trắc nghiệm)
+            question_content += f"Lời giải:\n\n{solution}\n\n"
+            return question_content, self.correct_answer

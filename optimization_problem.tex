@@ -1,0 +1,54 @@
+\documentclass[12pt]{article}
+\usepackage[utf8]{inputenc}
+\usepackage[vietnamese]{babel}
+\usepackage{amsmath, amssymb}
+\usepackage{geometry}
+\geometry{margin=2cm}
+
+\title{Bài toán Tối ưu hóa Sản xuất}
+\author{Optimization Solver}
+\date{\today}
+
+\newcounter{ex}
+\newenvironment{ex}{\refstepcounter{ex}\textbf{Câu \theex.} }{\vspace{0.5cm}}
+\newcommand{\loigiai}[1]{\textbf{Lời giải:} #1}
+
+\begin{document}
+\maketitle
+
+\begin{ex} 
+Theo thống kê tại một nhà máy Z, nếu áp dụng tuần làm việc 40 giờ thì mỗi tuần có 100 tổ công nhân đi làm và mỗi tổ công nhân làm được 120 sản phẩm trong một giờ. Nếu tăng thời gian làm việc thêm 2 giờ mỗi tuần thì sẽ có 1 tổ công nhân nghỉ việc và năng suất lao động giảm 5 sản phẩm/ 1 tổ/ 1 giờ. Ngoài ra, số phế phẩm mỗi tuần ước tính là \(P(x)=\dfrac{95 x^2+120 x}{4}\), với \(x\) là thời gian làm việc trong một tuần. Nhà máy cần áp dụng thời gian làm việc mỗi tuần mấy giờ để số lượng sản phẩm thu được mỗi tuần là lớn nhất?
+
+\loigiai{
+	Gọi số giờ làm tăng thêm mỗi tuần là \(t, t \in \mathbb{R}\). 
+	
+	Số tổ công nhân bỏ việc là \(\dfrac{t}{2}\) nên số tổ công nhân làm việc là \(100-\dfrac{t}{2}\) (tổ). 
+	
+	Năng suất của tổ công nhân còn \(120-\dfrac{5 t}{2}\) sản phẩm một giờ. 
+	
+	Số thời gian làm việc một tuần là \(40+t=x\) (giờ).
+	
+	\(\Rightarrow\) Số phế phẩm thu được là \(P(40+t)=\dfrac{95(40+t)^2+120(40+t)}{4}\)
+	
+	Để nhà máy hoạt động được thì \(\left\{\begin{array}{l}40+t>0 \\ 120-\dfrac{5 t}{2}>0\end{array}\right. \Rightarrow t \in(-40 ; 48.0) \\
+	100-\dfrac{t}{2}>0\)
+	
+	Số sản phẩm trong một tuần làm được: 
+	
+	\(S=\text{Số tổ x Năng suất x Thời gian}= \left(100-\dfrac{t}{2}\right)\left(120-\dfrac{5 t}{2}\right)(40+t)\). 
+	
+	Số sản phẩm thu được là:
+	
+	\(
+	f(t)  =\left(100-\dfrac{t}{2}\right)\left(120-\dfrac{5 t}{2}\right)(40+t)-\dfrac{95(40+t)^2+120(40+t)}{4} \)
+	
+	\(f^{\prime}(t) = \dfrac{15}{4} t^2-\dfrac{1135}{2} t-2330\)
+	
+	Ta có \(f^{\prime}(t)=0 \Leftrightarrow\left[\begin{array}{l}t=-4 \\ t=\dfrac{466}{3}(L)\end{array}\right.\). 
+	
+	Dựa vào bảng biến thiên ta có số lượng sản phẩm thu được lớn nhất thì thời gian làm việc trong một tuần là \(40-4=36\).
+	
+}
+\end{ex}
+
+\end{document}

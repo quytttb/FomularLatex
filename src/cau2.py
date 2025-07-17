@@ -11,7 +11,7 @@ import math
 from fractions import Fraction
 from typing import Union
 from math import gcd
-
+import sympy as sp
 
 """
 Các hàm tiện ích LaTeX cho hệ thống sinh câu hỏi toán tối ưu hóa
@@ -35,6 +35,10 @@ def format_coefficient(coeff, is_first=False, var='x', power=1):
         return ""
     if isinstance(coeff, Fraction):
         num, denom = coeff.numerator, coeff.denominator
+    elif hasattr(coeff, 'p') and hasattr(coeff, 'q'):  # sympy.Rational
+        num, denom = int(coeff.p), int(coeff.q)
+    elif hasattr(coeff, 'numerator') and hasattr(coeff, 'denominator'):  # sympy types
+        num, denom = int(coeff.numerator), int(coeff.denominator)
     else:
         num, denom = int(coeff), 1
     if denom == 1:
@@ -77,20 +81,22 @@ def format_polynomial(coeffs, var='x'):
 
 
 def format_number_clean(value, precision=2):
+    """Định dạng số theo chuẩn LaTeX, loại bỏ số thập phân nếu là số nguyên"""
     try:
         fval = float(value)
         if abs(fval - round(fval)) < 1e-10:
             return str(int(round(fval)))
         else:
             formatted = f"{fval:.{precision}f}"
+            # Bỏ số 0 thừa ở cuối
             while formatted.endswith('0') and '.' in formatted:
                 formatted = formatted[:-1]
             if formatted.endswith('.'):
                 formatted = formatted[:-1]
             if '.' in formatted:
-                formatted = formatted.replace('.', '{,}')
+                formatted = formatted.replace('.', ',')
             return formatted
-    except Exception:
+    except (ValueError, TypeError):
         return str(value)
 
 
@@ -202,6 +208,19 @@ def format_dfrac(num, denom):
     """Format fraction using dfrac for better display"""
     if denom == 0:
         return "undefined"
+
+    # Handle sympy types
+    if hasattr(num, 'p') and hasattr(num, 'q'):  # sympy.Rational
+        num = int(num.p) if num.q == 1 else Fraction(int(num.p), int(num.q))
+    elif hasattr(num, 'numerator') and hasattr(num, 'denominator'):  # sympy types
+        num = int(num.numerator) if num.denominator == 1 else Fraction(int(num.numerator), int(num.denominator))
+
+    if hasattr(denom, 'p') and hasattr(denom, 'q'):  # sympy.Rational
+        denom = int(denom.p) if denom.q == 1 else Fraction(int(denom.p), int(denom.q))
+    elif hasattr(denom, 'numerator') and hasattr(denom, 'denominator'):  # sympy types
+        denom = int(denom.numerator) if denom.denominator == 1 else Fraction(int(denom.numerator),
+                                                                             int(denom.denominator))
+
     frac = Fraction(num, denom)
     if frac.denominator == 1:
         return str(frac.numerator)
@@ -219,6 +238,24 @@ def format_money(value, unit="triệu đồng"):
 def format_percentage(value):
     """Format percentage values"""
     return f"{format_number_clean(value * 100)}\\%"
+
+
+def format_expression(expr):
+    """Format expression to clean up signs and improve LaTeX display"""
+    if isinstance(expr, str):
+        # Chuyển + - thành - (có khoảng trắng)
+        expr = expr.replace("+ -", "- ")
+        # Chuyển +- thành -
+        expr = expr.replace("+-", "-")
+        # Chuyển -+ thành -
+        expr = expr.replace("-+", "-")
+        # Loại bỏ khoảng trắng thừa
+        expr = expr.strip()
+        # Xử lý trường hợp bắt đầu bằng +
+        if expr.startswith("+"):
+            expr = expr[1:]
+        return expr
+    return str(expr)
 
 
 def format_function_notation(func_name, var, expression):
@@ -373,7 +410,7 @@ class BaseOptimizationQuestion(ABC):
                         ans = ans[2:-2].strip()
                     if ans.startswith("$") and ans.endswith("$"):
                         ans = ans[1:-1].strip()
-                    
+
                     # Nếu là số thập phân (có dấu phẩy), in thêm dạng dấu chấm
                     if ',' in ans:
                         ans_dot = ans.replace(',', '.')
@@ -384,6 +421,11 @@ class BaseOptimizationQuestion(ABC):
         latex_content += "\\end{document}"
         return latex_content
 
+
+"""
+Dạng toán tối ưu hóa sản xuất với ràng buộc số tổ công nhân và năng suất
+Tương ứng câu 1 trong bai2.tex
+"""
 
 """
 Dạng toán tối ưu hóa sản xuất với ràng buộc số tổ công nhân và năng suất
@@ -432,22 +474,135 @@ class ProductionOptimization(BaseOptimizationQuestion):
             "waste_c": waste_c
         }
 
+    # Tạm thời làm rỗng hàm calculate_answer, chỉ dùng generate_solution
     def calculate_answer(self) -> str:
-        """Tính đáp án đúng"""
-        p = self.parameters
+        # Tính nghiệm thực sự của phương trình đạo hàm trực tiếp
+        params = self.parameters
 
-        # Đặt t là số giờ tăng thêm, x = base_hours + t
-        # Số tổ còn lại: base_teams - t/2
-        # Năng suất: base_productivity - 5t/2
-        # Sản phẩm sản xuất = (base_teams - t/2) * (base_productivity - 5t/2) * (base_hours + t)
-        # Phế phẩm = (waste_a*(base_hours + t)^2 + waste_b*(base_hours + t))/waste_c
+        base_hours = params["base_hours"]
+        base_teams = params["base_teams"]
+        base_productivity = params["base_productivity"]
+        hour_increment = params["hour_increment"]
+        team_decrease = params["team_decrease"]
+        productivity_decrease = params["productivity_decrease"]
+        waste_a = params["waste_a"]
+        waste_b = params["waste_b"]
+        waste_c = params["waste_c"]
 
-        # Để tính cực trị, ta cần đạo hàm và giải f'(t) = 0
-        # Với các hệ số từ bài mẫu, đáp án thường là t = -4 (tức 36 giờ)
-        optimal_t = -4
-        optimal_hours = p["base_hours"] + optimal_t
+        # Định nghĩa biến symbolic
+        t = sp.Symbol('t', real=True)
 
-        return f"\\({optimal_hours}\\)"
+        # Tính các thông số theo t
+        teams_working = base_teams - (t / hour_increment) * team_decrease
+        productivity_per_team = base_productivity - (t / hour_increment) * productivity_decrease
+        working_hours = base_hours + t
+
+        # Số sản phẩm làm được
+        products_made = teams_working * productivity_per_team * working_hours
+
+        # Số phế phẩm
+        waste_products = (waste_a * working_hours ** 2 + waste_b * working_hours) / waste_c
+
+        # Hàm mục tiêu: f(t) = sản phẩm làm được - phế phẩm
+        f = products_made - waste_products
+
+        # Tính đạo hàm bậc 1 và bậc 2
+        f_prime = sp.diff(f, t)
+        f_double_prime = sp.diff(f_prime, t)
+
+        # Giải phương trình f'(t) = 0
+        critical_points = sp.solve(f_prime, t)
+
+        # Tìm miền xác định hợp lệ
+        # Từ teams_working > 0: t > -base_teams * hour_increment / team_decrease
+        t_min = -base_teams * hour_increment / team_decrease
+        # Từ productivity_per_team > 0: t < base_productivity * hour_increment / productivity_decrease
+        t_max = base_productivity * hour_increment / productivity_decrease
+        # Từ working_hours > 0: t > -base_hours
+        t_min = max(t_min, -base_hours)
+
+        # Lọc các điểm tới hạn trong miền xác định
+        valid_points = []
+        for point in critical_points:
+            if point.is_real:
+                point_val = float(point.evalf())
+                if t_min < point_val < t_max:
+                    # Kiểm tra đạo hàm bậc 2 để xác định cực đại/cực tiểu
+                    second_derivative_val = float(f_double_prime.subs(t, point_val).evalf())
+                    point_type = "cực đại" if second_derivative_val < 0 else "cực tiểu" if second_derivative_val > 0 else "uốn"
+                    valid_points.append((point_val, point_type))
+
+        # Tính giá trị hàm tại các điểm quan trọng
+        test_points = [p[0] for p in valid_points] + [t_min + 0.001, t_max - 0.001]  # Thêm điểm biên
+
+        best_t = None
+        max_value = float('-inf')
+
+        for t_val in test_points:
+            f_val = float(f.subs(t, t_val).evalf())
+            hours_val = base_hours + t_val
+
+            if f_val > max_value:
+                max_value = f_val
+                best_t = t_val
+
+        # Kết quả tối ưu
+        optimal_hours = base_hours + best_t
+
+        # Chi tiết tại điểm tối ưu
+        optimal_teams = float(teams_working.subs(t, best_t).evalf())
+        optimal_productivity = float(productivity_per_team.subs(t, best_t).evalf())
+        optimal_products_made = float(products_made.subs(t, best_t).evalf())
+        optimal_waste = float(waste_products.subs(t, best_t).evalf())
+
+        details = {
+            't_optimal': best_t,
+            'teams_working': optimal_teams,
+            'productivity_per_team': optimal_productivity,
+            'products_made': optimal_products_made,
+            'waste_products': optimal_waste,
+            'net_products': max_value,
+            'function': str(sp.expand(f)),
+            'derivative': str(sp.expand(f_prime)),
+            'second_derivative': str(sp.expand(f_double_prime)),
+            'critical_points': [float(cp.evalf()) for cp in critical_points if cp.is_real],
+            'valid_critical_points': valid_points,
+            'domain': (t_min, t_max)
+        }
+
+        # Expand và simplify đạo hàm để có dạng đơn giản
+        f_prime_expanded = sp.expand(f_prime)
+        f_prime_simplified = sp.simplify(f_prime_expanded)
+
+        # Tìm critical point thứ hai (bị loại)
+        other_critical_point = None
+        for cp in details['critical_points']:
+            if abs(cp - best_t) > 0.1:  # Not the same as optimal
+                other_critical_point = cp
+                break
+
+        # Format second critical point sử dụng hàm có sẵn
+        if other_critical_point is not None:
+            if abs(other_critical_point - round(other_critical_point)) < 0.01:
+                second_cp_latex = f"{int(round(other_critical_point))}"
+            else:
+                # Sử dụng hàm format_dfrac có sẵn
+                frac = Fraction(float(other_critical_point)).limit_denominator(10)
+                second_cp_latex = format_dfrac(frac.numerator, frac.denominator)
+        else:
+            second_cp_latex = "\\text{(khác)}"
+
+        # Lưu tất cả kết quả vào 1 dict
+        self.results = {
+            'optimal_hours': optimal_hours,
+            'best_t': best_t,
+            'second_cp_latex': second_cp_latex,
+            'f_prime_simplified': f_prime_simplified,
+            't_min': t_min,
+            't_max': t_max
+        }
+
+        return f"\\({optimal_hours:.0f}\\)"
 
     def generate_wrong_answers(self) -> List[str]:
         """Sinh 3 đáp án sai hợp lý"""
@@ -474,80 +629,95 @@ class ProductionOptimization(BaseOptimizationQuestion):
         '''Trong giai đoạn mở rộng sản xuất để đáp ứng đơn hàng cuối năm, nhà máy cơ khí Z cần điều chỉnh thời lượng làm việc của công nhân. Nếu duy trì thời gian làm việc là \\(x\\) giờ mỗi tuần thì số lượng phế phẩm trong tuần được mô hình hóa bởi hàm số: \\( P(x) = {waste_formula} \\). Hiện tại, nhà máy hoạt động {base_hours} giờ/tuần, có {base_teams} tổ công nhân và mỗi tổ làm ra {base_productivity} sản phẩm mỗi giờ. Tuy nhiên, để tránh quá tải, mỗi khi tăng thêm {hour_increment} giờ làm việc mỗi tuần thì một tổ nghỉ việc và năng suất của các tổ còn lại giảm {productivity_decrease} sản phẩm/giờ. Ban điều hành cần xác định số giờ làm việc tối ưu trong tuần để đảm bảo số sản phẩm hữu ích (sau khi loại trừ phế phẩm) là lớn nhất. (Đơn vị: giờ)''',
 
         # Bài tương tự 3
-        '''Xưởng lắp ráp thiết bị điện gia dụng đang vận hành với tuần làm việc {base_hours} giờ, {base_teams} tổ công nhân và mỗi tổ sản xuất {base_productivity} thiết bị/giờ. Tuy nhiên, trong kế hoạch tăng năng suất cuối quý, xưởng cân nhắc tăng số giờ làm việc \\(x\\) mỗi tuần. Điều này kéo theo một số thay đổi:\\\\- Cứ mỗi {hour_increment} giờ tăng thêm, một tổ công nhân nghỉ việc.\\\\- Mỗi tổ còn lại giảm năng suất {productivity_decrease} thiết bị mỗi giờ.\\\\- Lượng phế phẩm tạo ra trong tuần được ước tính bởi hàm: \\( P(x) = {waste_formula} \\).\\\\Xưởng cần xác định \\(x\\) bao nhiêu để tối đa hóa số lượng thiết bị đạt chuẩn sau khi loại trừ phế phẩm. Đây là quyết định quan trọng giúp đảm bảo mục tiêu sản xuất mà không gia tăng lãng phí. (Đơn vị: giờ)''',
+        '''Xưởng lắp ráp thiết bị điện gia dụng đang vận hành với tuần làm việc {base_hours} giờ, {base_teams} tổ công nhân và mỗi tổ sản xuất {base_productivity} thiết bị/giờ. Tuy nhiên, trong kế hoạch tăng năng suất cuối quý, xưởng cân nhắc tăng số giờ làm việc \\(x\\) mỗi tuần. Điều này kéo theo một số thay đổi:\n\n- Cứ mỗi {hour_increment} giờ tăng thêm, một tổ công nhân nghỉ việc.\n\n- Mỗi tổ còn lại giảm năng suất {productivity_decrease} thiết bị mỗi giờ.\n\n- Lượng phế phẩm tạo ra trong tuần được ước tính bởi hàm: \\( P(x) = {waste_formula} \\).\\\\Xưởng cần xác định \\(x\\) bao nhiêu để tối đa hóa số lượng thiết bị đạt chuẩn sau khi loại trừ phế phẩm. Đây là quyết định quan trọng giúp đảm bảo mục tiêu sản xuất mà không gia tăng lãng phí. (Đơn vị: giờ)''',
 
         # Bài tương tự 4
-        '''Trước tình hình đơn hàng xuất khẩu tăng đột biến, xí nghiệp dệt may Z cân nhắc phương án tăng giờ làm trong tuần. Tuy nhiên, mỗi thay đổi kéo theo hệ lụy:\\\\- Cứ tăng {hour_increment} giờ làm/tuần thì có một tổ xin nghỉ do quá tải.\\\\- Năng suất mỗi tổ giảm {productivity_decrease} áo/giờ.\\\\- Tổng phế phẩm hàng tuần ước tính bởi: \\( P(x) = {waste_formula} \\).\\\\Ban đầu, xí nghiệp có {base_teams} tổ, làm {base_hours} giờ/tuần, mỗi tổ sản xuất {base_productivity} áo/giờ. Hãy xác định số giờ làm việc \\(x\\) mỗi tuần để số lượng sản phẩm thu được (sau khi trừ phế phẩm) đạt giá trị lớn nhất, từ đó đảm bảo hiệu suất tối ưu. (Đơn vị: giờ)''',
+        '''Trước tình hình đơn hàng xuất khẩu tăng đột biến, xí nghiệp dệt may Z cân nhắc phương án tăng giờ làm trong tuần. Tuy nhiên, mỗi thay đổi kéo theo hệ lụy:\n\n- Cứ tăng {hour_increment} giờ làm/tuần thì có một tổ xin nghỉ do quá tải.\n\n- Năng suất mỗi tổ giảm {productivity_decrease} áo/giờ.\n\n- Tổng phế phẩm hàng tuần ước tính bởi: \\( P(x) = {waste_formula} \\).\\\\Ban đầu, xí nghiệp có {base_teams} tổ, làm {base_hours} giờ/tuần, mỗi tổ sản xuất {base_productivity} áo/giờ. Hãy xác định số giờ làm việc \\(x\\) mỗi tuần để số lượng sản phẩm thu được (sau khi trừ phế phẩm) đạt giá trị lớn nhất, từ đó đảm bảo hiệu suất tối ưu. (Đơn vị: giờ)''',
 
         # Bài tương tự 5
-        '''Một cơ sở sản xuất nhựa dân dụng tại miền Trung đang cần xác định thời lượng làm việc tối ưu trong tuần nhằm đảm bảo sản lượng thực tế cao nhất. Cơ sở hiện duy trì {base_teams} tổ lao động, mỗi tổ làm việc {base_hours} giờ/tuần và sản xuất {base_productivity} đơn vị sản phẩm mỗi giờ. Khi mở rộng ca làm, xảy ra các biến đổi sau:\\\\- Cứ mỗi {hour_increment} giờ tăng thêm, giảm 1 tổ làm việc.\\\\- Năng suất mỗi tổ giảm {productivity_decrease} đơn vị mỗi giờ.\\\\- Số lượng sản phẩm hư hỏng phát sinh trong tuần theo công thức: \\( P(x) = {waste_formula} \\).\\\\Bài toán yêu cầu tìm số giờ làm việc \\(x\\) sao cho số sản phẩm thực tế (tổng sản phẩm sản xuất trừ đi phế phẩm) đạt giá trị lớn nhất. (Đơn vị: giờ)'''
+        '''Một cơ sở sản xuất nhựa dân dụng tại miền Trung đang cần xác định thời lượng làm việc tối ưu trong tuần nhằm đảm bảo sản lượng thực tế cao nhất. Cơ sở hiện duy trì {base_teams} tổ lao động, mỗi tổ làm việc {base_hours} giờ/tuần và sản xuất {base_productivity} đơn vị sản phẩm mỗi giờ. Khi mở rộng ca làm, xảy ra các biến đổi sau:\n\n- Cứ mỗi {hour_increment} giờ tăng thêm, giảm 1 tổ làm việc.\n\n- Năng suất mỗi tổ giảm {productivity_decrease} đơn vị mỗi giờ.\n\n- Số lượng sản phẩm hư hỏng phát sinh trong tuần theo công thức: \\( P(x) = {waste_formula} \\).\\\\Bài toán yêu cầu tìm số giờ làm việc \\(x\\) sao cho số sản phẩm thực tế (tổng sản phẩm sản xuất trừ đi phế phẩm) đạt giá trị lớn nhất. (Đơn vị: giờ)'''
     ]
 
     def generate_question_text(self) -> str:
         """Sinh đề bài bằng LaTeX"""
-        p = self.parameters
+        params = self.parameters
 
-        # Format các phân số trong đề bài
-        waste_a_term = format_dfrac(p["waste_a"], p["waste_c"]) + "x^2"
-        waste_b_term = format_dfrac(p["waste_b"], p["waste_c"]) + "x"
-        waste_formula = waste_a_term + " + " + waste_b_term
+        # tử số tiếng Anh là "numerator", mẫu số là "denominator"
+        numerator = f"{params['waste_a']}x^2 + {params['waste_b']}x"
+        denominator = f"{params['waste_c']}"
+        waste_formula = f"\\dfrac{{{numerator}}}{{{denominator}}}"
 
         template = random.choice(self.PROBLEM_TEMPLATES)
-        return template.format(**p, waste_formula=waste_formula)
+        return template.format(**params, waste_formula=waste_formula)
 
     def generate_solution(self) -> str:
         """Sinh lời giải chi tiết"""
-        p = self.parameters
+        params = self.parameters
 
-        # Tính toán các giá trị phân số để format đúng
-        # Sửa lại: đạo hàm của phế phẩm P(x) = [ax^2 + bx]/c
-        # P'(x) = [2ax + b]/c = (2a/c)x + (b/c)
-        # Với x = base_hours + t, ta có P'(base_hours + t) = (2a/c)(base_hours + t) + (b/c)
-        waste_derivative_coeff = format_dfrac(2 * p["waste_a"], p["waste_c"])  # 2a/c
-        waste_derivative_const = format_dfrac(p["waste_b"], p["waste_c"])      # b/c
+        base_hours = params["base_hours"]
+        base_teams = params["base_teams"]
+        base_productivity = params["base_productivity"]
+        hour_increment = params["hour_increment"]
+        team_decrease = params["team_decrease"]
+        productivity_decrease = params["productivity_decrease"]
+        waste_a = params["waste_a"]
+        waste_b = params["waste_b"]
+        waste_c = params["waste_c"]
 
-        # Các hệ số trong đạo hàm (từ bài toán cụ thể)
-        # f'(t) = (15/4)t^2 - (1135/2)t - 2330
-        coeff_t2 = format_dfrac(15, 4)
-        coeff_t = format_dfrac(1135, 2)
-        constant = "2330"
+        # Extract kết quả từ dict (được tính trong calculate_answer)
+        if not hasattr(self, 'results') or self.results is None:
+            self.calculate_answer()  # Auto-calculate nếu chưa có
 
-        # Nghiệm của phương trình f'(t) = 0
-        solution_t1 = "-4"
-        solution_t2 = format_dfrac(466, 3)
+        r = self.results  # shorthand
+        best_t = r['best_t']
+        optimal_hours = r['optimal_hours']
+        second_cp_latex = r['second_cp_latex']
+        f_prime_simplified = r['f_prime_simplified']
+        t_min = r['t_min']
+        t_max = r['t_max']
 
-        # Các phân số khác trong solution
-        neg_one = format_dfrac(-1, p["hour_increment"])
-        productivity_decrease_frac = format_dfrac(p["productivity_decrease"], p["hour_increment"])
-        teams_frac = format_dfrac(1, p["hour_increment"])
+        # Biến symbolic cho format polynomial
+        t = sp.Symbol('t', real=True)
 
-        return f"""
+        # Tạo công thức phế phẩm
+        waste_expr = f"{waste_a}({base_hours} + t)^2 + {waste_b}({base_hours} + t)"
+        waste_formula = f"\\dfrac{{{waste_expr}}}{{{waste_c}}}"
+
+        # Tạo chuỗi cho phép cộng và format để tránh f-string lồng nhau
+        hours_calculation = f"{base_hours} + {best_t:.0f}"
+        hours_calculation_formatted = format_expression(hours_calculation)
+
+        latex_solution = f"""
 Gọi số giờ làm tăng thêm mỗi tuần là \\(t\\), \\(t \\in \\mathbb{{R}}\\).
 
-Số tổ công nhân bỏ việc là \\(\\dfrac{{t}}{{{p["hour_increment"]}}}\\) nên số tổ công nhân làm việc là \\({p["base_teams"]} - \\dfrac{{t}}{{{p["hour_increment"]}}}\\) (tổ).
+Số tổ công nhân bỏ việc là \\({format_dfrac(team_decrease, hour_increment)} t\\) nên số tổ công nhân làm việc là \\({base_teams} - {format_dfrac(team_decrease, hour_increment)} t\\) (tổ).
 
-Năng suất của tổ công nhân còn \\({p["base_productivity"]} - \\dfrac{{{p["productivity_decrease"]}t}}{{{p["hour_increment"]}}}\\) sản phẩm một giờ.
+Năng suất của tổ công nhân còn \\({base_productivity} - {format_dfrac(productivity_decrease, hour_increment)} t\\) sản phẩm một giờ.
 
-Số thời gian làm việc một tuần là \\({p["base_hours"]} + t = x\\) (giờ).
+Số thời gian làm việc một tuần là \\({base_hours} + t = x\\) (giờ).
 
-\\(\\Rightarrow\\) Số phế phẩm thu được là \\(P({p["base_hours"]} + t) = \\dfrac{{{p["waste_a"]}({p["base_hours"]} + t)^2 + {p["waste_b"]}({p["base_hours"]} + t)}}{{{p["waste_c"]}}}\\)
+\\(\\Rightarrow\\) Số phế phẩm thu được là \\(P({base_hours} + t) = {waste_formula}\\)
 
-Để nhà máy hoạt động được thì \\(\\left\\{{\\begin{{array}}{{l}}{p["base_hours"]} + t > 0 \\\\ {p["base_productivity"]} - \\dfrac{{{p["productivity_decrease"]}t}}{{{p["hour_increment"]}}} > 0\\end{{array}}\\right. \\Rightarrow t \\in(-{p["base_hours"]} ; {p["base_teams"] * p["hour_increment"]}) \\\\ {p["base_teams"]} - \\dfrac{{t}}{{{p["hour_increment"]}}} > 0\\)
+Để nhà máy hoạt động được thì \\(\\left\\{{\\begin{{array}}{{l}}{base_hours} + t > 0 \\\\ {base_productivity} - {format_dfrac(productivity_decrease, hour_increment)} t > 0\\end{{array}}\\right. \\Rightarrow t \\in({t_min:.1f} ; {t_max:.1f}) \\\\ {base_teams} - {format_dfrac(team_decrease, hour_increment)} t > 0\\)
 
 Số sản phẩm trong một tuần làm được:
 
-\\(S = \\text{{Số tổ x Năng suất x Thời gian}} = \\left({p["base_teams"]} - \\dfrac{{t}}{{{p["hour_increment"]}}}\\right)\\left({p["base_productivity"]} - \\dfrac{{{p["productivity_decrease"]}t}}{{{p["hour_increment"]}}}\\right)({p["base_hours"]} + t)\\).
+\\(S = \\text{{Số tổ x Năng suất x Thời gian}} = \\left({base_teams} - {format_dfrac(team_decrease, hour_increment)} t\\right)\\left({base_productivity} - {format_dfrac(productivity_decrease, hour_increment)} t\\right)({base_hours} + t)\\).
 
 Số sản phẩm thu được là:
 
-\\(f(t) = \\left({p["base_teams"]} - \\dfrac{{t}}{{{p["hour_increment"]}}}\\right)\\left({p["base_productivity"]} - \\dfrac{{{p["productivity_decrease"]}t}}{{{p["hour_increment"]}}}\\right)({p["base_hours"]} + t) - \\dfrac{{{p["waste_a"]}({p["base_hours"]} + t)^2 + {p["waste_b"]}({p["base_hours"]} + t)}}{{{p["waste_c"]}}}\\)
+\\(f(t) = \\left({base_teams} - {format_dfrac(team_decrease, hour_increment)} t\\right)\\left({base_productivity} - {format_dfrac(productivity_decrease, hour_increment)} t\\right)({base_hours} + t) - {waste_formula}\\)
 
-\\(f'(t) = {neg_one}\\left({p["base_productivity"]} - {productivity_decrease_frac}t\\right)({p["base_hours"]} + t) - {productivity_decrease_frac}\\left({p["base_teams"]} - {teams_frac}t\\right)({p["base_hours"]} + t) + \\left({p["base_teams"]} - {teams_frac}t\\right)\\left({p["base_productivity"]} - {productivity_decrease_frac}t\\right) - {waste_derivative_coeff}({p["base_hours"]} + t) - {waste_derivative_const} \\\\ = {coeff_t2} t^2 - {coeff_t} t - {constant}\\)
+\\(f'(t) = -{format_dfrac(team_decrease, hour_increment)}\\left({base_productivity} - {format_dfrac(productivity_decrease, hour_increment)} t\\right)({base_hours} + t) - {format_dfrac(productivity_decrease, hour_increment)}\\left({base_teams} - {format_dfrac(team_decrease, hour_increment)} t\\right)({base_hours} + t) + \\left({base_teams} - {format_dfrac(team_decrease, hour_increment)} t\\right)\\left({base_productivity} - {format_dfrac(productivity_decrease, hour_increment)} t\\right) - {format_dfrac(waste_a, waste_c)} \\cdot 2({base_hours} + t) - {format_dfrac(waste_b, waste_c)}\\)
 
-Ta có \\(f'(t) = 0 \\Leftrightarrow \\left[\\begin{{array}}{{l}}t = {solution_t1} \\\\ t = {solution_t2}(L)\\end{{array}}\\right.\\).
+\\(= {format_polynomial(sp.Poly(f_prime_simplified, t).all_coeffs(), 't')}\\)
 
-Dựa vào bảng biến thiên ta có số lượng sản phẩm thu được lớn nhất thì thời gian làm việc trong một tuần là \\({p["base_hours"]} - 4 = {p["base_hours"] - 4}\\) giờ.
+Ta có \\(f'(t) = 0 \\Leftrightarrow \\left[\\begin{{array}}{{l}}t = {best_t:.0f} \\\\ t = {second_cp_latex}(L)\\end{{array}}\\right.\\).
+
+Dựa vào bảng biến thiên ta có số lượng sản phẩm thu được lớn nhất thì thời gian làm việc trong một tuần là \\({hours_calculation_formatted} = {optimal_hours:.0f}\\) giờ.
 """
+
+        return latex_solution
 
 
 """
@@ -564,7 +734,7 @@ class ExportProfitOptimization(BaseOptimizationQuestion):
     - Doanh nghiệp sản xuất sản phẩm với hàm cung R(x) = x - c1
     - Tiêu thụ nội địa Q(x) = c2 - x
     - Xuất khẩu phần dư với giá x0, chịu thuế a
-    - Tỷ lệ lãi:thuế = 4:1
+    - Tỷ lệ lãi:thuế = profit_ratio:tax_ratio
     - Tối ưu hóa lợi nhuận xuất khẩu
     """
 
@@ -580,8 +750,10 @@ class ExportProfitOptimization(BaseOptimizationQuestion):
         # Giá xuất khẩu
         x0 = random.choice([3200, 2800, 3400, 3000, 3100, 3600, 2900, 2700, 2950, 3050])  # USD
 
-        # Tỷ lệ lãi:thuế = 4:1 (cố định)
-        profit_tax_ratio = (4, 1)
+        # Tỷ lệ lãi:thuế ngẫu nhiên (số nguyên:số nguyên, từ 1 đến 10)
+        profit_ratio = random.choice([1, 2, 3, 4, 5, 6, 7, 8, 9, 10])  # Lãi
+        tax_ratio = random.choice([1, 2, 3, 4, 5, 6, 7, 8, 9, 10])     # Thuế  
+        profit_tax_ratio = (profit_ratio, tax_ratio)
 
         return {
             "c1": c1,
@@ -591,20 +763,41 @@ class ExportProfitOptimization(BaseOptimizationQuestion):
         }
 
     def calculate_answer(self) -> str:
-        """Tính đáp án đúng"""
+        """Tính đáp án đúng theo phương pháp toán học chính xác"""
         p = self.parameters
 
-        # Từ tỷ lệ lãi:thuế = 4:1 và công thức tối ưu hóa
-        # a = (x0 - x)/5, và x tối ưu = x0*4/5 = 0.8*x0
-        # Do đó a = (x0 - 0.8*x0)/5 = 0.2*x0/5 = 0.04*x0
-
-        # Nhưng theo pattern từ bài mẫu, thường a = 100
-        # Ta tính theo công thức: x_optimal thường khoảng 2700
-        # với x0 = 3200 thì a = (3200-2700)/5 = 100
-
-        # Tính theo tỷ lệ
-        x_optimal = p["x0"] * 2700 / 3200  # Scale theo x0
-        a_optimal = (p["x0"] - x_optimal) / 5
+        # Lấy tỷ lệ lãi:thuế
+        profit_ratio, tax_ratio = p["profit_tax_ratio"]
+        
+        c1 = p["c1"]
+        c2 = p["c2"] 
+        x0 = p["x0"]
+        ratio_sum = profit_ratio + tax_ratio
+        
+        # Phương pháp toán học đúng:
+        # Từ ràng buộc L:T = profit_ratio:tax_ratio
+        # Ta có: L = (profit_ratio/tax_ratio) * T
+        # Mà L + T = (2x - c1 - c2) * (x0 - x) (tổng lợi nhuận)
+        # Nên: T = (tax_ratio/(profit_ratio + tax_ratio)) * (2x - c1 - c2) * (x0 - x)
+        # Do đó: a = T / (2x - c1 - c2) = (tax_ratio/ratio_sum) * (x0 - x)
+        
+        # Và L = (profit_ratio/ratio_sum) * (2x - c1 - c2) * (x0 - x)
+        # Để tối đa hóa L(x), lấy đạo hàm L'(x) = 0
+        # L'(x) = (profit_ratio/ratio_sum) * [2(x0 - x) - (2x - c1 - c2)]
+        #       = (profit_ratio/ratio_sum) * [2*x0 - 4x + c1 + c2]
+        # L'(x) = 0 khi x = (2*x0 + c1 + c2) / 4
+        
+        x_optimal = (2 * x0 + c1 + c2) / 4
+        
+        # Kiểm tra điều kiện xuất khẩu dương: 2x - c1 - c2 > 0
+        export_quantity = 2 * x_optimal - (c1 + c2)
+        if export_quantity <= 0:
+            # Nếu số lượng xuất khẩu âm hoặc bằng 0, tìm nghiệm biên
+            x_min_export = (c1 + c2) / 2  # x tối thiểu để xuất khẩu dương
+            x_optimal = x_min_export + 1  # Đảm bảo xuất khẩu dương
+        
+        # Tính a theo công thức đúng: a = (tax_ratio/ratio_sum) * (x0 - x)
+        a_optimal = (tax_ratio / ratio_sum) * (x0 - x_optimal)
 
         return f"\\({format_number_clean(a_optimal)}\\)"
 
@@ -612,10 +805,12 @@ class ExportProfitOptimization(BaseOptimizationQuestion):
         """Sinh 3 đáp án sai hợp lý"""
         p = self.parameters
         x0 = p["x0"]
+        profit_ratio, tax_ratio = p["profit_tax_ratio"]
 
         # Tính đáp án đúng
-        x_optimal = x0 * 2700 / 3200
-        a_correct = (x0 - x_optimal) / 5
+        ratio_sum = profit_ratio + tax_ratio
+        x_optimal = x0 * profit_ratio / ratio_sum
+        a_correct = (x0 - x_optimal) / ratio_sum
 
         # Các sai lầm thường gặp
         wrong_answers = [
@@ -628,59 +823,67 @@ class ExportProfitOptimization(BaseOptimizationQuestion):
 
     PROBLEM_TEMPLATES = [
         # Đề bài gốc - Câu 2
-        '''Một doanh nghiệp kinh doanh một loại sản phẩm T được sản xuất trong nước. Qua nghiên cứu thấy rằng nếu chi phí sản xuất mỗi sản phẩm T là \\(x\\) USD thì số sản phẩm T các nhà máy sản xuất sẽ là \\(R(x)=x-{c1}\\) và số sản phẩm T mà doanh nghiệp bán được trên thị trường trong nước sẽ là \\(Q(x)={c2}-x\\). Số sản phẩm còn dư doanh nghiệp xuất khẩu ra thị trường quốc tế với giá bán mỗi sản phẩm ổn định trên thị trường quốc tế là \\(x_0={x0} \$\\) . Nhà nước đánh thuế trên mỗi sản phẩm xuất khẩu là \\(a\\) USD và luôn đảm bảo tỉ lệ giữa lãi xuất khẩu của doanh nghiệp và thuế thu được của nhà nước tương ứng là \\(4: 1\\). Hãy xác định giá trị của \\(a\\) biết lãi mà doanh nghiệp thu được do xuất khẩu là nhiều nhất? (Đơn vị: USD)''',
+        '''Một doanh nghiệp kinh doanh một loại sản phẩm T được sản xuất trong nước. Qua nghiên cứu thấy rằng nếu chi phí sản xuất mỗi sản phẩm T là \\(x\\) USD thì số sản phẩm T các nhà máy sản xuất sẽ là \\(R(x)=x-{c1}\\) và số sản phẩm T mà doanh nghiệp bán được trên thị trường trong nước sẽ là \\(Q(x)={c2}-x\\). Số sản phẩm còn dư doanh nghiệp xuất khẩu ra thị trường quốc tế với giá bán mỗi sản phẩm ổn định trên thị trường quốc tế là \\(x_0={x0} \$\\) . Nhà nước đánh thuế trên mỗi sản phẩm xuất khẩu là \\(a\\) USD và luôn đảm bảo tỉ lệ giữa lãi xuất khẩu của doanh nghiệp và thuế thu được của nhà nước tương ứng là \\({profit_ratio}: {tax_ratio}\\). Hãy xác định giá trị của \\(a\\) biết lãi mà doanh nghiệp thu được do xuất khẩu là nhiều nhất? (Đơn vị: USD)''',
 
         # Bài tương tự 1
-        '''Công ty TNHH T chuyên sản xuất cà phê bột để tiêu thụ trong nước và xuất khẩu. Giá bán cố định của cà phê bột trên thị trường quốc tế là \\(x_0 = {x0}\\) USD mỗi tấn. Phần sản phẩm không tiêu thụ trong nước sẽ được xuất khẩu, và mỗi tấn cà phê xuất khẩu phải chịu mức thuế \\(a\\) USD. Nếu chi phí sản xuất mỗi tấn cà phê là \\(x\\) USD thì doanh nghiệp sản xuất được \\(R(x) = x - {c1}\\) tấn và tiêu thụ nội địa là \\(Q(x) = {c2} - x\\) tấn. Chính sách quốc gia yêu cầu tỷ lệ giữa lợi nhuận từ xuất khẩu và số thuế thu được là \\(4 : 1\\). Tìm giá trị \\(a\\) để lợi nhuận từ hoạt động xuất khẩu là lớn nhất. (Đơn vị: USD)''',
+        '''Công ty TNHH T chuyên sản xuất cà phê bột để tiêu thụ trong nước và xuất khẩu. Giá bán cố định của cà phê bột trên thị trường quốc tế là \\(x_0 = {x0}\\) USD mỗi tấn. Phần sản phẩm không tiêu thụ trong nước sẽ được xuất khẩu, và mỗi tấn cà phê xuất khẩu phải chịu mức thuế \\(a\\) USD. Nếu chi phí sản xuất mỗi tấn cà phê là \\(x\\) USD thì doanh nghiệp sản xuất được \\(R(x) = x - {c1}\\) tấn và tiêu thụ nội địa là \\(Q(x) = {c2} - x\\) tấn. Chính sách quốc gia yêu cầu tỷ lệ giữa lợi nhuận từ xuất khẩu và số thuế thu được là \\({profit_ratio} : {tax_ratio}\\). Tìm giá trị \\(a\\) để lợi nhuận từ hoạt động xuất khẩu là lớn nhất. (Đơn vị: USD)''',
 
         # Bài tương tự 2
-        '''Nhà nước quy định rằng tỷ lệ giữa lợi nhuận từ hoạt động xuất khẩu của doanh nghiệp và số thuế thu được phải luôn giữ ở mức \\(4 : 1\\). Một doanh nghiệp sản xuất thiết bị điện tử tiêu dùng quyết định mở rộng xuất khẩu, với giá bán cố định trên thị trường quốc tế là \\(x_0 = {x0}\\) USD mỗi thiết bị. Mỗi thiết bị xuất khẩu chịu thuế \\(a\\) USD. Nếu chi phí sản xuất một thiết bị là \\(x\\) USD thì doanh nghiệp sản xuất được \\(R(x) = x - {c1}\\) sản phẩm, trong đó \\(Q(x) = {c2} - x\\) được tiêu thụ tại thị trường trong nước. Hỏi mức thuế \\(a\\) cần đặt là bao nhiêu để lợi nhuận từ xuất khẩu là lớn nhất. (Đơn vị: USD)''',
+        '''Nhà nước quy định rằng tỷ lệ giữa lợi nhuận từ hoạt động xuất khẩu của doanh nghiệp và số thuế thu được phải luôn giữ ở mức \\({profit_ratio} : {tax_ratio}\\). Một doanh nghiệp sản xuất thiết bị điện tử tiêu dùng quyết định mở rộng xuất khẩu, với giá bán cố định trên thị trường quốc tế là \\(x_0 = {x0}\\) USD mỗi thiết bị. Mỗi thiết bị xuất khẩu chịu thuế \\(a\\) USD. Nếu chi phí sản xuất một thiết bị là \\(x\\) USD thì doanh nghiệp sản xuất được \\(R(x) = x - {c1}\\) sản phẩm, trong đó \\(Q(x) = {c2} - x\\) được tiêu thụ tại thị trường trong nước. Hỏi mức thuế \\(a\\) cần đặt là bao nhiêu để lợi nhuận từ xuất khẩu là lớn nhất. (Đơn vị: USD)''',
 
         # Bài tương tự 3
-        '''Một công ty dệt may chuyên sản xuất áo khoác gió thể thao phục vụ thị trường trong nước và xuất khẩu. Nếu chi phí sản xuất mỗi áo là \\(x\\) USD thì nhu cầu nội địa là \\(Q(x) = {c2} - x\\) và sản lượng sản xuất được là \\(R(x) = x - {c1}\\). Các sản phẩm không tiêu thụ hết được xuất khẩu với giá cố định là \\(x_0 = {x0}\\) USD mỗi áo. Mỗi sản phẩm xuất khẩu chịu mức thuế \\(a\\) USD. Nhà nước yêu cầu doanh nghiệp duy trì tỷ lệ giữa lãi và thuế ở mức \\(4 : 1\\). Tìm giá trị \\(a\\) sao cho lợi nhuận từ hoạt động xuất khẩu đạt cực đại. (Đơn vị: USD)''',
+        '''Một công ty dệt may chuyên sản xuất áo khoác gió thể thao phục vụ thị trường trong nước và xuất khẩu. Nếu chi phí sản xuất mỗi áo là \\(x\\) USD thì nhu cầu nội địa là \\(Q(x) = {c2} - x\\) và sản lượng sản xuất được là \\(R(x) = x - {c1}\\). Các sản phẩm không tiêu thụ hết được xuất khẩu với giá cố định là \\(x_0 = {x0}\\) USD mỗi áo. Mỗi sản phẩm xuất khẩu chịu mức thuế \\(a\\) USD. Nhà nước yêu cầu doanh nghiệp duy trì tỷ lệ giữa lãi và thuế ở mức \\({profit_ratio} : {tax_ratio}\\). Tìm giá trị \\(a\\) sao cho lợi nhuận từ hoạt động xuất khẩu đạt cực đại. (Đơn vị: USD)''',
 
         # Bài tương tự 4
-        '''Một nhà máy thực phẩm sản xuất dầu ăn đóng chai với mục tiêu phục vụ thị trường nội địa và xuất khẩu. Khi chi phí sản xuất mỗi chai là \\(x\\) USD thì sản lượng đạt được là \\(R(x) = x - {c1}\\), và lượng tiêu thụ trong nước là \\(Q(x) = {c2} - x\\). Phần còn lại được xuất khẩu với giá ổn định là \\(x_0 = {x0}\\) USD/chai. Mỗi sản phẩm xuất khẩu chịu thuế \\(a\\) USD. Nhà nước yêu cầu tỷ lệ giữa lợi nhuận từ xuất khẩu và số thuế thu được là \\(4 : 1\\). Xác định mức thuế \\(a\\) để lợi nhuận từ xuất khẩu lớn nhất. (Đơn vị: USD)''',
+        '''Một nhà máy thực phẩm sản xuất dầu ăn đóng chai với mục tiêu phục vụ thị trường nội địa và xuất khẩu. Khi chi phí sản xuất mỗi chai là \\(x\\) USD thì sản lượng đạt được là \\(R(x) = x - {c1}\\), và lượng tiêu thụ trong nước là \\(Q(x) = {c2} - x\\). Phần còn lại được xuất khẩu với giá ổn định là \\(x_0 = {x0}\\) USD/chai. Mỗi sản phẩm xuất khẩu chịu thuế \\(a\\) USD. Nhà nước yêu cầu tỷ lệ giữa lợi nhuận từ xuất khẩu và số thuế thu được là \\({profit_ratio} : {tax_ratio}\\). Xác định mức thuế \\(a\\) để lợi nhuận từ xuất khẩu lớn nhất. (Đơn vị: USD)''',
 
         # Bài tương tự 5
-        '''Một công ty khởi nghiệp đang phát triển robot dọn nhà loại mini để bán trong nước và xuất khẩu. Các sản phẩm dư ra được bán ra thị trường quốc tế với giá cố định là \\(x_0 = {x0}\\) USD mỗi thiết bị. Nếu chi phí sản xuất là \\(x\\) USD mỗi thiết bị, thì sản lượng là \\(R(x) = x - {c1}\\) và lượng tiêu thụ nội địa là \\(Q(x) = {c2} - x\\). Theo quy định nhà nước, mỗi sản phẩm xuất khẩu chịu mức thuế \\(a\\) USD và tỉ lệ giữa lợi nhuận và thuế thu được phải là \\(4 : 1\\). Hỏi giá trị của \\(a\\) để lợi nhuận từ xuất khẩu đạt cực đại. (Đơn vị: USD)''',
+        '''Một công ty khởi nghiệp đang phát triển robot dọn nhà loại mini để bán trong nước và xuất khẩu. Các sản phẩm dư ra được bán ra thị trường quốc tế với giá cố định là \\(x_0 = {x0}\\) USD mỗi thiết bị. Nếu chi phí sản xuất là \\(x\\) USD mỗi thiết bị, thì sản lượng là \\(R(x) = x - {c1}\\) và lượng tiêu thụ nội địa là \\(Q(x) = {c2} - x\\). Theo quy định nhà nước, mỗi sản phẩm xuất khẩu chịu mức thuế \\(a\\) USD và tỉ lệ giữa lợi nhuận và thuế thu được phải là \\({profit_ratio} : {tax_ratio}\\). Hỏi giá trị của \\(a\\) để lợi nhuận từ xuất khẩu đạt cực đại. (Đơn vị: USD)''',
 
         # Bài tương tự 6
-        '''Một công ty công nghệ trẻ đang phát triển robot lau nhà mini để phục vụ thị trường nội địa và xuất khẩu sang nước ngoài. Do điều kiện thị trường, phần sản phẩm dư thừa sau tiêu thụ nội địa sẽ được bán ra quốc tế với mức giá ổn định là \\(x_0 = {x0}\\) USD cho mỗi thiết bị. Nếu chi phí sản xuất một thiết bị là \\(x\\) USD thì số lượng sản phẩm công ty có thể sản xuất là \\(R(x) = x - {c1}\\), và lượng tiêu thụ trong nước được dự báo là \\(Q(x) = {c2} - x\\). Theo quy định của nhà nước, mỗi thiết bị xuất khẩu chịu thuế \\(a\\) USD và tỉ lệ giữa lợi nhuận từ hoạt động xuất khẩu với số thuế thu được phải luôn là \\(4 : 1\\). Hỏi mức thuế \\(a\\) cần quy định là bao nhiêu để lợi nhuận thu được từ hoạt động xuất khẩu của công ty là lớn nhất. (Đơn vị: USD)''',
+        '''Một công ty công nghệ trẻ đang phát triển robot lau nhà mini để phục vụ thị trường nội địa và xuất khẩu sang nước ngoài. Do điều kiện thị trường, phần sản phẩm dư thừa sau tiêu thụ nội địa sẽ được bán ra quốc tế với mức giá ổn định là \\(x_0 = {x0}\\) USD cho mỗi thiết bị. Nếu chi phí sản xuất một thiết bị là \\(x\\) USD thì số lượng sản phẩm công ty có thể sản xuất là \\(R(x) = x - {c1}\\), và lượng tiêu thụ trong nước được dự báo là \\(Q(x) = {c2} - x\\). Theo quy định của nhà nước, mỗi thiết bị xuất khẩu chịu thuế \\(a\\) USD và tỉ lệ giữa lợi nhuận từ hoạt động xuất khẩu với số thuế thu được phải luôn là \\({profit_ratio} : {tax_ratio}\\). Hỏi mức thuế \\(a\\) cần quy định là bao nhiêu để lợi nhuận thu được từ hoạt động xuất khẩu của công ty là lớn nhất. (Đơn vị: USD)''',
 
         # Bài tương tự 7
-        '''Nhằm đảm bảo cân đối giữa lợi ích doanh nghiệp và ngân sách nhà nước, mỗi đèn LED thông minh xuất khẩu bị đánh thuế \\(a\\) USD. Nhà nước yêu cầu doanh nghiệp phải duy trì tỉ lệ giữa lợi nhuận thu được từ xuất khẩu và số thuế nộp là \\(4 : 1\\). Giá bán trên thị trường quốc tế của mỗi đèn LED là \\(x_0 = {x0}\\) USD. Qua khảo sát, nếu chi phí sản xuất mỗi đèn là \\(x\\) USD thì số sản phẩm sản xuất được là \\(R(x) = x - {c1}\\), trong khi số lượng tiêu thụ trong nước là \\(Q(x) = {c2} - x\\). Hỏi doanh nghiệp cần chọn mức thuế \\(a\\) là bao nhiêu để lợi nhuận từ xuất khẩu đạt lớn nhất. (Đơn vị: USD)''',
+        '''Nhằm đảm bảo cân đối giữa lợi ích doanh nghiệp và ngân sách nhà nước, mỗi đèn LED thông minh xuất khẩu bị đánh thuế \\(a\\) USD. Nhà nước yêu cầu doanh nghiệp phải duy trì tỉ lệ giữa lợi nhuận thu được từ xuất khẩu và số thuế nộp là \\({profit_ratio} : {tax_ratio}\\). Giá bán trên thị trường quốc tế của mỗi đèn LED là \\(x_0 = {x0}\\) USD. Qua khảo sát, nếu chi phí sản xuất mỗi đèn là \\(x\\) USD thì số sản phẩm sản xuất được là \\(R(x) = x - {c1}\\), trong khi số lượng tiêu thụ trong nước là \\(Q(x) = {c2} - x\\). Hỏi doanh nghiệp cần chọn mức thuế \\(a\\) là bao nhiêu để lợi nhuận từ xuất khẩu đạt lớn nhất. (Đơn vị: USD)''',
 
         # Bài tương tự 8
-        '''Một công ty điện tử chuyên sản xuất loa Bluetooth chống nước phục vụ cho cả thị trường nội địa và quốc tế. Nếu chi phí sản xuất mỗi loa là \\(x\\) USD, thì số lượng sản phẩm sản xuất được là \\(R(x) = x - {c1}\\) và lượng tiêu thụ trong nước là \\(Q(x) = {c2} - x\\). Các sản phẩm không tiêu thụ trong nước sẽ được xuất khẩu với mức giá ổn định là \\(x_0 = {x0}\\) USD mỗi chiếc. Theo quy định, mỗi sản phẩm xuất khẩu bị đánh thuế \\(a\\) USD và tỷ lệ giữa lãi và thuế thu được phải luôn là \\(4 : 1\\). Tính giá trị \\(a\\) sao cho lợi nhuận từ xuất khẩu là lớn nhất. (Đơn vị: USD)''',
+        '''Một công ty điện tử chuyên sản xuất loa Bluetooth chống nước phục vụ cho cả thị trường nội địa và quốc tế. Nếu chi phí sản xuất mỗi loa là \\(x\\) USD, thì số lượng sản phẩm sản xuất được là \\(R(x) = x - {c1}\\) và lượng tiêu thụ trong nước là \\(Q(x) = {c2} - x\\). Các sản phẩm không tiêu thụ trong nước sẽ được xuất khẩu với mức giá ổn định là \\(x_0 = {x0}\\) USD mỗi chiếc. Theo quy định, mỗi sản phẩm xuất khẩu bị đánh thuế \\(a\\) USD và tỷ lệ giữa lãi và thuế thu được phải luôn là \\({profit_ratio} : {tax_ratio}\\). Tính giá trị \\(a\\) sao cho lợi nhuận từ xuất khẩu là lớn nhất. (Đơn vị: USD)''',
 
         # Bài tương tự 9
-        '''Nhằm khuyến khích phát triển sản phẩm thân thiện với môi trường, chính phủ yêu cầu rằng đối với mỗi đèn năng lượng mặt trời xuất khẩu, tỷ lệ giữa lợi nhuận thu được và số thuế thu phải là \\(4 : 1\\). Một công ty chuyên sản xuất đèn năng lượng mặt trời bán phần sản phẩm dư ra thị trường quốc tế với mức giá ổn định \\(x_0 = {x0}\\) USD mỗi đèn. Nếu chi phí sản xuất là \\(x\\) USD thì số lượng sản phẩm sản xuất được là \\(R(x) = x - {c1}\\), còn số sản phẩm tiêu thụ trong nước là \\(Q(x) = {c2} - x\\). Hãy xác định mức thuế \\(a\\) sao cho lợi nhuận từ xuất khẩu là lớn nhất. (Đơn vị: USD)''',
+        '''Nhằm khuyến khích phát triển sản phẩm thân thiện với môi trường, chính phủ yêu cầu rằng đối với mỗi đèn năng lượng mặt trời xuất khẩu, tỷ lệ giữa lợi nhuận thu được và số thuế thu phải là \\({profit_ratio} : {tax_ratio}\\). Một công ty chuyên sản xuất đèn năng lượng mặt trời bán phần sản phẩm dư ra thị trường quốc tế với mức giá ổn định \\(x_0 = {x0}\\) USD mỗi đèn. Nếu chi phí sản xuất là \\(x\\) USD thì số lượng sản phẩm sản xuất được là \\(R(x) = x - {c1}\\), còn số sản phẩm tiêu thụ trong nước là \\(Q(x) = {c2} - x\\). Hãy xác định mức thuế \\(a\\) sao cho lợi nhuận từ xuất khẩu là lớn nhất. (Đơn vị: USD)''',
 
         # Bài tương tự 10
-        '''Giá bán quốc tế cố định của mỗi đèn LED thông minh là \\(x_0 = {x0}\\) USD. Nhà máy dự kiến rằng với chi phí sản xuất là \\(x\\) USD thì có thể sản xuất được \\(R(x) = x - {c1}\\) sản phẩm. Mỗi đèn được xuất khẩu phải chịu mức thuế \\(a\\) USD. Theo chính sách nhà nước, tỷ lệ giữa lợi nhuận thu được từ xuất khẩu và số thuế phải luôn đạt mức \\(4 : 1\\). Sản lượng tiêu thụ trong nước dự kiến là \\(Q(x) = {c2} - x\\). Hãy xác định giá trị \\(a\\) sao cho lợi nhuận từ xuất khẩu đạt giá trị lớn nhất. (Đơn vị: USD)'''
+        '''Giá bán quốc tế cố định của mỗi đèn LED thông minh là \\(x_0 = {x0}\\) USD. Nhà máy dự kiến rằng với chi phí sản xuất là \\(x\\) USD thì có thể sản xuất được \\(R(x) = x - {c1}\\) sản phẩm. Mỗi đèn được xuất khẩu phải chịu mức thuế \\(a\\) USD. Theo chính sách nhà nước, tỷ lệ giữa lợi nhuận thu được từ xuất khẩu và số thuế phải luôn đạt mức \\({profit_ratio} : {tax_ratio}\\). Sản lượng tiêu thụ trong nước dự kiến là \\(Q(x) = {c2} - x\\). Hãy xác định giá trị \\(a\\) sao cho lợi nhuận từ xuất khẩu đạt giá trị lớn nhất. (Đơn vị: USD)'''
     ]
 
     def generate_question_text(self) -> str:
         """Sinh đề bài bằng LaTeX"""
         p = self.parameters
+        profit_ratio, tax_ratio = p["profit_tax_ratio"]
+        
+        # Thêm profit_ratio và tax_ratio vào parameters để format template
+        format_params = p.copy()
+        format_params["profit_ratio"] = profit_ratio
+        format_params["tax_ratio"] = tax_ratio
 
         template = random.choice(self.PROBLEM_TEMPLATES)
-        return template.format(**p)
+        return template.format(**format_params)
 
     def generate_solution(self) -> str:
         """Sinh lời giải chi tiết"""
         p = self.parameters
+        profit_ratio, tax_ratio = p["profit_tax_ratio"]
 
-        # Tính các giá trị cho lời giải
-        x_optimal = p["x0"] * 2700 / 3200
-        a_optimal = (p["x0"] - x_optimal) / 5
+        # Tính các giá trị cho lời giải theo công thức đúng
+        ratio_sum = profit_ratio + tax_ratio
+        x_optimal = (2 * p["x0"] + p["c1"] + p["c2"]) / 4
+        a_optimal = (tax_ratio / ratio_sum) * (p["x0"] - x_optimal)
 
         # Format các phân số
-        four_fifths = format_dfrac(4, 5)
-        two_fifths = format_dfrac(2, 5)
-        one_fifth = format_dfrac(1, 5)
-        one_fourth = format_dfrac(1, 4)
+        profit_fraction = format_dfrac(profit_ratio, ratio_sum)
+        tax_fraction = format_dfrac(tax_ratio, ratio_sum)
+        one_over_ratio_sum = format_dfrac(1, ratio_sum)
+        one_over_profit_plus_tax = format_dfrac(1, profit_ratio + tax_ratio)
 
         return f"""
 Điều kiện: \\(R(x) = x - {p["c1"]} > 0\\); \\(Q(x) = {p["c2"]} - x > 0 \\Rightarrow {p["c1"]} < x < {p["c2"]}\\).
@@ -691,24 +894,30 @@ Lãi xuất khẩu của doanh nghiệp là: \\(L(x) = (R(x) - Q(x))({p["x0"]} -
 
 Thuế thu được của nhà nước là: \\(T(x) = (2x - {p["c1"] + p["c2"]})a\\).
 
-Ta có \\(L(x) : T(x) = 4 : 1\\), suy ra \\((2x - {p["c1"] + p["c2"]})({p["x0"]} - x - a) = 4(2x - {p["c1"] + p["c2"]})a\\)
+Ta có \\(L(x) : T(x) = {profit_ratio} : {tax_ratio}\\), suy ra \\(L(x) = \\dfrac{{{profit_ratio}}}{{{tax_ratio}}} \\times T(x)\\)
 
-\\(\\Rightarrow a = {one_fifth}({p["x0"]} - x)\\)
+\\(\\Rightarrow (2x - {p["c1"] + p["c2"]})({p["x0"]} - x - a) = \\dfrac{{{profit_ratio}}}{{{tax_ratio}}} \\times (2x - {p["c1"] + p["c2"]})a\\)
+
+\\(\\Rightarrow {p["x0"]} - x - a = \\dfrac{{{profit_ratio}}}{{{tax_ratio}}} \\times a\\)
+
+\\(\\Rightarrow {p["x0"]} - x = a + \\dfrac{{{profit_ratio}}}{{{tax_ratio}}} \\times a = a\\left(1 + \\dfrac{{{profit_ratio}}}{{{tax_ratio}}}\\right) = a \\times \\dfrac{{{tax_ratio} + {profit_ratio}}}{{{tax_ratio}}}\\)
+
+\\(\\Rightarrow a = \\dfrac{{{tax_ratio}}}{{{ratio_sum}}}({p["x0"]} - x)\\)
 
 Khi đó:
-$$L(x) = (2x - {p["c1"] + p["c2"]})\\left({p["x0"]} - x - {one_fifth}({p["x0"]} - x)\\right) = (2x - {p["c1"] + p["c2"]}) {four_fifths}({p["x0"]} - x)$$
+$$L(x) = (2x - {p["c1"] + p["c2"]})\\left({p["x0"]} - x - \\dfrac{{{tax_ratio}}}{{{ratio_sum}}}({p["x0"]} - x)\\right) = (2x - {p["c1"] + p["c2"]}) \\dfrac{{{profit_ratio}}}{{{ratio_sum}}}({p["x0"]} - x)$$
 
-$$= {four_fifths}(2x - {p["c1"] + p["c2"]})({p["x0"]} - x)$$
+$$= {profit_fraction}(2x - {p["c1"] + p["c2"]})({p["x0"]} - x)$$
 
 Bài toán đưa về tìm \\(x\\) để \\(L(x)\\) đạt giá trị lớn nhất.
 
-Lấy đạo hàm: \\(L'(x) = {four_fifths}[2({p["x0"]} - x) - (2x - {p["c1"] + p["c2"]})] = {four_fifths}[2 \\cdot {p["x0"]} - 4x + {p["c1"] + p["c2"]}]\\)
+Lấy đạo hàm: \\(L'(x) = {profit_fraction}[2({p["x0"]} - x) - (2x - {p["c1"] + p["c2"]})] = {profit_fraction}[2 \\cdot {p["x0"]} - 4x + {p["c1"] + p["c2"]}]\\)
 
-\\(L'(x) = 0 \\Leftrightarrow x = {one_fourth}(2 \\cdot {p["x0"]} + {p["c1"] + p["c2"]}) = {format_number_clean(x_optimal)}\\)
+\\(L'(x) = 0 \\Leftrightarrow x = \\dfrac{{1}}{{4}}(2 \\cdot {p["x0"]} + {p["c1"] + p["c2"]}) \\approx {format_number_clean(x_optimal)}\\)
 
-Lập bảng biến thiên ta thấy \\(L(x)\\) đạt giá trị lớn nhất khi \\(x = {format_number_clean(x_optimal)}\\).
+Lập bảng biến thiên ta thấy \\(L(x)\\) đạt giá trị lớn nhất khi \\(x \\approx {format_number_clean(x_optimal)}\\).
 
-Suy ra \\(a = {one_fifth}({p["x0"]} - {format_number_clean(x_optimal)}) = {format_number_clean(a_optimal)}\\).
+Suy ra \\(a = \\dfrac{{{tax_ratio}}}{{{ratio_sum}}}({p["x0"]} - {format_number_clean(x_optimal)}) \\approx {format_number_clean(a_optimal)}\\).
 """
 
 
@@ -812,8 +1021,8 @@ class FuelCostOptimization(BaseOptimizationQuestion):
         ref_speed = p["ref_speed"]
         ref_variable_cost = p["ref_variable_cost"]
 
-        # Tính hệ số k đúng như trong bai2.tex: k = ref_variable_cost / ref_speed
-        k = ref_variable_cost / ref_speed
+        # Tính hệ số k đúng như trong generate_parameters: k = ref_variable_cost / ref_speed^2
+        k = ref_variable_cost / (ref_speed ** 2)
 
         # Tính tốc độ tối ưu: x = sqrt(a/k)
         optimal_speed = math.sqrt(a / k)
@@ -910,38 +1119,38 @@ class FactoryProfitOptimization(BaseOptimizationQuestion):
 
     Bài toán cốt lõi:
     - Giá bán: p(x) = a - bx^2
-    - Chi phí: C(x) = (c + dx)/2
-    - Thuế GTGT 10% trên doanh thu
+    - Chi phí: C(x) = phân_số × (c + dx) (với phân số ngẫu nhiên)
+    - Thuế GTGT : vat_rate_percent%
     - Tối ưu hóa lợi nhuận = Doanh thu - Chi phí - Thuế
     """
 
     PROBLEM_TEMPLATES = [
         # Đề bài gốc - Câu 4
-        '''Nhà máy A chuyên sản suất một loại sản phẩm cho nhà máy B. Hai nhà máy thỏa thuận rằng, hàng tháng nhà máy A cung cấp cho nhà máy B số lượng sản phẩm theo đơn đặt hàng của nhà máy B (tối đa {max_production} tấn sản phẩm). Nếu số lượng đặt hàng là \\(x\\)  tấn sản phẩm. Thì giá bán cho mỗi tấn sản phẩm là \(p(x)={price_a}-{price_b} x^2\) (đơn vị triệu đồng). Chi phí để nhà máy A sản suất \\(x\\)  tấn sản phẩm trong một tháng là \(C(x)=\dfrac{{1}}{{2}}({cost_c}+{cost_d} x)\) (đơn vị: triệu đồng), thuế giá trị gia tăng mà nhà máy A phải đóng cho nhà nước là {vat_rate_percent}\% tổng doanh thu mỗi tháng. Hỏi nhà máy A bán cho nhà máy B bao nhiêu tấn sản phẩm mỗi tháng để thu được lợi nhuận (sau khi đã trừ thuế giá trị gia tăng) cao nhất? (Đơn vị: tấn)''',
+        '''Nhà máy A chuyên sản suất một loại sản phẩm cho nhà máy B. Hai nhà máy thỏa thuận rằng, hàng tháng nhà máy A cung cấp cho nhà máy B số lượng sản phẩm theo đơn đặt hàng của nhà máy B (tối đa {max_production} tấn sản phẩm). Nếu số lượng đặt hàng là \\(x\\)  tấn sản phẩm. Thì giá bán cho mỗi tấn sản phẩm là \(p(x)={price_a}-{price_b} x^2\) (đơn vị triệu đồng). Chi phí để nhà máy A sản suất \\(x\\)  tấn sản phẩm trong một tháng là \(C(x)=\dfrac{{{cost_numerator}}}{{{cost_denominator}}}({cost_c}+{cost_d} x)\) (đơn vị: triệu đồng), thuế giá trị gia tăng mà nhà máy A phải đóng cho nhà nước là {vat_rate_percent}\\% tổng doanh thu mỗi tháng. Hỏi nhà máy A bán cho nhà máy B bao nhiêu tấn sản phẩm mỗi tháng để thu được lợi nhuận (sau khi đã trừ thuế giá trị gia tăng) cao nhất? (Đơn vị: tấn)''',
 
         # Bài tương tự 1
-        '''Trong bối cảnh thị trường xây dựng đang có xu hướng phục hồi sau khủng hoảng, nhiều doanh nghiệp sản xuất vật liệu xây dựng chuyên cung cấp gạch ốp lát cho các công trình dân dụng và đối tác lớn. Tuy nhiên, để đảm bảo chất lượng và tiến độ, công ty giới hạn lượng hàng cung cấp mỗi tháng không vượt quá {max_production} tấn. Doanh thu bán hàng chịu thuế GTGT {vat_rate_percent}\%. Chi phí sản xuất \\(x\\)  tấn mỗi tháng là \(C(x) = \dfrac{{1}}{{2}}({cost_c} + {cost_d}x)\) (triệu đồng). Giá bán mỗi tấn sản phẩm được tính theo công thức \(p(x) = {price_a} - {price_b}x^2\) (triệu đồng). Hỏi doanh nghiệp nên bán bao nhiêu tấn mỗi tháng để thu được lợi nhuận sau thuế lớn nhất? (Đơn vị: tấn)''',
+        '''Trong bối cảnh thị trường xây dựng đang có xu hướng phục hồi sau khủng hoảng, nhiều doanh nghiệp sản xuất vật liệu xây dựng chuyên cung cấp gạch ốp lát cho các công trình dân dụng và đối tác lớn. Tuy nhiên, để đảm bảo chất lượng và tiến độ, công ty giới hạn lượng hàng cung cấp mỗi tháng không vượt quá {max_production} tấn. Doanh thu bán hàng chịu thuế GTGT {vat_rate_percent}\\%. Chi phí sản xuất \\(x\\) tấn mỗi tháng là \\(C(x) = \\dfrac{{{cost_numerator}}}{{{cost_denominator}}}({cost_c} + {cost_d}x)\\) (triệu đồng). Giá bán mỗi tấn sản phẩm được tính theo công thức \\(p(x) = {price_a} - {price_b}x^2\\) (triệu đồng). Hỏi doanh nghiệp nên bán bao nhiêu tấn mỗi tháng để thu được lợi nhuận sau thuế lớn nhất? (Đơn vị: tấn)''',
 
         # Bài tương tự 2
-        '''Đáp ứng nhu cầu sử dụng thực phẩm sạch ngày càng cao tại các thành phố lớn, một nông trại rau hữu cơ tại vùng ven đô mở rộng sản lượng để cung cấp cho chuỗi siêu thị nội địa. Tuy nhiên, do giới hạn vận chuyển và bảo quản, nông trại chỉ có thể cung cấp tối đa {max_production} tấn rau mỗi tháng. Doanh thu từ việc bán rau bị đánh thuế GTGT {vat_rate_percent}\%. Chi phí sản xuất khi cung ứng \\(x\\)  tấn là \(C(x) = \dfrac{{1}}{{2}}({cost_c} + {cost_d}x)\) (triệu đồng). Giá bán mỗi tấn rau được mô hình hóa theo hàm \(p(x) = {price_a} - {price_b}x^2\) (triệu đồng). Nên bán bao nhiêu tấn rau để tối ưu lợi nhuận sau thuế? (Đơn vị: tấn)''',
+        '''Đáp ứng nhu cầu sử dụng thực phẩm sạch ngày càng cao tại các thành phố lớn, một nông trại rau hữu cơ tại vùng ven đô mở rộng sản lượng để cung cấp cho chuỗi siêu thị nội địa. Tuy nhiên, do giới hạn vận chuyển và bảo quản, nông trại chỉ có thể cung cấp tối đa {max_production} tấn rau mỗi tháng. Doanh thu từ việc bán rau bị đánh thuế GTGT {vat_rate_percent}\\%. Chi phí sản xuất khi cung ứng \\(x\\) tấn là \\(C(x) = \\dfrac{{{cost_numerator}}}{{{cost_denominator}}}({cost_c} + {cost_d}x)\\) (triệu đồng). Giá bán mỗi tấn rau được mô hình hóa theo hàm \\(p(x) = {price_a} - {price_b}x^2\\) (triệu đồng). Nên bán bao nhiêu tấn rau để tối ưu lợi nhuận sau thuế? (Đơn vị: tấn)''',
 
         # Bài tương tự 3
-        '''Một công ty sản xuất nước giải khát tại miền Trung vừa ra mắt dòng sản phẩm nước hoa quả lên men không đường nhằm phục vụ nhóm khách hàng quan tâm đến sức khỏe. Sản phẩm được phân phối đến chuỗi siêu thị lớn tại các thành phố lớn như Hà Nội và Đà Nẵng. Do hạn chế về hệ thống kho lạnh và phương tiện vận chuyển chuyên dụng, mỗi tháng công ty chỉ có thể xuất không quá {max_production} tấn sản phẩm ra thị trường. Toàn bộ doanh thu từ việc phân phối sản phẩm sẽ chịu thuế GTGT {vat_rate_percent}\%. Chi phí sản xuất lượng hàng \\(x\\)  tấn là \(C(x) = \dfrac{{1}}{{2}}({cost_c} + {cost_d}x)\) (triệu đồng), và giá bán mỗi tấn phụ thuộc vào sản lượng tiêu thụ: \(p(x) = {price_a} - {price_b}x^2\) (triệu đồng). Hỏi công ty nên bán bao nhiêu tấn mỗi tháng để lợi nhuận sau thuế đạt tối đa? (Đơn vị: tấn)''',
+        '''Một công ty sản xuất nước giải khát tại miền Trung vừa ra mắt dòng sản phẩm nước hoa quả lên men không đường nhằm phục vụ nhóm khách hàng quan tâm đến sức khỏe. Sản phẩm được phân phối đến chuỗi siêu thị lớn tại các thành phố lớn như Hà Nội và Đà Nẵng. Do hạn chế về hệ thống kho lạnh và phương tiện vận chuyển chuyên dụng, mỗi tháng công ty chỉ có thể xuất không quá {max_production} tấn sản phẩm ra thị trường. Toàn bộ doanh thu từ việc phân phối sản phẩm sẽ chịu thuế GTGT {vat_rate_percent}\\%. Chi phí sản xuất lượng hàng \\(x\\) tấn là \\(C(x) = \\dfrac{{{cost_numerator}}}{{{cost_denominator}}}({cost_c} + {cost_d}x)\\) (triệu đồng), và giá bán mỗi tấn phụ thuộc vào sản lượng tiêu thụ: \\(p(x) = {price_a} - {price_b}x^2\\) (triệu đồng). Hỏi công ty nên bán bao nhiêu tấn mỗi tháng để lợi nhuận sau thuế đạt tối đa? (Đơn vị: tấn)''',
 
         # Bài tương tự 4
-        '''Một cơ sở chế biến thủy sản tại Khánh Hòa chuyên sản xuất cá phi lê đông lạnh theo tiêu chuẩn HACCP để cung ứng cho chuỗi nhà hàng hải sản và khách sạn 4–5 sao tại TP. Hồ Chí Minh và Nha Trang. Do hệ thống kho đông và phương tiện bảo quản còn giới hạn, mỗi tháng cơ sở chỉ có thể vận chuyển tối đa {max_production} tấn cá thành phẩm ra thị trường. Doanh thu từ hoạt động kinh doanh phải chịu thuế GTGT {vat_rate_percent}\% theo quy định hiện hành. Chi phí chế biến cá \\(x\\)  tấn được mô hình hóa theo hàm \(C(x) = \dfrac{{1}}{{2}}({cost_c} + {cost_d}x)\) (triệu đồng). Giá bán mỗi tấn sản phẩm phụ thuộc vào khối lượng tiêu thụ, được tính theo công thức: \(p(x) = {price_a} - {price_b}x^2\) (triệu đồng). Hỏi cơ sở nên bán bao nhiêu tấn cá mỗi tháng để lợi nhuận sau thuế là lớn nhất? (Đơn vị: tấn)''',
+        '''Một cơ sở chế biến thủy sản tại Khánh Hòa chuyên sản xuất cá phi lê đông lạnh theo tiêu chuẩn HACCP để cung ứng cho chuỗi nhà hàng hải sản và khách sạn 4–5 sao tại TP. Hồ Chí Minh và Nha Trang. Do hệ thống kho đông và phương tiện bảo quản còn giới hạn, mỗi tháng cơ sở chỉ có thể vận chuyển tối đa {max_production} tấn cá thành phẩm ra thị trường. Doanh thu từ hoạt động kinh doanh phải chịu thuế GTGT {vat_rate_percent}\\% theo quy định hiện hành. Chi phí chế biến cá \\(x\\)  tấn được mô hình hóa theo hàm \(C(x) = \dfrac{{{cost_numerator}}}{{{cost_denominator}}}({cost_c} + {cost_d}x)\) (triệu đồng). Giá bán mỗi tấn sản phẩm phụ thuộc vào khối lượng tiêu thụ, được tính theo công thức: \(p(x) = {price_a} - {price_b}x^2\) (triệu đồng). Hỏi cơ sở nên bán bao nhiêu tấn cá mỗi tháng để lợi nhuận sau thuế là lớn nhất? (Đơn vị: tấn)''',
 
         # Bài tương tự 5
-        '''Một xưởng gỗ tại Tây Nguyên hợp tác với một chuỗi công ty nội thất chuyên sản xuất bàn, tủ và giường cho thị trường nội địa và xuất khẩu. Trong bối cảnh giá nguyên vật liệu tăng và yêu cầu về chứng nhận nguồn gỗ hợp pháp ngày càng chặt chẽ, xưởng phải giới hạn sản lượng tối đa ở mức {max_production} tấn gỗ mỗi tháng để đảm bảo chất lượng và đáp ứng tiêu chuẩn bền vững. Mọi doanh thu từ việc bán gỗ đều phải nộp thuế GTGT {vat_rate_percent}\%. Chi phí sản xuất gỗ theo sản lượng \\(x\\)  tấn là \(C(x) = \dfrac{{1}}{{2}}({cost_c} + {cost_d}x)\) (triệu đồng), trong khi giá bán mỗi tấn được điều chỉnh theo lượng cung ứng và được cho bởi \(p(x) = {price_a} - {price_b}x^2\) (triệu đồng). Công ty nên đặt hàng bao nhiêu tấn mỗi tháng để xưởng thu được lợi nhuận cao nhất sau thuế? (Đơn vị: tấn)''',
+        '''Một xưởng gỗ tại Tây Nguyên hợp tác với một chuỗi công ty nội thất chuyên sản xuất bàn, tủ và giường cho thị trường nội địa và xuất khẩu. Trong bối cảnh giá nguyên vật liệu tăng và yêu cầu về chứng nhận nguồn gỗ hợp pháp ngày càng chặt chẽ, xưởng phải giới hạn sản lượng tối đa ở mức {max_production} tấn gỗ mỗi tháng để đảm bảo chất lượng và đáp ứng tiêu chuẩn bền vững. Mọi doanh thu từ việc bán gỗ đều phải nộp thuế GTGT {vat_rate_percent}\\%. Chi phí sản xuất gỗ theo sản lượng \\(x\\)  tấn là \(C(x) = \dfrac{{{cost_numerator}}}{{{cost_denominator}}}({cost_c} + {cost_d}x)\) (triệu đồng), trong khi giá bán mỗi tấn được điều chỉnh theo lượng cung ứng và được cho bởi \(p(x) = {price_a} - {price_b}x^2\) (triệu đồng). Công ty nên đặt hàng bao nhiêu tấn mỗi tháng để xưởng thu được lợi nhuận cao nhất sau thuế? (Đơn vị: tấn)''',
 
         # Bài tương tự 6
-        '''Một trang trại bò sữa tại Đà Lạt có hệ thống chăn nuôi khép kín với sản lượng cung ứng ổn định quanh năm. Trang trại ký hợp đồng với một công ty chế biến sữa hộp để cung cấp sữa tươi nguyên liệu. Tuy nhiên, do giới hạn công suất xe lạnh và hệ thống bảo quản tại điểm tiếp nhận, lượng sữa được phép giao tối đa mỗi tháng là {max_production} tấn. Doanh thu từ việc bán sữa phải chịu thuế GTGT {vat_rate_percent}\% theo quy định hiện hành. Chi phí để sản xuất ra \\(x\\)  tấn sữa là \(C(x) = \dfrac{{1}}{{2}}({cost_c} + {cost_d}x)\) (triệu đồng). Giá bán mỗi tấn sữa tươi phụ thuộc vào lượng cung cấp, được cho bởi \(p(x) = {price_a} - {price_b}x^2\) (triệu đồng). Trang trại nên cung cấp bao nhiêu tấn mỗi tháng để đạt được lợi nhuận sau thuế lớn nhất? (Đơn vị: tấn)''',
+        '''Một trang trại bò sữa tại Đà Lạt có hệ thống chăn nuôi khép kín với sản lượng cung ứng ổn định quanh năm. Trang trại ký hợp đồng với một công ty chế biến sữa hộp để cung cấp sữa tươi nguyên liệu. Tuy nhiên, do giới hạn công suất xe lạnh và hệ thống bảo quản tại điểm tiếp nhận, lượng sữa được phép giao tối đa mỗi tháng là {max_production} tấn. Doanh thu từ việc bán sữa phải chịu thuế GTGT {vat_rate_percent}\\% theo quy định hiện hành. Chi phí để sản xuất ra \\(x\\)  tấn sữa là \(C(x) = \dfrac{{{cost_numerator}}}{{{cost_denominator}}}({cost_c} + {cost_d}x)\) (triệu đồng). Giá bán mỗi tấn sữa tươi phụ thuộc vào lượng cung cấp, được cho bởi \(p(x) = {price_a} - {price_b}x^2\) (triệu đồng). Trang trại nên cung cấp bao nhiêu tấn mỗi tháng để đạt được lợi nhuận sau thuế lớn nhất? (Đơn vị: tấn)''',
 
         # Bài tương tự 7
-        '''Một công ty hóa chất công nghiệp có trụ sở tại khu công nghiệp Biên Hòa chuyên sản xuất chất phụ gia cho ngành dệt nhuộm và xử lý nước. Trước những quy định khắt khe về môi trường, công ty buộc phải giới hạn lượng nguyên liệu hóa chất bán ra ở mức không quá {max_production} tấn mỗi tháng để đảm bảo an toàn vận hành và quy trình xử lý chất thải. Doanh thu bán hàng mỗi tháng chịu thuế GTGT {vat_rate_percent}\%. Chi phí để sản xuất ra \\(x\\)  tấn sản phẩm là \(C(x) = \dfrac{{1}}{{2}}({cost_c} + {cost_d}x)\) (triệu đồng). Giá bán mỗi tấn sản phẩm tùy theo quy mô đơn hàng và được xác định bởi hàm \(p(x) = {price_a} - {price_b}x^2\) (triệu đồng). Công ty nên cung cấp bao nhiêu tấn mỗi tháng để đạt lợi nhuận sau thuế cao nhất? (Đơn vị: tấn)''',
+        '''Một công ty hóa chất công nghiệp có trụ sở tại khu công nghiệp Biên Hòa chuyên sản xuất chất phụ gia cho ngành dệt nhuộm và xử lý nước. Trước những quy định khắt khe về môi trường, công ty buộc phải giới hạn lượng nguyên liệu hóa chất bán ra ở mức không quá {max_production} tấn mỗi tháng để đảm bảo an toàn vận hành và quy trình xử lý chất thải. Doanh thu bán hàng mỗi tháng chịu thuế GTGT {vat_rate_percent}\\%. Chi phí để sản xuất ra \\(x\\)  tấn sản phẩm là \(C(x) = \dfrac{{{cost_numerator}}}{{{cost_denominator}}}({cost_c} + {cost_d}x)\) (triệu đồng). Giá bán mỗi tấn sản phẩm tùy theo quy mô đơn hàng và được xác định bởi hàm \(p(x) = {price_a} - {price_b}x^2\) (triệu đồng). Công ty nên cung cấp bao nhiêu tấn mỗi tháng để đạt lợi nhuận sau thuế cao nhất? (Đơn vị: tấn)''',
 
         # Bài tương tự 8
-        '''Một hợp tác xã nông nghiệp tại Đồng bằng sông Cửu Long đầu tư dây chuyền sản xuất phân bón hữu cơ phục vụ các tỉnh lân cận và xuất khẩu tiểu ngạch sang Campuchia. Do đặc thù vận chuyển bằng ghe tàu, kho chứa hạn chế và điều kiện bảo quản phân hữu cơ, hợp tác xã chỉ có thể cung ứng tối đa {max_production} tấn phân bón mỗi tháng. Mọi doanh thu thu được đều phải chịu thuế giá trị gia tăng {vat_rate_percent}\%. Chi phí sản xuất \\(x\\)  tấn phân là \(C(x) = \dfrac{{1}}{{2}}({cost_c} + {cost_d}x)\) (triệu đồng). Giá bán mỗi tấn phân bón được xác định theo công thức \(p(x) = {price_a} - {price_b}x^2\) (triệu đồng). Hợp tác xã nên cung cấp bao nhiêu tấn mỗi tháng để tối đa hóa lợi nhuận sau thuế? (Đơn vị: tấn)''',
+        '''Một hợp tác xã nông nghiệp tại Đồng bằng sông Cửu Long đầu tư dây chuyền sản xuất phân bón hữu cơ phục vụ các tỉnh lân cận và xuất khẩu tiểu ngạch sang Campuchia. Do đặc thù vận chuyển bằng ghe tàu, kho chứa hạn chế và điều kiện bảo quản phân hữu cơ, hợp tác xã chỉ có thể cung ứng tối đa {max_production} tấn phân bón mỗi tháng. Mọi doanh thu thu được đều phải chịu thuế giá trị gia tăng {vat_rate_percent}\\%. Chi phí sản xuất \\(x\\)  tấn phân là \(C(x) = \dfrac{{{cost_numerator}}}{{{cost_denominator}}}({cost_c} + {cost_d}x)\) (triệu đồng). Giá bán mỗi tấn phân bón được xác định theo công thức \(p(x) = {price_a} - {price_b}x^2\) (triệu đồng). Hợp tác xã nên cung cấp bao nhiêu tấn mỗi tháng để tối đa hóa lợi nhuận sau thuế? (Đơn vị: tấn)''',
     ]
 
     def generate_parameters(self) -> Dict[str, Any]:
@@ -952,21 +1161,30 @@ class FactoryProfitOptimization(BaseOptimizationQuestion):
         price_a = random.choice([90, 85, 95, 88, 92])
         price_b = random.choice([0.01, 0.008, 0.012, 0.009, 0.011])
 
-        # C(x) = (c + d*x)/2, thường c = 200, d = 27
+        # C(x) = phân_số * (c + d*x), với phân số ngẫu nhiên  
         cost_c = random.choice([200, 180, 220, 190, 210])
         cost_d = random.choice([27, 25, 30, 26, 28])
+        
+        # Sinh phân số ngẫu nhiên cho chi phí (tử số / mẫu số)
+        cost_numerator = random.choice([1, 2, 3, 4, 5])
+        cost_denominator = random.choice([2, 3, 4, 5, 6, 7, 8])
+        # Đảm bảo phân số khác 1 để có tính thú vị
+        while cost_numerator == cost_denominator:
+            cost_denominator = random.choice([2, 3, 4, 5, 6, 7, 8])
 
         # Giới hạn sản lượng
         max_production = 100  # tấn
 
-        # Thuế GTGT
-        vat_rate = 0.1  # 10%
+        # Thuế GTGT (random từ 8% đến 20%)
+        vat_rate = random.choice([0.08, 0.09, 0.10, 0.11, 0.12, 0.13, 0.14, 0.15, 0.16, 0.17, 0.18, 0.19, 0.20])
 
         return {
             "price_a": price_a,
             "price_b": price_b,
             "cost_c": cost_c,
             "cost_d": cost_d,
+            "cost_numerator": cost_numerator,
+            "cost_denominator": cost_denominator,
             "max_production": max_production,
             "vat_rate": vat_rate,
             "vat_rate_percent": int(vat_rate * 100)
@@ -977,7 +1195,9 @@ class FactoryProfitOptimization(BaseOptimizationQuestion):
         p = self.parameters
 
         # Tính toán chính xác theo công thức
-        coef_x = p["price_a"] * (1 - p["vat_rate"]) - p["cost_d"] / 2
+        # C(x) = (cost_numerator/cost_denominator) * (cost_c + cost_d*x)
+        cost_fraction = p["cost_numerator"] / p["cost_denominator"]
+        coef_x = p["price_a"] * (1 - p["vat_rate"]) - p["cost_d"] * cost_fraction
         coef_x3 = -p["price_b"] * (1 - p["vat_rate"])
 
         # Giải phương trình L'(x) = 0: 3*coef_x3*x² + coef_x = 0
@@ -1016,14 +1236,15 @@ class FactoryProfitOptimization(BaseOptimizationQuestion):
 
         # Tính toán các hệ số theo pattern chuẩn
         # L(x) = B(x) - C(x) - T(x)
-        # = x(p_a - p_b*x²) - 1/2(c + d*x) - 0.1*x(p_a - p_b*x²)
-        # = x*p_a - p_b*x³ - c/2 - d*x/2 - 0.1*p_a*x + 0.1*p_b*x³
-        # = (p_a - 0.1*p_a - d/2)*x + (-p_b + 0.1*p_b)*x³ - c/2
-        # = (0.9*p_a - d/2)*x + (-0.9*p_b)*x³ - c/2
+        # = x(p_a - p_b*x²) - (numerator/denominator)*(c + d*x) - vat_rate*x(p_a - p_b*x²)
+        # = x*p_a - p_b*x³ - (numerator/denominator)*c - (numerator/denominator)*d*x - vat_rate*p_a*x + vat_rate*p_b*x³
+        # = (p_a - vat_rate*p_a - (numerator/denominator)*d)*x + (-p_b + vat_rate*p_b)*x³ - (numerator/denominator)*c
+        # = (p_a*(1-vat_rate) - (numerator/denominator)*d)*x + (-p_b*(1-vat_rate))*x³ - (numerator/denominator)*c
 
-        coef_x = p["price_a"] * (1 - p["vat_rate"]) - p["cost_d"] / 2
+        cost_fraction = p["cost_numerator"] / p["cost_denominator"]
+        coef_x = p["price_a"] * (1 - p["vat_rate"]) - p["cost_d"] * cost_fraction
         coef_x3 = -p["price_b"] * (1 - p["vat_rate"])
-        const_term = -p["cost_c"] / 2
+        const_term = -p["cost_c"] * cost_fraction
 
         # Đạo hàm: L'(x) = coef_x - 3*coef_x3*x²
         # Giải L'(x) = 0: coef_x - 3*coef_x3*x² = 0
@@ -1033,8 +1254,7 @@ class FactoryProfitOptimization(BaseOptimizationQuestion):
         optimal_x = int((coef_x / (3 * abs(coef_x3))) ** 0.5)
 
         # Format các phân số
-        one_half = format_dfrac(1, 2)
-        one_tenth = format_dfrac(1, 10)
+        cost_fraction_frac = format_dfrac(p["cost_numerator"], p["cost_denominator"])
         vat_rate_frac = format_dfrac(int(p["vat_rate"] * 100), 100)
 
         return f"""
@@ -1042,15 +1262,15 @@ Giả sử số lượng sản phẩm bán ra là \\(x\\) tấn, \\(0 \\leq x \\
 
 Doanh thu \\(B(x) = x \\cdot p(x) = x({p["price_a"]} - {p["price_b"]}x^2)\\).
 
-Thuế giá trị gia tăng \\(T(x) = {format_number_clean(p["vat_rate"] * 100)}\\% B(x) = {one_tenth} x({p["price_a"]} - {p["price_b"]}x^2)\\).
+Thuế giá trị gia tăng \\(T(x) = {format_number_clean(p["vat_rate"] * 100)}\\% B(x) = {vat_rate_frac} x({p["price_a"]} - {p["price_b"]}x^2)\\).
 
 Lợi nhuận = Doanh thu - Chi phí - Thuế:
 
-\\(L(x) = B(x) - C(x) - T(x) = x({p["price_a"]} - {p["price_b"]}x^2) - {one_half}({p["cost_c"]} + {p["cost_d"]}x) - {one_tenth} x({p["price_a"]} - {p["price_b"]}x^2) = {format_number_clean(coef_x3)}x^3 + {format_number_clean(coef_x)}x + {format_number_clean(const_term)}\\).
+\\(L(x) = B(x) - C(x) - T(x) = x({p["price_a"]} - {p["price_b"]}x^2) - {cost_fraction_frac}({p["cost_c"]} + {p["cost_d"]}x) - {format_number_clean(p["vat_rate"] * 100)}\\% x({p["price_a"]} - {p["price_b"]}x^2) = {format_number_clean(coef_x3, 4)}x^3 + {format_number_clean(coef_x)}x + {format_number_clean(const_term)}\\).
 
-\\(L'(x) = {format_number_clean(3 * coef_x3)}x^2 + {format_number_clean(coef_x)} = 0 \\Leftrightarrow x = {optimal_x}\\).
+\\(L'(x) = {format_number_clean(3 * coef_x3, 4)}x^2 + {format_number_clean(coef_x)} = 0 \\Leftrightarrow x \\approx {optimal_x}\\).
 
-Lập bảng biến thiên ta được lợi nhuận cao nhất khi \\(x = {optimal_x}\\).
+Lập bảng biến thiên ta được lợi nhuận cao nhất khi \\(x \\approx {optimal_x}\\).
 """
 
 
@@ -1153,21 +1373,19 @@ class LampCostOptimization(BaseOptimizationQuestion):
         optimal_x = -b + math.sqrt(b * b + a)
         min_cost = (optimal_x * optimal_x + a) / (optimal_x + b)
 
-        # Format các phân số
-        cost_over_time = format_dfrac(1, 1) + "C(x)/T(x)"  # C(x)/T(x)
-        x_squared_plus_a = format_dfrac(1, 1) + "(x^2 + " + str(a) + ")"  # (x^2 + a)
-        x_plus_b = format_dfrac(1, 1) + "(x + " + str(b) + ")"  # (x + b)
-
+        # Tính giá trị thập phân cho hai nghiệm
+        x1_value = -b - math.sqrt(b * b + a)  # Nghiệm loại
+        x2_value = -b + math.sqrt(b * b + a)  # Nghiệm nhận
+        
         return f"""
-Gọi hàm chi phí vật liệu trung bình trên một giờ sản xuất là \\(f(x)={cost_over_time}=\\dfrac{{x^2+{a}}}{{x+{b}}}, x>0\\).
+Gọi hàm chi phí vật liệu trung bình trên một giờ sản xuất là \\(f(x)=\\dfrac{{C(x)}}{{T(x)}}=\\dfrac{{x^2+{a}}}{{x+{b}}}, x>0\\).
 
-Ta có \\(f'(x)=\\dfrac{{x^2+{2 * b}x-{a}}}{{(x+{b})^2}}=0 \\Leftrightarrow \\left[\\begin{{array}}{{l}}x=-{b}-\\sqrt{{{b * b + a}}}(L) \\\\ x=-{b}+\\sqrt{{{b * b + a}}}\\end{{array}}\\right.\\)
+Ta có \\(f'(x)=\\dfrac{{x^2+{2 * b}x-{a}}}{{(x+{b})^2}}=0 \\Leftrightarrow \\left[\\begin{{array}}{{l}}x \\approx {format_number_clean(x1_value, 2)}(L) \\\\ x \\approx {format_number_clean(x2_value, 2)}\\end{{array}}\\right.\\)
 
-Từ bảng biến thiên ta thấy \\(f(x)\\) đạt GTNN bằng \\({format_number_clean(min_cost)}\\) khi \\(x={format_number_clean(optimal_x)}\\).
+Từ bảng biến thiên ta thấy \\(f(x)\\) đạt GTNN bằng \\({format_number_clean(min_cost)}\\) khi \\(x \\approx {format_number_clean(optimal_x)}\\).
 
-Vậy để chi phí vật liệu trung bình trên một giờ sản xuất là thấp nhất thì \\(x={format_number_clean(optimal_x)}\\).
+Vậy để chi phí vật liệu trung bình trên một giờ sản xuất là thấp nhất thì \\(x \\approx {format_number_clean(optimal_x)}\\).
 """
-
 
 
 # Danh sách các dạng toán có sẵn

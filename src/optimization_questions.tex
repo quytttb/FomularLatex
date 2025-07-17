@@ -1,0 +1,1106 @@
+\documentclass[a4paper,12pt]{article}
+\usepackage{amsmath}
+\usepackage{amsfonts}
+\usepackage{amssymb}
+\usepackage{geometry}
+\geometry{a4paper, margin=1in}
+\usepackage{polyglossia}
+\setmainlanguage{vietnamese}
+\setmainfont{Times New Roman}
+\usepackage{tikz}
+\usepackage{tkz-tab}
+\usepackage{tkz-euclide}
+\usetikzlibrary{calc,decorations.pathmorphing,decorations.pathreplacing}
+\begin{document}
+\title{Câu hỏi Tối ưu hóa}
+\maketitle
+
+Câu 1: Một công ty hóa chất công nghiệp có trụ sở tại khu công nghiệp Biên Hòa chuyên sản xuất chất phụ gia cho ngành dệt nhuộm và xử lý nước. Trước những quy định khắt khe về môi trường, công ty buộc phải giới hạn lượng nguyên liệu hóa chất bán ra ở mức không quá 100 tấn mỗi tháng để đảm bảo an toàn vận hành và quy trình xử lý chất thải. Doanh thu bán hàng mỗi tháng chịu thuế GTGT 9\%. Chi phí để sản xuất ra \(x\)  tấn sản phẩm là \(C(x) = \dfrac{2}{4}(210 + 25x)\) (triệu đồng). Giá bán mỗi tấn sản phẩm tùy theo quy mô đơn hàng và được xác định bởi hàm \(p(x) = 85 - 0.011x^2\) (triệu đồng). Công ty nên cung cấp bao nhiêu tấn mỗi tháng để đạt lợi nhuận sau thuế cao nhất? (Đơn vị: tấn)
+
+A. \(36\)
+
+B. \(56\)
+
+*C. \(46\)
+
+D. \(100\)
+
+Lời giải:
+
+
+Giả sử số lượng sản phẩm bán ra là \(x\) tấn, \(0 \leq x \leq 100\).
+
+Doanh thu \(B(x) = x \cdot p(x) = x(85 - 0.011x^2)\).
+
+Thuế giá trị gia tăng \(T(x) = 9\% B(x) = \dfrac{9}{100} x(85 - 0.011x^2)\).
+
+Lợi nhuận = Doanh thu - Chi phí - Thuế:
+
+\(L(x) = B(x) - C(x) - T(x) = x(85 - 0.011x^2) - \dfrac{1}{2}(210 + 25x) - 9\% x(85 - 0.011x^2) = -0,01x^3 + 64,85x + -105\).
+
+\(L'(x) = -0,03x^2 + 64,85 = 0 \Leftrightarrow x \approx 46\).
+
+Lập bảng biến thiên ta được lợi nhuận cao nhất khi \(x \approx 46\).
+
+
+
+
+Câu 2: Một hợp tác xã nông nghiệp tại Đồng bằng sông Cửu Long đầu tư dây chuyền sản xuất phân bón hữu cơ phục vụ các tỉnh lân cận và xuất khẩu tiểu ngạch sang Campuchia. Do đặc thù vận chuyển bằng ghe tàu, kho chứa hạn chế và điều kiện bảo quản phân hữu cơ, hợp tác xã chỉ có thể cung ứng tối đa 100 tấn phân bón mỗi tháng. Mọi doanh thu thu được đều phải chịu thuế giá trị gia tăng 12\%. Chi phí sản xuất \(x\)  tấn phân là \(C(x) = \dfrac{1}{6}(220 + 26x)\) (triệu đồng). Giá bán mỗi tấn phân bón được xác định theo công thức \(p(x) = 85 - 0.008x^2\) (triệu đồng). Hợp tác xã nên cung cấp bao nhiêu tấn mỗi tháng để tối đa hóa lợi nhuận sau thuế? (Đơn vị: tấn)
+
+A. \(64\)
+
+*B. \(57\)
+
+C. \(44\)
+
+D. \(100\)
+
+Lời giải:
+
+
+Giả sử số lượng sản phẩm bán ra là \(x\) tấn, \(0 \leq x \leq 100\).
+
+Doanh thu \(B(x) = x \cdot p(x) = x(85 - 0.008x^2)\).
+
+Thuế giá trị gia tăng \(T(x) = 12\% B(x) = \dfrac{3}{25} x(85 - 0.008x^2)\).
+
+Lợi nhuận = Doanh thu - Chi phí - Thuế:
+
+\(L(x) = B(x) - C(x) - T(x) = x(85 - 0.008x^2) - \dfrac{1}{6}(220 + 26x) - 12\% x(85 - 0.008x^2) = -0,007x^3 + 70,47x + -36,67\).
+
+\(L'(x) = -0,0211x^2 + 70,47 = 0 \Leftrightarrow x \approx 57\).
+
+Lập bảng biến thiên ta được lợi nhuận cao nhất khi \(x \approx 57\).
+
+
+
+
+Câu 3: Trên sông lớn với mặt nước êm đềm, một chiếc tàu chở khách được vận hành nhằm phục vụ nhu cầu di chuyển liên tỉnh. Để kiểm soát chi phí vận hành, nhà điều hành tàu cần tính toán vận tốc hợp lý để giảm thiểu lượng nhiên liệu tiêu thụ. Biết rằng chi phí nhiên liệu bao gồm phần không đổi là 650 nghìn đồng mỗi giờ và phần biến thiên phụ thuộc bình phương vận tốc. Khi vận tốc tàu là 10 km/h, phần chi phí biến thiên đo được là 70 nghìn đồng/giờ. Tìm tốc độ \(v\) sao cho chi phí nhiên liệu cho mỗi km hành trình là nhỏ nhất. Làm tròn đến hàng phần trăm. (Đơn vị: km/h)
+
+A. \(27,43\)
+
+B. \(33,52\)
+
+C. \(10\)
+
+*D. \(30,47\)
+
+Lời giải:
+
+
+Gọi \(x\) (km/h) là tốc độ của tàu \((x > 0)\).
+
+Thời gian để tàu chạy 1 km trên sông là \(1/x\) (giờ).
+
+Chi phí cho phần thứ nhất để tàu chạy 1 km là: \(p_1=650 \cdot 1/x=650/x\) (nghìn đồng/giờ).
+
+Chi phí cho phần thứ hai để tàu chạy 1 km có dạng: \(p_2=k x^2 \cdot 1/x=k x\) (nghìn đồng/giờ).
+
+Khi \(x=10\) thì \(p_2=70\) nên \(k=0.7\). Do đó \(p_2=0.7 x\) (nghìn đồng/giờ).
+
+Vậy tổng chi phí để tàu chạy 1 km trên khúc sông đó là: \(f(x)=650/x+0.7 x\) (nghìn đồng/giờ).
+
+Ta có: \(f^{\prime}(x)=-650/x^2+0.7\).
+
+        Giải phương trình: \(f^{\prime}(x)=0 \Leftrightarrow x=\sqrt{\dfrac{6500}{7}}\) (thoả mãn) hoặc \(x=-\sqrt{\dfrac{6500}{7}}\) (loại vì \(x>0\)).
+
+        Lập bảng biến thiên của hàm số \(f(x)\) với \(x>0\), ta tìm được \(\min_{x \in(0 ;+\infty)} f(x)=f(\sqrt{\dfrac{6500}{7}})=\sqrt{455}\).
+
+        Vậy tốc độ của tàu để tổng chi phí nhiên liệu khi tàu chạy 1 km trên sông ít nhất là \(\sqrt{\dfrac{6500}{7}} \approx 30,47\) (km/h).
+
+
+
+
+Câu 4: Trên tuyến kênh đào thẳng, không có dòng chảy và thường xuyên được dùng để vận chuyển hàng hóa nặng, một tàu container đang vận hành ổn định. Ban điều hành tuyến vận tải mong muốn tiết kiệm chi phí nhiên liệu nhằm tăng lợi nhuận. Theo phân tích, chi phí nhiên liệu gồm hai phần: phần cố định 610 nghìn đồng/giờ, và phần phụ thuộc bình phương vận tốc. Khi tàu chạy với tốc độ 10 km/h, phần biến thiên này là 80 nghìn đồng/giờ. Xác định vận tốc \(v\) (km/h) sao cho chi phí nhiên liệu để đi hết quãng đường 1 km là ít nhất. Làm tròn đến hàng phần trăm. (Đơn vị: km/h)
+
+A. \(10\)
+
+*B. \(27,61\)
+
+C. \(24,85\)
+
+D. \(30,37\)
+
+Lời giải:
+
+
+Gọi \(x\) (km/h) là tốc độ của tàu \((x > 0)\).
+
+Thời gian để tàu chạy 1 km trên sông là \(1/x\) (giờ).
+
+Chi phí cho phần thứ nhất để tàu chạy 1 km là: \(p_1=610 \cdot 1/x=610/x\) (nghìn đồng/giờ).
+
+Chi phí cho phần thứ hai để tàu chạy 1 km có dạng: \(p_2=k x^2 \cdot 1/x=k x\) (nghìn đồng/giờ).
+
+Khi \(x=10\) thì \(p_2=80\) nên \(k=0.8\). Do đó \(p_2=0.8 x\) (nghìn đồng/giờ).
+
+Vậy tổng chi phí để tàu chạy 1 km trên khúc sông đó là: \(f(x)=610/x+0.8 x\) (nghìn đồng/giờ).
+
+Ta có: \(f^{\prime}(x)=-610/x^2+0.8\).
+
+        Giải phương trình: \(f^{\prime}(x)=0 \Leftrightarrow x=\sqrt{\dfrac{1525}{2}}\) (thoả mãn) hoặc \(x=-\sqrt{\dfrac{1525}{2}}\) (loại vì \(x>0\)).
+
+        Lập bảng biến thiên của hàm số \(f(x)\) với \(x>0\), ta tìm được \(\min_{x \in(0 ;+\infty)} f(x)=f(\sqrt{\dfrac{1525}{2}})=\sqrt{488}\).
+
+        Vậy tốc độ của tàu để tổng chi phí nhiên liệu khi tàu chạy 1 km trên sông ít nhất là \(\sqrt{\dfrac{1525}{2}} \approx 27,61\) (km/h).
+
+
+
+
+Câu 5: Nhà máy A chuyên sản suất một loại sản phẩm cho nhà máy B. Hai nhà máy thỏa thuận rằng, hàng tháng nhà máy A cung cấp cho nhà máy B số lượng sản phẩm theo đơn đặt hàng của nhà máy B (tối đa 100 tấn sản phẩm). Nếu số lượng đặt hàng là \(x\)  tấn sản phẩm. Thì giá bán cho mỗi tấn sản phẩm là \(p(x)=92-0.009 x^2\) (đơn vị triệu đồng). Chi phí để nhà máy A sản suất \(x\)  tấn sản phẩm trong một tháng là \(C(x)=\dfrac{2}{7}(220+27 x)\) (đơn vị: triệu đồng), thuế giá trị gia tăng mà nhà máy A phải đóng cho nhà nước là 13\% tổng doanh thu mỗi tháng. Hỏi nhà máy A bán cho nhà máy B bao nhiêu tấn sản phẩm mỗi tháng để thu được lợi nhuận (sau khi đã trừ thuế giá trị gia tăng) cao nhất? (Đơn vị: tấn)
+
+A. \(63\)
+
+*B. \(55\)
+
+C. \(100\)
+
+D. \(43\)
+
+Lời giải:
+
+
+Giả sử số lượng sản phẩm bán ra là \(x\) tấn, \(0 \leq x \leq 100\).
+
+Doanh thu \(B(x) = x \cdot p(x) = x(92 - 0.009x^2)\).
+
+Thuế giá trị gia tăng \(T(x) = 13\% B(x) = \dfrac{13}{100} x(92 - 0.009x^2)\).
+
+Lợi nhuận = Doanh thu - Chi phí - Thuế:
+
+\(L(x) = B(x) - C(x) - T(x) = x(92 - 0.009x^2) - \dfrac{2}{7}(220 + 27x) - 13\% x(92 - 0.009x^2) = -0,0078x^3 + 72,33x + -62,86\).
+
+\(L'(x) = -0,0235x^2 + 72,33 = 0 \Leftrightarrow x \approx 55\).
+
+Lập bảng biến thiên ta được lợi nhuận cao nhất khi \(x \approx 55\).
+
+
+
+
+Câu 6: Một cơ sở sản xuất nhựa dân dụng tại miền Trung đang cần xác định thời lượng làm việc tối ưu trong tuần nhằm đảm bảo sản lượng thực tế cao nhất. Cơ sở hiện duy trì 120 tổ lao động, mỗi tổ làm việc 48 giờ/tuần và sản xuất 150 đơn vị sản phẩm mỗi giờ. Khi mở rộng ca làm, xảy ra các biến đổi sau:
+
+- Cứ mỗi 3 giờ tăng thêm, giảm 1 tổ làm việc.
+
+- Năng suất mỗi tổ giảm 5 đơn vị mỗi giờ.
+
+- Số lượng sản phẩm hư hỏng phát sinh trong tuần theo công thức: \( P(x) = \dfrac{85x^2 + 100x}{4} \).\\Bài toán yêu cầu tìm số giờ làm việc \(x\) sao cho số sản phẩm thực tế (tổng sản phẩm sản xuất trừ đi phế phẩm) đạt giá trị lớn nhất. (Đơn vị: giờ)
+
+A. \(48\)
+
+B. \(50\)
+
+*C. \(51\)
+
+D. \(46\)
+
+Lời giải:
+
+
+Gọi số giờ làm tăng thêm mỗi tuần là \(t\), \(t \in \mathbb{R}\).
+
+Số tổ công nhân bỏ việc là \(\dfrac{2}{3} t\) nên số tổ công nhân làm việc là \(120 - \dfrac{2}{3} t\) (tổ).
+
+Năng suất của tổ công nhân còn \(150 - \dfrac{5}{3} t\) sản phẩm một giờ.
+
+Số thời gian làm việc một tuần là \(48 + t = x\) (giờ).
+
+\(\Rightarrow\) Số phế phẩm thu được là \(P(48 + t) = \dfrac{85(48 + t)^2 + 100(48 + t)}{4}\)
+
+Để nhà máy hoạt động được thì \(\left\{\begin{array}{l}48 + t > 0 \\ 150 - \dfrac{5}{3} t > 0\end{array}\right. \Rightarrow t \in(-48.0 ; 90.0) \\ 120 - \dfrac{2}{3} t > 0\)
+
+Số sản phẩm trong một tuần làm được:
+
+\(S = \text{Số tổ x Năng suất x Thời gian} = \left(120 - \dfrac{2}{3} t\right)\left(150 - \dfrac{5}{3} t\right)(48 + t)\).
+
+Số sản phẩm thu được là:
+
+\(f(t) = \left(120 - \dfrac{2}{3} t\right)\left(150 - \dfrac{5}{3} t\right)(48 + t) - \dfrac{85(48 + t)^2 + 100(48 + t)}{4}\)
+
+\(f'(t) = -\dfrac{2}{3}\left(150 - \dfrac{5}{3} t\right)(48 + t) - \dfrac{5}{3}\left(120 - \dfrac{2}{3} t\right)(48 + t) + \left(120 - \dfrac{2}{3} t\right)\left(150 - \dfrac{5}{3} t\right) - \dfrac{85}{4} \cdot 2(48 + t) - 25\)
+
+\(= \frac{10}{3}t^{2} - \frac{3215}{6}t + 1535\)
+
+Ta có \(f'(t) = 0 \Leftrightarrow \left[\begin{array}{l}t = 3 \\ t = \dfrac{947}{6}(L)\end{array}\right.\).
+
+Dựa vào bảng biến thiên ta có số lượng sản phẩm thu được lớn nhất thì thời gian làm việc trong một tuần là \(48 + 3 = 51\) giờ.
+
+
+
+
+Câu 7: Một doanh nghiệp kinh doanh một loại sản phẩm T được sản xuất trong nước. Qua nghiên cứu thấy rằng nếu chi phí sản xuất mỗi sản phẩm T là \(x\) USD thì số sản phẩm T các nhà máy sản xuất sẽ là \(R(x)=x-180\) và số sản phẩm T mà doanh nghiệp bán được trên thị trường trong nước sẽ là \(Q(x)=4400-x\). Số sản phẩm còn dư doanh nghiệp xuất khẩu ra thị trường quốc tế với giá bán mỗi sản phẩm ổn định trên thị trường quốc tế là \(x_0=3050 \$\) . Nhà nước đánh thuế trên mỗi sản phẩm xuất khẩu là \(a\) USD và luôn đảm bảo tỉ lệ giữa lãi xuất khẩu của doanh nghiệp và thuế thu được của nhà nước tương ứng là \(9: 4\). Hãy xác định giá trị của \(a\) biết lãi mà doanh nghiệp thu được do xuất khẩu là nhiều nhất? (Đơn vị: USD)
+
+*A. \(116,92\)
+
+B. \(36,09\)
+
+C. \(108,28\)
+
+D. \(86,63\)
+
+Lời giải:
+
+
+Điều kiện: \(R(x) = x - 180 > 0\); \(Q(x) = 4400 - x > 0 \Rightarrow 180 < x < 4400\).
+
+Số sản phẩm xuất khẩu là: \(R(x) - Q(x) = (x - 180) - (4400 - x) = 2x - 4580\)
+
+Lãi xuất khẩu của doanh nghiệp là: \(L(x) = (R(x) - Q(x))(3050 - x - a) = (2x - 4580)(3050 - x - a)\).
+
+Thuế thu được của nhà nước là: \(T(x) = (2x - 4580)a\).
+
+Ta có \(L(x) : T(x) = 9 : 4\), suy ra \(L(x) = \dfrac{9}{4} \times T(x)\)
+
+\(\Rightarrow (2x - 4580)(3050 - x - a) = \dfrac{9}{4} \times (2x - 4580)a\)
+
+\(\Rightarrow 3050 - x - a = \dfrac{9}{4} \times a\)
+
+\(\Rightarrow 3050 - x = a + \dfrac{9}{4} \times a = a\left(1 + \dfrac{9}{4}\right) = a \times \dfrac{4 + 9}{4}\)
+
+\(\Rightarrow a = \dfrac{4}{13}(3050 - x)\)
+
+Khi đó:
+$$L(x) = (2x - 4580)\left(3050 - x - \dfrac{4}{13}(3050 - x)\right) = (2x - 4580) \dfrac{9}{13}(3050 - x)$$
+
+$$= \dfrac{9}{13}(2x - 4580)(3050 - x)$$
+
+Bài toán đưa về tìm \(x\) để \(L(x)\) đạt giá trị lớn nhất.
+
+Lấy đạo hàm: \(L'(x) = \dfrac{9}{13}[2(3050 - x) - (2x - 4580)] = \dfrac{9}{13}[2 \cdot 3050 - 4x + 4580]\)
+
+\(L'(x) = 0 \Leftrightarrow x = \dfrac{1}{4}(2 \cdot 3050 + 4580) \approx 2670\)
+
+Lập bảng biến thiên ta thấy \(L(x)\) đạt giá trị lớn nhất khi \(x \approx 2670\).
+
+Suy ra \(a = \dfrac{4}{13}(3050 - 2670) \approx 116,92\).
+
+
+
+
+Câu 8: Công ty TNHH T chuyên sản xuất cà phê bột để tiêu thụ trong nước và xuất khẩu. Giá bán cố định của cà phê bột trên thị trường quốc tế là \(x_0 = 3400\) USD mỗi tấn. Phần sản phẩm không tiêu thụ trong nước sẽ được xuất khẩu, và mỗi tấn cà phê xuất khẩu phải chịu mức thuế \(a\) USD. Nếu chi phí sản xuất mỗi tấn cà phê là \(x\) USD thì doanh nghiệp sản xuất được \(R(x) = x - 170\) tấn và tiêu thụ nội địa là \(Q(x) = 4500 - x\) tấn. Chính sách quốc gia yêu cầu tỷ lệ giữa lợi nhuận từ xuất khẩu và số thuế thu được là \(10 : 2\). Tìm giá trị \(a\) để lợi nhuận từ hoạt động xuất khẩu là lớn nhất. (Đơn vị: USD)
+
+*A. \(88,75\)
+
+B. \(70,83\)
+
+C. \(56,67\)
+
+D. \(23,61\)
+
+Lời giải:
+
+
+Điều kiện: \(R(x) = x - 170 > 0\); \(Q(x) = 4500 - x > 0 \Rightarrow 170 < x < 4500\).
+
+Số sản phẩm xuất khẩu là: \(R(x) - Q(x) = (x - 170) - (4500 - x) = 2x - 4670\)
+
+Lãi xuất khẩu của doanh nghiệp là: \(L(x) = (R(x) - Q(x))(3400 - x - a) = (2x - 4670)(3400 - x - a)\).
+
+Thuế thu được của nhà nước là: \(T(x) = (2x - 4670)a\).
+
+Ta có \(L(x) : T(x) = 10 : 2\), suy ra \(L(x) = \dfrac{10}{2} \times T(x)\)
+
+\(\Rightarrow (2x - 4670)(3400 - x - a) = \dfrac{10}{2} \times (2x - 4670)a\)
+
+\(\Rightarrow 3400 - x - a = \dfrac{10}{2} \times a\)
+
+\(\Rightarrow 3400 - x = a + \dfrac{10}{2} \times a = a\left(1 + \dfrac{10}{2}\right) = a \times \dfrac{2 + 10}{2}\)
+
+\(\Rightarrow a = \dfrac{2}{12}(3400 - x)\)
+
+Khi đó:
+$$L(x) = (2x - 4670)\left(3400 - x - \dfrac{2}{12}(3400 - x)\right) = (2x - 4670) \dfrac{10}{12}(3400 - x)$$
+
+$$= \dfrac{5}{6}(2x - 4670)(3400 - x)$$
+
+Bài toán đưa về tìm \(x\) để \(L(x)\) đạt giá trị lớn nhất.
+
+Lấy đạo hàm: \(L'(x) = \dfrac{5}{6}[2(3400 - x) - (2x - 4670)] = \dfrac{5}{6}[2 \cdot 3400 - 4x + 4670]\)
+
+\(L'(x) = 0 \Leftrightarrow x = \dfrac{1}{4}(2 \cdot 3400 + 4670) \approx 2867,5\)
+
+Lập bảng biến thiên ta thấy \(L(x)\) đạt giá trị lớn nhất khi \(x \approx 2867,5\).
+
+Suy ra \(a = \dfrac{2}{12}(3400 - 2867,5) \approx 88,75\).
+
+
+
+
+Câu 9: Trong công tác cứu hộ trên hồ nước ngọt, thời gian và nhiên liệu đều là những yếu tố cần được tối ưu. Một tàu cứu hộ hiện đang hoạt động thường xuyên và cần xác định tốc độ vận hành hiệu quả nhất. Chi phí nhiên liệu trong mỗi giờ di chuyển bao gồm phần cố định 600 nghìn đồng và phần tỉ lệ thuận với bình phương vận tốc. Khi vận tốc là 10 km/h, phần chi phí biến thiên được đo là 75 nghìn đồng/giờ. Hãy xác định vận tốc \(v\) (km/h) sao cho tổng chi phí nhiên liệu để tàu đi được 1 km là thấp nhất. Làm tròn kết quả đến hàng phần trăm. (Đơn vị: km/h)
+
+A. \(25,46\)
+
+B. \(31,11\)
+
+C. \(10\)
+
+*D. \(28,28\)
+
+Lời giải:
+
+
+Gọi \(x\) (km/h) là tốc độ của tàu \((x > 0)\).
+
+Thời gian để tàu chạy 1 km trên sông là \(1/x\) (giờ).
+
+Chi phí cho phần thứ nhất để tàu chạy 1 km là: \(p_1=600 \cdot 1/x=600/x\) (nghìn đồng/giờ).
+
+Chi phí cho phần thứ hai để tàu chạy 1 km có dạng: \(p_2=k x^2 \cdot 1/x=k x\) (nghìn đồng/giờ).
+
+Khi \(x=10\) thì \(p_2=75\) nên \(k=0.75\). Do đó \(p_2=0.75 x\) (nghìn đồng/giờ).
+
+Vậy tổng chi phí để tàu chạy 1 km trên khúc sông đó là: \(f(x)=600/x+0.75 x\) (nghìn đồng/giờ).
+
+Ta có: \(f^{\prime}(x)=-600/x^2+0.75\).
+
+        Giải phương trình: \(f^{\prime}(x)=0 \Leftrightarrow x=\sqrt{800}\) (thoả mãn) hoặc \(x=-\sqrt{800}\) (loại vì \(x>0\)).
+
+        Lập bảng biến thiên của hàm số \(f(x)\) với \(x>0\), ta tìm được \(\min_{x \in(0 ;+\infty)} f(x)=f(\sqrt{800})=\sqrt{450}\).
+
+        Vậy tốc độ của tàu để tổng chi phí nhiên liệu khi tàu chạy 1 km trên sông ít nhất là \(\sqrt{800} \approx 28,28\) (km/h).
+
+
+
+
+Câu 10: Một trang trại bò sữa tại Đà Lạt có hệ thống chăn nuôi khép kín với sản lượng cung ứng ổn định quanh năm. Trang trại ký hợp đồng với một công ty chế biến sữa hộp để cung cấp sữa tươi nguyên liệu. Tuy nhiên, do giới hạn công suất xe lạnh và hệ thống bảo quản tại điểm tiếp nhận, lượng sữa được phép giao tối đa mỗi tháng là 100 tấn. Doanh thu từ việc bán sữa phải chịu thuế GTGT 15\% theo quy định hiện hành. Chi phí để sản xuất ra \(x\)  tấn sữa là \(C(x) = \dfrac{3}{2}(200 + 30x)\) (triệu đồng). Giá bán mỗi tấn sữa tươi phụ thuộc vào lượng cung cấp, được cho bởi \(p(x) = 92 - 0.012x^2\) (triệu đồng). Trang trại nên cung cấp bao nhiêu tấn mỗi tháng để đạt được lợi nhuận sau thuế lớn nhất? (Đơn vị: tấn)
+
+*A. \(32\)
+
+B. \(55\)
+
+C. \(35\)
+
+D. \(100\)
+
+Lời giải:
+
+
+Giả sử số lượng sản phẩm bán ra là \(x\) tấn, \(0 \leq x \leq 100\).
+
+Doanh thu \(B(x) = x \cdot p(x) = x(92 - 0.012x^2)\).
+
+Thuế giá trị gia tăng \(T(x) = 15\% B(x) = \dfrac{3}{20} x(92 - 0.012x^2)\).
+
+Lợi nhuận = Doanh thu - Chi phí - Thuế:
+
+\(L(x) = B(x) - C(x) - T(x) = x(92 - 0.012x^2) - \dfrac{3}{2}(200 + 30x) - 15\% x(92 - 0.012x^2) = -0,0102x^3 + 33,2x + -300\).
+
+\(L'(x) = -0,0306x^2 + 33,2 = 0 \Leftrightarrow x \approx 32\).
+
+Lập bảng biến thiên ta được lợi nhuận cao nhất khi \(x \approx 32\).
+
+
+
+
+Câu 11: Để cải thiện hiệu quả sản xuất, ban lãnh đạo nhà máy chế biến thực phẩm Z đang nghiên cứu phương án điều chỉnh thời gian làm việc trong tuần. Theo thực tế, nếu mỗi tuần công nhân làm việc \(x\) giờ thì số phế phẩm tạo ra ước tính theo công thức: \( P(x) = \dfrac{110x^2 + 150x}{2} \). Trong điều kiện hiện tại, nhà máy duy trì tuần làm việc 42 giờ, với 125 tổ công nhân hoạt động đều đặn và mỗi tổ sản xuất được 130 sản phẩm mỗi giờ. Tuy nhiên, khi tăng thêm mỗi 1 giờ làm việc mỗi tuần, sẽ có 2 tổ công nhân nghỉ việc và đồng thời năng suất giảm 4 sản phẩm/giờ cho mỗi tổ. Trong bối cảnh đó, nhà máy cần xác định số giờ làm việc \(x\) mỗi tuần sao cho tổng số sản phẩm đạt được sau khi trừ phế phẩm là lớn nhất. (Đơn vị: giờ)
+
+A. \(40\)
+
+*B. \(27\)
+
+C. \(42\)
+
+D. \(44\)
+
+Lời giải:
+
+
+Gọi số giờ làm tăng thêm mỗi tuần là \(t\), \(t \in \mathbb{R}\).
+
+Số tổ công nhân bỏ việc là \(2 t\) nên số tổ công nhân làm việc là \(125 - 2 t\) (tổ).
+
+Năng suất của tổ công nhân còn \(130 - 4 t\) sản phẩm một giờ.
+
+Số thời gian làm việc một tuần là \(42 + t = x\) (giờ).
+
+\(\Rightarrow\) Số phế phẩm thu được là \(P(42 + t) = \dfrac{110(42 + t)^2 + 150(42 + t)}{2}\)
+
+Để nhà máy hoạt động được thì \(\left\{\begin{array}{l}42 + t > 0 \\ 130 - 4 t > 0\end{array}\right. \Rightarrow t \in(-42.0 ; 32.5) \\ 125 - 2 t > 0\)
+
+Số sản phẩm trong một tuần làm được:
+
+\(S = \text{Số tổ x Năng suất x Thời gian} = \left(125 - 2 t\right)\left(130 - 4 t\right)(42 + t)\).
+
+Số sản phẩm thu được là:
+
+\(f(t) = \left(125 - 2 t\right)\left(130 - 4 t\right)(42 + t) - \dfrac{110(42 + t)^2 + 150(42 + t)}{2}\)
+
+\(f'(t) = -2\left(130 - 4 t\right)(42 + t) - 4\left(125 - 2 t\right)(42 + t) + \left(125 - 2 t\right)\left(130 - 4 t\right) - 55 \cdot 2(42 + t) - 75\)
+
+\(= 24t^{2} - 958t - 20365\)
+
+Ta có \(f'(t) = 0 \Leftrightarrow \left[\begin{array}{l}t = -15 \\ t = \dfrac{387}{7}(L)\end{array}\right.\).
+
+Dựa vào bảng biến thiên ta có số lượng sản phẩm thu được lớn nhất thì thời gian làm việc trong một tuần là \(42 - 15 = 27\) giờ.
+
+
+
+
+Câu 12: Nhà nước quy định rằng tỷ lệ giữa lợi nhuận từ hoạt động xuất khẩu của doanh nghiệp và số thuế thu được phải luôn giữ ở mức \(5 : 3\). Một doanh nghiệp sản xuất thiết bị điện tử tiêu dùng quyết định mở rộng xuất khẩu, với giá bán cố định trên thị trường quốc tế là \(x_0 = 2950\) USD mỗi thiết bị. Mỗi thiết bị xuất khẩu chịu thuế \(a\) USD. Nếu chi phí sản xuất một thiết bị là \(x\) USD thì doanh nghiệp sản xuất được \(R(x) = x - 160\) sản phẩm, trong đó \(Q(x) = 4700 - x\) được tiêu thụ tại thị trường trong nước. Hỏi mức thuế \(a\) cần đặt là bao nhiêu để lợi nhuận từ xuất khẩu là lớn nhất. (Đơn vị: USD)
+
+A. \(69,14\)
+
+*B. \(97,5\)
+
+C. \(165,94\)
+
+D. \(207,42\)
+
+Lời giải:
+
+
+Điều kiện: \(R(x) = x - 160 > 0\); \(Q(x) = 4700 - x > 0 \Rightarrow 160 < x < 4700\).
+
+Số sản phẩm xuất khẩu là: \(R(x) - Q(x) = (x - 160) - (4700 - x) = 2x - 4860\)
+
+Lãi xuất khẩu của doanh nghiệp là: \(L(x) = (R(x) - Q(x))(2950 - x - a) = (2x - 4860)(2950 - x - a)\).
+
+Thuế thu được của nhà nước là: \(T(x) = (2x - 4860)a\).
+
+Ta có \(L(x) : T(x) = 5 : 3\), suy ra \(L(x) = \dfrac{5}{3} \times T(x)\)
+
+\(\Rightarrow (2x - 4860)(2950 - x - a) = \dfrac{5}{3} \times (2x - 4860)a\)
+
+\(\Rightarrow 2950 - x - a = \dfrac{5}{3} \times a\)
+
+\(\Rightarrow 2950 - x = a + \dfrac{5}{3} \times a = a\left(1 + \dfrac{5}{3}\right) = a \times \dfrac{3 + 5}{3}\)
+
+\(\Rightarrow a = \dfrac{3}{8}(2950 - x)\)
+
+Khi đó:
+$$L(x) = (2x - 4860)\left(2950 - x - \dfrac{3}{8}(2950 - x)\right) = (2x - 4860) \dfrac{5}{8}(2950 - x)$$
+
+$$= \dfrac{5}{8}(2x - 4860)(2950 - x)$$
+
+Bài toán đưa về tìm \(x\) để \(L(x)\) đạt giá trị lớn nhất.
+
+Lấy đạo hàm: \(L'(x) = \dfrac{5}{8}[2(2950 - x) - (2x - 4860)] = \dfrac{5}{8}[2 \cdot 2950 - 4x + 4860]\)
+
+\(L'(x) = 0 \Leftrightarrow x = \dfrac{1}{4}(2 \cdot 2950 + 4860) \approx 2690\)
+
+Lập bảng biến thiên ta thấy \(L(x)\) đạt giá trị lớn nhất khi \(x \approx 2690\).
+
+Suy ra \(a = \dfrac{3}{8}(2950 - 2690) \approx 97,5\).
+
+
+
+
+Câu 13: Trên sông lớn với mặt nước êm đềm, một chiếc tàu chở khách được vận hành nhằm phục vụ nhu cầu di chuyển liên tỉnh. Để kiểm soát chi phí vận hành, nhà điều hành tàu cần tính toán vận tốc hợp lý để giảm thiểu lượng nhiên liệu tiêu thụ. Biết rằng chi phí nhiên liệu bao gồm phần không đổi là 580 nghìn đồng mỗi giờ và phần biến thiên phụ thuộc bình phương vận tốc. Khi vận tốc tàu là 10 km/h, phần chi phí biến thiên đo được là 75 nghìn đồng/giờ. Tìm tốc độ \(v\) sao cho chi phí nhiên liệu cho mỗi km hành trình là nhỏ nhất. Làm tròn đến hàng phần trăm. (Đơn vị: km/h)
+
+A. \(10\)
+
+B. \(25,03\)
+
+*C. \(27,81\)
+
+D. \(30,59\)
+
+Lời giải:
+
+
+Gọi \(x\) (km/h) là tốc độ của tàu \((x > 0)\).
+
+Thời gian để tàu chạy 1 km trên sông là \(1/x\) (giờ).
+
+Chi phí cho phần thứ nhất để tàu chạy 1 km là: \(p_1=580 \cdot 1/x=580/x\) (nghìn đồng/giờ).
+
+Chi phí cho phần thứ hai để tàu chạy 1 km có dạng: \(p_2=k x^2 \cdot 1/x=k x\) (nghìn đồng/giờ).
+
+Khi \(x=10\) thì \(p_2=75\) nên \(k=0.75\). Do đó \(p_2=0.75 x\) (nghìn đồng/giờ).
+
+Vậy tổng chi phí để tàu chạy 1 km trên khúc sông đó là: \(f(x)=580/x+0.75 x\) (nghìn đồng/giờ).
+
+Ta có: \(f^{\prime}(x)=-580/x^2+0.75\).
+
+        Giải phương trình: \(f^{\prime}(x)=0 \Leftrightarrow x=\sqrt{\dfrac{2320}{3}}\) (thoả mãn) hoặc \(x=-\sqrt{\dfrac{2320}{3}}\) (loại vì \(x>0\)).
+
+        Lập bảng biến thiên của hàm số \(f(x)\) với \(x>0\), ta tìm được \(\min_{x \in(0 ;+\infty)} f(x)=f(\sqrt{\dfrac{2320}{3}})=\sqrt{435}\).
+
+        Vậy tốc độ của tàu để tổng chi phí nhiên liệu khi tàu chạy 1 km trên sông ít nhất là \(\sqrt{\dfrac{2320}{3}} \approx 27,81\) (km/h).
+
+
+
+
+Câu 14: Nhà máy A chuyên sản suất một loại sản phẩm cho nhà máy B. Hai nhà máy thỏa thuận rằng, hàng tháng nhà máy A cung cấp cho nhà máy B số lượng sản phẩm theo đơn đặt hàng của nhà máy B (tối đa 100 tấn sản phẩm). Nếu số lượng đặt hàng là \(x\)  tấn sản phẩm. Thì giá bán cho mỗi tấn sản phẩm là \(p(x)=90-0.011 x^2\) (đơn vị triệu đồng). Chi phí để nhà máy A sản suất \(x\)  tấn sản phẩm trong một tháng là \(C(x)=\dfrac{2}{3}(190+28 x)\) (đơn vị: triệu đồng), thuế giá trị gia tăng mà nhà máy A phải đóng cho nhà nước là 8\% tổng doanh thu mỗi tháng. Hỏi nhà máy A bán cho nhà máy B bao nhiêu tấn sản phẩm mỗi tháng để thu được lợi nhuận (sau khi đã trừ thuế giá trị gia tăng) cao nhất? (Đơn vị: tấn)
+
+A. \(37\)
+
+B. \(100\)
+
+*C. \(45\)
+
+D. \(57\)
+
+Lời giải:
+
+
+Giả sử số lượng sản phẩm bán ra là \(x\) tấn, \(0 \leq x \leq 100\).
+
+Doanh thu \(B(x) = x \cdot p(x) = x(90 - 0.011x^2)\).
+
+Thuế giá trị gia tăng \(T(x) = 8\% B(x) = \dfrac{2}{25} x(90 - 0.011x^2)\).
+
+Lợi nhuận = Doanh thu - Chi phí - Thuế:
+
+\(L(x) = B(x) - C(x) - T(x) = x(90 - 0.011x^2) - \dfrac{2}{3}(190 + 28x) - 8\% x(90 - 0.011x^2) = -0,0101x^3 + 64,13x + -126,67\).
+
+\(L'(x) = -0,0304x^2 + 64,13 = 0 \Leftrightarrow x \approx 45\).
+
+Lập bảng biến thiên ta được lợi nhuận cao nhất khi \(x \approx 45\).
+
+
+
+
+Câu 15: Nhằm đảm bảo cân đối giữa lợi ích doanh nghiệp và ngân sách nhà nước, mỗi đèn LED thông minh xuất khẩu bị đánh thuế \(a\) USD. Nhà nước yêu cầu doanh nghiệp phải duy trì tỉ lệ giữa lợi nhuận thu được từ xuất khẩu và số thuế nộp là \(4 : 4\). Giá bán trên thị trường quốc tế của mỗi đèn LED là \(x_0 = 2700\) USD. Qua khảo sát, nếu chi phí sản xuất mỗi đèn là \(x\) USD thì số sản phẩm sản xuất được là \(R(x) = x - 160\), trong khi số lượng tiêu thụ trong nước là \(Q(x) = 4000 - x\). Hỏi doanh nghiệp cần chọn mức thuế \(a\) là bao nhiêu để lợi nhuận từ xuất khẩu đạt lớn nhất. (Đơn vị: USD)
+
+*A. \(155\)
+
+B. \(84,38\)
+
+C. \(253,12\)
+
+D. \(202,5\)
+
+Lời giải:
+
+
+Điều kiện: \(R(x) = x - 160 > 0\); \(Q(x) = 4000 - x > 0 \Rightarrow 160 < x < 4000\).
+
+Số sản phẩm xuất khẩu là: \(R(x) - Q(x) = (x - 160) - (4000 - x) = 2x - 4160\)
+
+Lãi xuất khẩu của doanh nghiệp là: \(L(x) = (R(x) - Q(x))(2700 - x - a) = (2x - 4160)(2700 - x - a)\).
+
+Thuế thu được của nhà nước là: \(T(x) = (2x - 4160)a\).
+
+Ta có \(L(x) : T(x) = 4 : 4\), suy ra \(L(x) = \dfrac{4}{4} \times T(x)\)
+
+\(\Rightarrow (2x - 4160)(2700 - x - a) = \dfrac{4}{4} \times (2x - 4160)a\)
+
+\(\Rightarrow 2700 - x - a = \dfrac{4}{4} \times a\)
+
+\(\Rightarrow 2700 - x = a + \dfrac{4}{4} \times a = a\left(1 + \dfrac{4}{4}\right) = a \times \dfrac{4 + 4}{4}\)
+
+\(\Rightarrow a = \dfrac{4}{8}(2700 - x)\)
+
+Khi đó:
+$$L(x) = (2x - 4160)\left(2700 - x - \dfrac{4}{8}(2700 - x)\right) = (2x - 4160) \dfrac{4}{8}(2700 - x)$$
+
+$$= \dfrac{1}{2}(2x - 4160)(2700 - x)$$
+
+Bài toán đưa về tìm \(x\) để \(L(x)\) đạt giá trị lớn nhất.
+
+Lấy đạo hàm: \(L'(x) = \dfrac{1}{2}[2(2700 - x) - (2x - 4160)] = \dfrac{1}{2}[2 \cdot 2700 - 4x + 4160]\)
+
+\(L'(x) = 0 \Leftrightarrow x = \dfrac{1}{4}(2 \cdot 2700 + 4160) \approx 2390\)
+
+Lập bảng biến thiên ta thấy \(L(x)\) đạt giá trị lớn nhất khi \(x \approx 2390\).
+
+Suy ra \(a = \dfrac{4}{8}(2700 - 2390) \approx 155\).
+
+
+
+
+Câu 16: Một công ty hóa chất công nghiệp có trụ sở tại khu công nghiệp Biên Hòa chuyên sản xuất chất phụ gia cho ngành dệt nhuộm và xử lý nước. Trước những quy định khắt khe về môi trường, công ty buộc phải giới hạn lượng nguyên liệu hóa chất bán ra ở mức không quá 100 tấn mỗi tháng để đảm bảo an toàn vận hành và quy trình xử lý chất thải. Doanh thu bán hàng mỗi tháng chịu thuế GTGT 10\%. Chi phí để sản xuất ra \(x\)  tấn sản phẩm là \(C(x) = \dfrac{4}{6}(210 + 25x)\) (triệu đồng). Giá bán mỗi tấn sản phẩm tùy theo quy mô đơn hàng và được xác định bởi hàm \(p(x) = 95 - 0.009x^2\) (triệu đồng). Công ty nên cung cấp bao nhiêu tấn mỗi tháng để đạt lợi nhuận sau thuế cao nhất? (Đơn vị: tấn)
+
+*A. \(53\)
+
+B. \(44\)
+
+C. \(64\)
+
+D. \(100\)
+
+Lời giải:
+
+
+Giả sử số lượng sản phẩm bán ra là \(x\) tấn, \(0 \leq x \leq 100\).
+
+Doanh thu \(B(x) = x \cdot p(x) = x(95 - 0.009x^2)\).
+
+Thuế giá trị gia tăng \(T(x) = 10\% B(x) = \dfrac{1}{10} x(95 - 0.009x^2)\).
+
+Lợi nhuận = Doanh thu - Chi phí - Thuế:
+
+\(L(x) = B(x) - C(x) - T(x) = x(95 - 0.009x^2) - \dfrac{2}{3}(210 + 25x) - 10\% x(95 - 0.009x^2) = -0,0081x^3 + 68,83x + -140\).
+
+\(L'(x) = -0,0243x^2 + 68,83 = 0 \Leftrightarrow x \approx 53\).
+
+Lập bảng biến thiên ta được lợi nhuận cao nhất khi \(x \approx 53\).
+
+
+
+
+Câu 17: Một xưởng gốm ở Bát Tràng sản xuất các loại chân đèn gốm theo đơn đặt hàng từ các cửa hàng nội thất. Một mẫu đèn có phần chụp được thiết kế theo dạng hình chóp cụt tứ giác đều với cạnh đáy lớn là \(x\) (dm). Chủ xưởng mong muốn tính toán để tiết kiệm nguyên liệu đất sét và công sức lao động. Chi phí vật liệu (nghìn đồng) là \(C(x) = x^2 + 96\), còn thời gian sản xuất mỗi sản phẩm là \(T(x) = x + 6\) (giờ). Họ cần xác định kích thước \(x\) sao cho chi phí vật liệu trung bình trên mỗi giờ làm việc là thấp nhất. (Đơn vị: dm)
+
+*A. \(5,49\)
+
+B. \(9,8\)
+
+C. \(6,04\)
+
+D. \(4,94\)
+
+Lời giải:
+
+
+Gọi hàm chi phí vật liệu trung bình trên một giờ sản xuất là \(f(x)=\dfrac{C(x)}{T(x)}=\dfrac{x^2+96}{x+6}, x>0\).
+
+Ta có \(f'(x)=\dfrac{x^2+12x-96}{(x+6)^2}=0 \Leftrightarrow \left[\begin{array}{l}x \approx -17,49(L) \\ x \approx 5,49\end{array}\right.\)
+
+Từ bảng biến thiên ta thấy \(f(x)\) đạt GTNN bằng \(10,98\) khi \(x \approx 5,49\).
+
+Vậy để chi phí vật liệu trung bình trên một giờ sản xuất là thấp nhất thì \(x \approx 5,49\).
+
+
+
+
+Câu 18: Theo thống kê tại một nhà máy Z, nếu áp dụng tuần làm việc 48 giờ thì mỗi tuần có 100 tổ công nhân đi làm và mỗi tổ công nhân làm được 110 sản phẩm trong một giờ. Nếu tăng thời gian làm việc thêm 1 giờ mỗi tuần thì sẽ có 2 tổ công nhân nghỉ việc và năng suất lao động giảm 8 sản phẩm/1 tổ/1 giờ. Ngoài ra, số phế phẩm mỗi tuần ước tính là \(P(x)=\dfrac{85x^2 + 130x}{2}\), với \(x\) là thời gian làm việc trong một tuần. Nhà máy cần áp dụng thời gian làm việc mỗi tuần mấy giờ để số lượng sản phẩm thu được mỗi tuần (sau khi trừ phế phẩm) là lớn nhất? (Đơn vị: giờ)
+
+*A. \(24\)
+
+B. \(46\)
+
+C. \(50\)
+
+D. \(48\)
+
+Lời giải:
+
+
+Gọi số giờ làm tăng thêm mỗi tuần là \(t\), \(t \in \mathbb{R}\).
+
+Số tổ công nhân bỏ việc là \(2 t\) nên số tổ công nhân làm việc là \(100 - 2 t\) (tổ).
+
+Năng suất của tổ công nhân còn \(110 - 8 t\) sản phẩm một giờ.
+
+Số thời gian làm việc một tuần là \(48 + t = x\) (giờ).
+
+\(\Rightarrow\) Số phế phẩm thu được là \(P(48 + t) = \dfrac{85(48 + t)^2 + 130(48 + t)}{2}\)
+
+Để nhà máy hoạt động được thì \(\left\{\begin{array}{l}48 + t > 0 \\ 110 - 8 t > 0\end{array}\right. \Rightarrow t \in(-48.0 ; 13.8) \\ 100 - 2 t > 0\)
+
+Số sản phẩm trong một tuần làm được:
+
+\(S = \text{Số tổ x Năng suất x Thời gian} = \left(100 - 2 t\right)\left(110 - 8 t\right)(48 + t)\).
+
+Số sản phẩm thu được là:
+
+\(f(t) = \left(100 - 2 t\right)\left(110 - 8 t\right)(48 + t) - \dfrac{85(48 + t)^2 + 130(48 + t)}{2}\)
+
+\(f'(t) = -2\left(110 - 8 t\right)(48 + t) - 8\left(100 - 2 t\right)(48 + t) + \left(100 - 2 t\right)\left(110 - 8 t\right) - \dfrac{85}{2} \cdot 2(48 + t) - 65\)
+
+\(= 48t^{2} - 589t - 42105\)
+
+Ta có \(f'(t) = 0 \Leftrightarrow \left[\begin{array}{l}t = -24 \\ t = \dfrac{291}{8}(L)\end{array}\right.\).
+
+Dựa vào bảng biến thiên ta có số lượng sản phẩm thu được lớn nhất thì thời gian làm việc trong một tuần là \(48 - 24 = 24\) giờ.
+
+
+
+
+Câu 19: Một công ty thiết kế đèn trang trí nhận hợp đồng sản xuất loạt đèn bàn theo mẫu hình chóp cụt tứ giác đều. Để tiết kiệm chi phí và đẩy nhanh tiến độ sản xuất, bộ phận kỹ thuật cần tính toán kích thước đáy lớn tối ưu. Gọi \(x\) (dm) là độ dài cạnh đáy lớn, khi đó chi phí vật liệu để làm một chiếc đèn là \(C(x) = x^2 + 100\) (nghìn đồng) và thời gian cần thiết để hoàn thành một sản phẩm là \(T(x) = x + 7\) (giờ). Công ty mong muốn biết với kích thước \(x\) nào thì chi phí vật liệu trung bình trên mỗi giờ sản xuất sẽ đạt giá trị thấp nhất. (Đơn vị: dm)
+
+*A. \(5,21\)
+
+B. \(5,73\)
+
+C. \(10\)
+
+D. \(4,69\)
+
+Lời giải:
+
+
+Gọi hàm chi phí vật liệu trung bình trên một giờ sản xuất là \(f(x)=\dfrac{C(x)}{T(x)}=\dfrac{x^2+100}{x+7}, x>0\).
+
+Ta có \(f'(x)=\dfrac{x^2+14x-100}{(x+7)^2}=0 \Leftrightarrow \left[\begin{array}{l}x \approx -19,21(L) \\ x \approx 5,21\end{array}\right.\)
+
+Từ bảng biến thiên ta thấy \(f(x)\) đạt GTNN bằng \(10,41\) khi \(x \approx 5,21\).
+
+Vậy để chi phí vật liệu trung bình trên một giờ sản xuất là thấp nhất thì \(x \approx 5,21\).
+
+
+
+
+Câu 20: Một công ty lữ hành đang khai thác tuyến sông nội địa với các tàu du lịch cao cấp phục vụ khách tham quan. Để duy trì lợi nhuận trong mùa thấp điểm, công ty cần tối ưu hóa chi phí nhiên liệu. Qua khảo sát kỹ thuật, người ta xác định rằng chi phí nhiên liệu trong mỗi giờ hành trình bao gồm hai phần: chi phí cố định là 610 nghìn đồng, không phụ thuộc vào tốc độ tàu, và chi phí biến thiên phụ thuộc vào bình phương vận tốc. Khi tàu chạy với vận tốc 10 km/h, chi phí biến thiên đo được là 70 nghìn đồng mỗi giờ. Hãy xác định vận tốc \(v\) (km/h) sao cho chi phí nhiên liệu trên mỗi km hành trình là ít nhất. Làm tròn kết quả đến hàng phần trăm. (Đơn vị: km/h)
+
+A. \(10\)
+
+B. \(32,47\)
+
+*C. \(29,52\)
+
+D. \(26,57\)
+
+Lời giải:
+
+
+Gọi \(x\) (km/h) là tốc độ của tàu \((x > 0)\).
+
+Thời gian để tàu chạy 1 km trên sông là \(1/x\) (giờ).
+
+Chi phí cho phần thứ nhất để tàu chạy 1 km là: \(p_1=610 \cdot 1/x=610/x\) (nghìn đồng/giờ).
+
+Chi phí cho phần thứ hai để tàu chạy 1 km có dạng: \(p_2=k x^2 \cdot 1/x=k x\) (nghìn đồng/giờ).
+
+Khi \(x=10\) thì \(p_2=70\) nên \(k=0.7\). Do đó \(p_2=0.7 x\) (nghìn đồng/giờ).
+
+Vậy tổng chi phí để tàu chạy 1 km trên khúc sông đó là: \(f(x)=610/x+0.7 x\) (nghìn đồng/giờ).
+
+Ta có: \(f^{\prime}(x)=-610/x^2+0.7\).
+
+        Giải phương trình: \(f^{\prime}(x)=0 \Leftrightarrow x=\sqrt{\dfrac{6100}{7}}\) (thoả mãn) hoặc \(x=-\sqrt{\dfrac{6100}{7}}\) (loại vì \(x>0\)).
+
+        Lập bảng biến thiên của hàm số \(f(x)\) với \(x>0\), ta tìm được \(\min_{x \in(0 ;+\infty)} f(x)=f(\sqrt{\dfrac{6100}{7}})=\sqrt{427}\).
+
+        Vậy tốc độ của tàu để tổng chi phí nhiên liệu khi tàu chạy 1 km trên sông ít nhất là \(\sqrt{\dfrac{6100}{7}} \approx 29,52\) (km/h).
+
+
+
+
+Câu 21: Trong bối cảnh thị trường xây dựng đang có xu hướng phục hồi sau khủng hoảng, nhiều doanh nghiệp sản xuất vật liệu xây dựng chuyên cung cấp gạch ốp lát cho các công trình dân dụng và đối tác lớn. Tuy nhiên, để đảm bảo chất lượng và tiến độ, công ty giới hạn lượng hàng cung cấp mỗi tháng không vượt quá 100 tấn. Doanh thu bán hàng chịu thuế GTGT 10\%. Chi phí sản xuất \(x\) tấn mỗi tháng là \(C(x) = \dfrac{4}{3}(190 + 30x)\) (triệu đồng). Giá bán mỗi tấn sản phẩm được tính theo công thức \(p(x) = 90 - 0.012x^2\) (triệu đồng). Hỏi doanh nghiệp nên bán bao nhiêu tấn mỗi tháng để thu được lợi nhuận sau thuế lớn nhất? (Đơn vị: tấn)
+
+*A. \(35\)
+
+B. \(100\)
+
+C. \(35\)
+
+D. \(55\)
+
+Lời giải:
+
+
+Giả sử số lượng sản phẩm bán ra là \(x\) tấn, \(0 \leq x \leq 100\).
+
+Doanh thu \(B(x) = x \cdot p(x) = x(90 - 0.012x^2)\).
+
+Thuế giá trị gia tăng \(T(x) = 10\% B(x) = \dfrac{1}{10} x(90 - 0.012x^2)\).
+
+Lợi nhuận = Doanh thu - Chi phí - Thuế:
+
+\(L(x) = B(x) - C(x) - T(x) = x(90 - 0.012x^2) - \dfrac{4}{3}(190 + 30x) - 10\% x(90 - 0.012x^2) = -0,0108x^3 + 41x + -253,33\).
+
+\(L'(x) = -0,0324x^2 + 41 = 0 \Leftrightarrow x \approx 35\).
+
+Lập bảng biến thiên ta được lợi nhuận cao nhất khi \(x \approx 35\).
+
+
+
+
+Câu 22: Một cơ sở sản xuất đồ thủ công mỹ nghệ đang thực hiện đơn hàng xuất khẩu lô đèn trang trí kiểu cổ điển sang thị trường châu Âu. Mỗi chiếc đèn có phần chụp được thiết kế theo dạng hình chóp cụt tứ giác đều, đòi hỏi sự tỉ mỉ trong từng công đoạn gia công. Để đạt hiệu quả cao trong sản xuất hàng loạt, kỹ sư thiết kế của cơ sở cần xác định độ dài cạnh đáy lớn \(x\) (dm) sao cho chi phí vật liệu trung bình trên mỗi giờ sản xuất là thấp nhất. Biết rằng chi phí vật liệu là \(C(x) = x^2 + 108\) (nghìn đồng) và thời gian hoàn thành một chiếc đèn là \(T(x) = x + 4\) (giờ). (Đơn vị: dm)
+
+*A. \(7,14\)
+
+B. \(6,42\)
+
+C. \(10,39\)
+
+D. \(7,85\)
+
+Lời giải:
+
+
+Gọi hàm chi phí vật liệu trung bình trên một giờ sản xuất là \(f(x)=\dfrac{C(x)}{T(x)}=\dfrac{x^2+108}{x+4}, x>0\).
+
+Ta có \(f'(x)=\dfrac{x^2+8x-108}{(x+4)^2}=0 \Leftrightarrow \left[\begin{array}{l}x \approx -15,14(L) \\ x \approx 7,14\end{array}\right.\)
+
+Từ bảng biến thiên ta thấy \(f(x)\) đạt GTNN bằng \(14,27\) khi \(x \approx 7,14\).
+
+Vậy để chi phí vật liệu trung bình trên một giờ sản xuất là thấp nhất thì \(x \approx 7,14\).
+
+
+
+
+Câu 23: Một công ty dệt may chuyên sản xuất áo khoác gió thể thao phục vụ thị trường trong nước và xuất khẩu. Nếu chi phí sản xuất mỗi áo là \(x\) USD thì nhu cầu nội địa là \(Q(x) = 4050 - x\) và sản lượng sản xuất được là \(R(x) = x - 210\). Các sản phẩm không tiêu thụ hết được xuất khẩu với giá cố định là \(x_0 = 3600\) USD mỗi áo. Mỗi sản phẩm xuất khẩu chịu mức thuế \(a\) USD. Nhà nước yêu cầu doanh nghiệp duy trì tỷ lệ giữa lãi và thuế ở mức \(4 : 5\). Tìm giá trị \(a\) sao cho lợi nhuận từ hoạt động xuất khẩu đạt cực đại. (Đơn vị: USD)
+
+A. \(111,11\)
+
+B. \(333,33\)
+
+*C. \(408,33\)
+
+D. \(266,67\)
+
+Lời giải:
+
+
+Điều kiện: \(R(x) = x - 210 > 0\); \(Q(x) = 4050 - x > 0 \Rightarrow 210 < x < 4050\).
+
+Số sản phẩm xuất khẩu là: \(R(x) - Q(x) = (x - 210) - (4050 - x) = 2x - 4260\)
+
+Lãi xuất khẩu của doanh nghiệp là: \(L(x) = (R(x) - Q(x))(3600 - x - a) = (2x - 4260)(3600 - x - a)\).
+
+Thuế thu được của nhà nước là: \(T(x) = (2x - 4260)a\).
+
+Ta có \(L(x) : T(x) = 4 : 5\), suy ra \(L(x) = \dfrac{4}{5} \times T(x)\)
+
+\(\Rightarrow (2x - 4260)(3600 - x - a) = \dfrac{4}{5} \times (2x - 4260)a\)
+
+\(\Rightarrow 3600 - x - a = \dfrac{4}{5} \times a\)
+
+\(\Rightarrow 3600 - x = a + \dfrac{4}{5} \times a = a\left(1 + \dfrac{4}{5}\right) = a \times \dfrac{5 + 4}{5}\)
+
+\(\Rightarrow a = \dfrac{5}{9}(3600 - x)\)
+
+Khi đó:
+$$L(x) = (2x - 4260)\left(3600 - x - \dfrac{5}{9}(3600 - x)\right) = (2x - 4260) \dfrac{4}{9}(3600 - x)$$
+
+$$= \dfrac{4}{9}(2x - 4260)(3600 - x)$$
+
+Bài toán đưa về tìm \(x\) để \(L(x)\) đạt giá trị lớn nhất.
+
+Lấy đạo hàm: \(L'(x) = \dfrac{4}{9}[2(3600 - x) - (2x - 4260)] = \dfrac{4}{9}[2 \cdot 3600 - 4x + 4260]\)
+
+\(L'(x) = 0 \Leftrightarrow x = \dfrac{1}{4}(2 \cdot 3600 + 4260) \approx 2865\)
+
+Lập bảng biến thiên ta thấy \(L(x)\) đạt giá trị lớn nhất khi \(x \approx 2865\).
+
+Suy ra \(a = \dfrac{5}{9}(3600 - 2865) \approx 408,33\).
+
+
+
+
+Câu 24: Trong bối cảnh thị trường xây dựng đang có xu hướng phục hồi sau khủng hoảng, nhiều doanh nghiệp sản xuất vật liệu xây dựng chuyên cung cấp gạch ốp lát cho các công trình dân dụng và đối tác lớn. Tuy nhiên, để đảm bảo chất lượng và tiến độ, công ty giới hạn lượng hàng cung cấp mỗi tháng không vượt quá 100 tấn. Doanh thu bán hàng chịu thuế GTGT 8\%. Chi phí sản xuất \(x\) tấn mỗi tháng là \(C(x) = \dfrac{4}{7}(220 + 26x)\) (triệu đồng). Giá bán mỗi tấn sản phẩm được tính theo công thức \(p(x) = 85 - 0.012x^2\) (triệu đồng). Hỏi doanh nghiệp nên bán bao nhiêu tấn mỗi tháng để thu được lợi nhuận sau thuế lớn nhất? (Đơn vị: tấn)
+
+*A. \(43\)
+
+B. \(100\)
+
+C. \(54\)
+
+D. \(34\)
+
+Lời giải:
+
+
+Giả sử số lượng sản phẩm bán ra là \(x\) tấn, \(0 \leq x \leq 100\).
+
+Doanh thu \(B(x) = x \cdot p(x) = x(85 - 0.012x^2)\).
+
+Thuế giá trị gia tăng \(T(x) = 8\% B(x) = \dfrac{2}{25} x(85 - 0.012x^2)\).
+
+Lợi nhuận = Doanh thu - Chi phí - Thuế:
+
+\(L(x) = B(x) - C(x) - T(x) = x(85 - 0.012x^2) - \dfrac{4}{7}(220 + 26x) - 8\% x(85 - 0.012x^2) = -0,011x^3 + 63,34x + -125,71\).
+
+\(L'(x) = -0,0331x^2 + 63,34 = 0 \Leftrightarrow x \approx 43\).
+
+Lập bảng biến thiên ta được lợi nhuận cao nhất khi \(x \approx 43\).
+
+
+
+
+Câu 25: Một công ty lữ hành đang khai thác tuyến sông nội địa với các tàu du lịch cao cấp phục vụ khách tham quan. Để duy trì lợi nhuận trong mùa thấp điểm, công ty cần tối ưu hóa chi phí nhiên liệu. Qua khảo sát kỹ thuật, người ta xác định rằng chi phí nhiên liệu trong mỗi giờ hành trình bao gồm hai phần: chi phí cố định là 580 nghìn đồng, không phụ thuộc vào tốc độ tàu, và chi phí biến thiên phụ thuộc vào bình phương vận tốc. Khi tàu chạy với vận tốc 10 km/h, chi phí biến thiên đo được là 65 nghìn đồng mỗi giờ. Hãy xác định vận tốc \(v\) (km/h) sao cho chi phí nhiên liệu trên mỗi km hành trình là ít nhất. Làm tròn kết quả đến hàng phần trăm. (Đơn vị: km/h)
+
+*A. \(29,87\)
+
+B. \(32,86\)
+
+C. \(26,88\)
+
+D. \(10\)
+
+Lời giải:
+
+
+Gọi \(x\) (km/h) là tốc độ của tàu \((x > 0)\).
+
+Thời gian để tàu chạy 1 km trên sông là \(1/x\) (giờ).
+
+Chi phí cho phần thứ nhất để tàu chạy 1 km là: \(p_1=580 \cdot 1/x=580/x\) (nghìn đồng/giờ).
+
+Chi phí cho phần thứ hai để tàu chạy 1 km có dạng: \(p_2=k x^2 \cdot 1/x=k x\) (nghìn đồng/giờ).
+
+Khi \(x=10\) thì \(p_2=65\) nên \(k=0.65\). Do đó \(p_2=0.65 x\) (nghìn đồng/giờ).
+
+Vậy tổng chi phí để tàu chạy 1 km trên khúc sông đó là: \(f(x)=580/x+0.65 x\) (nghìn đồng/giờ).
+
+Ta có: \(f^{\prime}(x)=-580/x^2+0.65\).
+
+        Giải phương trình: \(f^{\prime}(x)=0 \Leftrightarrow x=\sqrt{\dfrac{11600}{13}}\) (thoả mãn) hoặc \(x=-\sqrt{\dfrac{11600}{13}}\) (loại vì \(x>0\)).
+
+        Lập bảng biến thiên của hàm số \(f(x)\) với \(x>0\), ta tìm được \(\min_{x \in(0 ;+\infty)} f(x)=f(\sqrt{\dfrac{11600}{13}})=\sqrt{377}\).
+
+        Vậy tốc độ của tàu để tổng chi phí nhiên liệu khi tàu chạy 1 km trên sông ít nhất là \(\sqrt{\dfrac{11600}{13}} \approx 29,87\) (km/h).
+
+
+
+
+Câu 26: Một xưởng gốm ở Bát Tràng sản xuất các loại chân đèn gốm theo đơn đặt hàng từ các cửa hàng nội thất. Một mẫu đèn có phần chụp được thiết kế theo dạng hình chóp cụt tứ giác đều với cạnh đáy lớn là \(x\) (dm). Chủ xưởng mong muốn tính toán để tiết kiệm nguyên liệu đất sét và công sức lao động. Chi phí vật liệu (nghìn đồng) là \(C(x) = x^2 + 120\), còn thời gian sản xuất mỗi sản phẩm là \(T(x) = x + 5\) (giờ). Họ cần xác định kích thước \(x\) sao cho chi phí vật liệu trung bình trên mỗi giờ làm việc là thấp nhất. (Đơn vị: dm)
+
+A. \(7,75\)
+
+B. \(10,95\)
+
+*C. \(7,04\)
+
+D. \(6,34\)
+
+Lời giải:
+
+
+Gọi hàm chi phí vật liệu trung bình trên một giờ sản xuất là \(f(x)=\dfrac{C(x)}{T(x)}=\dfrac{x^2+120}{x+5}, x>0\).
+
+Ta có \(f'(x)=\dfrac{x^2+10x-120}{(x+5)^2}=0 \Leftrightarrow \left[\begin{array}{l}x \approx -17,04(L) \\ x \approx 7,04\end{array}\right.\)
+
+Từ bảng biến thiên ta thấy \(f(x)\) đạt GTNN bằng \(14,08\) khi \(x \approx 7,04\).
+
+Vậy để chi phí vật liệu trung bình trên một giờ sản xuất là thấp nhất thì \(x \approx 7,04\).
+
+
+
+
+Câu 27: Trên tuyến kênh đào thẳng, không có dòng chảy và thường xuyên được dùng để vận chuyển hàng hóa nặng, một tàu container đang vận hành ổn định. Ban điều hành tuyến vận tải mong muốn tiết kiệm chi phí nhiên liệu nhằm tăng lợi nhuận. Theo phân tích, chi phí nhiên liệu gồm hai phần: phần cố định 650 nghìn đồng/giờ, và phần phụ thuộc bình phương vận tốc. Khi tàu chạy với tốc độ 10 km/h, phần biến thiên này là 80 nghìn đồng/giờ. Xác định vận tốc \(v\) (km/h) sao cho chi phí nhiên liệu để đi hết quãng đường 1 km là ít nhất. Làm tròn đến hàng phần trăm. (Đơn vị: km/h)
+
+A. \(10\)
+
+*B. \(28,5\)
+
+C. \(25,65\)
+
+D. \(31,35\)
+
+Lời giải:
+
+
+Gọi \(x\) (km/h) là tốc độ của tàu \((x > 0)\).
+
+Thời gian để tàu chạy 1 km trên sông là \(1/x\) (giờ).
+
+Chi phí cho phần thứ nhất để tàu chạy 1 km là: \(p_1=650 \cdot 1/x=650/x\) (nghìn đồng/giờ).
+
+Chi phí cho phần thứ hai để tàu chạy 1 km có dạng: \(p_2=k x^2 \cdot 1/x=k x\) (nghìn đồng/giờ).
+
+Khi \(x=10\) thì \(p_2=80\) nên \(k=0.8\). Do đó \(p_2=0.8 x\) (nghìn đồng/giờ).
+
+Vậy tổng chi phí để tàu chạy 1 km trên khúc sông đó là: \(f(x)=650/x+0.8 x\) (nghìn đồng/giờ).
+
+Ta có: \(f^{\prime}(x)=-650/x^2+0.8\).
+
+        Giải phương trình: \(f^{\prime}(x)=0 \Leftrightarrow x=\sqrt{\dfrac{1625}{2}}\) (thoả mãn) hoặc \(x=-\sqrt{\dfrac{1625}{2}}\) (loại vì \(x>0\)).
+
+        Lập bảng biến thiên của hàm số \(f(x)\) với \(x>0\), ta tìm được \(\min_{x \in(0 ;+\infty)} f(x)=f(\sqrt{\dfrac{1625}{2}})=\sqrt{520}\).
+
+        Vậy tốc độ của tàu để tổng chi phí nhiên liệu khi tàu chạy 1 km trên sông ít nhất là \(\sqrt{\dfrac{1625}{2}} \approx 28,5\) (km/h).
+
+
+
+
+Câu 28: Trong giai đoạn mở rộng sản xuất để đáp ứng đơn hàng cuối năm, nhà máy cơ khí Z cần điều chỉnh thời lượng làm việc của công nhân. Nếu duy trì thời gian làm việc là \(x\) giờ mỗi tuần thì số lượng phế phẩm trong tuần được mô hình hóa bởi hàm số: \( P(x) = \dfrac{110x^2 + 140x}{8} \). Hiện tại, nhà máy hoạt động 40 giờ/tuần, có 120 tổ công nhân và mỗi tổ làm ra 125 sản phẩm mỗi giờ. Tuy nhiên, để tránh quá tải, mỗi khi tăng thêm 2 giờ làm việc mỗi tuần thì một tổ nghỉ việc và năng suất của các tổ còn lại giảm 6 sản phẩm/giờ. Ban điều hành cần xác định số giờ làm việc tối ưu trong tuần để đảm bảo số sản phẩm hữu ích (sau khi loại trừ phế phẩm) là lớn nhất. (Đơn vị: giờ)
+
+A. \(38\)
+
+*B. \(33\)
+
+C. \(40\)
+
+D. \(42\)
+
+Lời giải:
+
+
+Gọi số giờ làm tăng thêm mỗi tuần là \(t\), \(t \in \mathbb{R}\).
+
+Số tổ công nhân bỏ việc là \(1 t\) nên số tổ công nhân làm việc là \(120 - 1 t\) (tổ).
+
+Năng suất của tổ công nhân còn \(125 - 3 t\) sản phẩm một giờ.
+
+Số thời gian làm việc một tuần là \(40 + t = x\) (giờ).
+
+\(\Rightarrow\) Số phế phẩm thu được là \(P(40 + t) = \dfrac{110(40 + t)^2 + 140(40 + t)}{8}\)
+
+Để nhà máy hoạt động được thì \(\left\{\begin{array}{l}40 + t > 0 \\ 125 - 3 t > 0\end{array}\right. \Rightarrow t \in(-40.0 ; 41.7) \\ 120 - 1 t > 0\)
+
+Số sản phẩm trong một tuần làm được:
+
+\(S = \text{Số tổ x Năng suất x Thời gian} = \left(120 - 1 t\right)\left(125 - 3 t\right)(40 + t)\).
+
+Số sản phẩm thu được là:
+
+\(f(t) = \left(120 - 1 t\right)\left(125 - 3 t\right)(40 + t) - \dfrac{110(40 + t)^2 + 140(40 + t)}{8}\)
+
+\(f'(t) = -1\left(125 - 3 t\right)(40 + t) - 3\left(120 - 1 t\right)(40 + t) + \left(120 - 1 t\right)\left(125 - 3 t\right) - \dfrac{55}{4} \cdot 2(40 + t) - \dfrac{35}{2}\)
+
+\(= 9t^{2} - \frac{1515}{2}t - \frac{11035}{2}\)
+
+Ta có \(f'(t) = 0 \Leftrightarrow \left[\begin{array}{l}t = -7 \\ t = \dfrac{909}{10}(L)\end{array}\right.\).
+
+Dựa vào bảng biến thiên ta có số lượng sản phẩm thu được lớn nhất thì thời gian làm việc trong một tuần là \(40 - 7 = 33\) giờ.
+
+
+
+
+Câu 29: Xưởng lắp ráp thiết bị điện gia dụng đang vận hành với tuần làm việc 50 giờ, 150 tổ công nhân và mỗi tổ sản xuất 110 thiết bị/giờ. Tuy nhiên, trong kế hoạch tăng năng suất cuối quý, xưởng cân nhắc tăng số giờ làm việc \(x\) mỗi tuần. Điều này kéo theo một số thay đổi:
+
+- Cứ mỗi 3 giờ tăng thêm, một tổ công nhân nghỉ việc.
+
+- Mỗi tổ còn lại giảm năng suất 3 thiết bị mỗi giờ.
+
+- Lượng phế phẩm tạo ra trong tuần được ước tính bởi hàm: \( P(x) = \dfrac{85x^2 + 100x}{4} \).\\Xưởng cần xác định \(x\) bao nhiêu để tối đa hóa số lượng thiết bị đạt chuẩn sau khi loại trừ phế phẩm. Đây là quyết định quan trọng giúp đảm bảo mục tiêu sản xuất mà không gia tăng lãng phí. (Đơn vị: giờ)
+
+A. \(48\)
+
+*B. \(58\)
+
+C. \(50\)
+
+D. \(52\)
+
+Lời giải:
+
+
+Gọi số giờ làm tăng thêm mỗi tuần là \(t\), \(t \in \mathbb{R}\).
+
+Số tổ công nhân bỏ việc là \(\dfrac{2}{3} t\) nên số tổ công nhân làm việc là \(150 - \dfrac{2}{3} t\) (tổ).
+
+Năng suất của tổ công nhân còn \(110 - 1 t\) sản phẩm một giờ.
+
+Số thời gian làm việc một tuần là \(50 + t = x\) (giờ).
+
+\(\Rightarrow\) Số phế phẩm thu được là \(P(50 + t) = \dfrac{85(50 + t)^2 + 100(50 + t)}{4}\)
+
+Để nhà máy hoạt động được thì \(\left\{\begin{array}{l}50 + t > 0 \\ 110 - 1 t > 0\end{array}\right. \Rightarrow t \in(-50.0 ; 110.0) \\ 150 - \dfrac{2}{3} t > 0\)
+
+Số sản phẩm trong một tuần làm được:
+
+\(S = \text{Số tổ x Năng suất x Thời gian} = \left(150 - \dfrac{2}{3} t\right)\left(110 - 1 t\right)(50 + t)\).
+
+Số sản phẩm thu được là:
+
+\(f(t) = \left(150 - \dfrac{2}{3} t\right)\left(110 - 1 t\right)(50 + t) - \dfrac{85(50 + t)^2 + 100(50 + t)}{4}\)
+
+\(f'(t) = -\dfrac{2}{3}\left(110 - 1 t\right)(50 + t) - 1\left(150 - \dfrac{2}{3} t\right)(50 + t) + \left(150 - \dfrac{2}{3} t\right)\left(110 - 1 t\right) - \dfrac{85}{4} \cdot 2(50 + t) - 25\)
+
+\(= 2t^{2} - \frac{845}{2}t + \frac{9550}{3}\)
+
+Ta có \(f'(t) = 0 \Leftrightarrow \left[\begin{array}{l}t = 8 \\ t = \dfrac{1424}{7}(L)\end{array}\right.\).
+
+Dựa vào bảng biến thiên ta có số lượng sản phẩm thu được lớn nhất thì thời gian làm việc trong một tuần là \(50 + 8 = 58\) giờ.
+
+
+
+
+Câu 30: Một nhóm sinh viên khởi nghiệp sản xuất đèn handmade từ giấy kraft tái chế để phục vụ phân khúc quà tặng sáng tạo. Mẫu đèn chóp cụt tứ giác đều của nhóm rất được ưa chuộng nhờ kiểu dáng độc đáo và tinh tế. Trong quá trình thiết kế và sản xuất, nhóm cần xác định kích thước cạnh đáy lớn \(x\) (dm) sao cho hiệu quả sử dụng giấy và thời gian hoàn thiện sản phẩm được tối ưu. Chi phí giấy là \(C(x) = x^2 + 112\) (nghìn đồng) và thời gian sản xuất mỗi đèn là \(T(x) = x + 7\) (giờ). Họ cần tìm giá trị của \(x\) sao cho chi phí vật liệu trung bình trên một giờ làm việc là nhỏ nhất. (Đơn vị: dm)
+
+A. \(5,12\)
+
+B. \(10,58\)
+
+C. \(6,26\)
+
+*D. \(5,69\)
+
+Lời giải:
+
+
+Gọi hàm chi phí vật liệu trung bình trên một giờ sản xuất là \(f(x)=\dfrac{C(x)}{T(x)}=\dfrac{x^2+112}{x+7}, x>0\).
+
+Ta có \(f'(x)=\dfrac{x^2+14x-112}{(x+7)^2}=0 \Leftrightarrow \left[\begin{array}{l}x \approx -19,69(L) \\ x \approx 5,69\end{array}\right.\)
+
+Từ bảng biến thiên ta thấy \(f(x)\) đạt GTNN bằng \(11,38\) khi \(x \approx 5,69\).
+
+Vậy để chi phí vật liệu trung bình trên một giờ sản xuất là thấp nhất thì \(x \approx 5,69\).
+
+
+
+\end{document}

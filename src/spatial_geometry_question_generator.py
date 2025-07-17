@@ -1250,27 +1250,61 @@ class SphericalCoordinateOptimization(BaseOptimizationQuestion):
         unique_wrongs = set()
         final_wrongs = []
         correct_rounded = round2(correct_value)
-        tries = 0
+
         for val in wrong_values:
             val_rounded = round2(val)
+            tries = 0  # Di chuyển tries vào trong vòng lặp for
+
             # Nếu trùng với đáp án đúng hoặc đã có, sinh lại bằng cách cộng/trừ ngẫu nhiên
-            while (val_rounded == correct_rounded or val_rounded in unique_wrongs) and tries < 10:
-                # Sinh giá trị mới bằng cách cộng/trừ 2-10% giá trị đúng (hoặc ±2 nếu đúng = 0)
-                delta = abs(correct_value) * random.uniform(0.02, 0.1) if abs(correct_value) > 1e-6 else random.uniform(1, 3)
+            while (val_rounded == correct_rounded or val_rounded in unique_wrongs) and tries < 20:
+                # Sinh giá trị mới bằng cách cộng/trừ 5-20% giá trị đúng (hoặc ±1-5 nếu đúng = 0)
+                if abs(correct_value) > 1e-6:
+                    delta = abs(correct_value) * random.uniform(0.05, 0.2)
+                else:
+                    delta = random.uniform(1, 5)
                 sign = random.choice([-1, 1])
                 val_rounded = round2(correct_value + sign * delta)
                 tries += 1
-            unique_wrongs.add(val_rounded)
-            final_wrongs.append(val_rounded)
-        # Nếu vẫn chưa đủ 3 đáp án sai khác biệt, sinh thêm
-        while len(final_wrongs) < 3:
-            delta = abs(correct_value) * random.uniform(0.02, 0.1) if abs(correct_value) > 1e-6 else random.uniform(1, 3)
-            sign = random.choice([-1, 1])
-            val_rounded = round2(correct_value + sign * delta)
+
+            # Chỉ thêm vào nếu không trùng
             if val_rounded != correct_rounded and val_rounded not in unique_wrongs:
                 unique_wrongs.add(val_rounded)
                 final_wrongs.append(val_rounded)
-        # Format các đáp án sai
+
+        # Nếu vẫn chưa đủ 3 đáp án sai khác biệt, sinh thêm
+        max_attempts = 50
+        attempt = 0
+        while len(final_wrongs) < 3 and attempt < max_attempts:
+            if abs(correct_value) > 1e-6:
+                delta = abs(correct_value) * random.uniform(0.1, 0.3)
+            else:
+                delta = random.uniform(2, 8)
+            sign = random.choice([-1, 1])
+            val_rounded = round2(correct_value + sign * delta)
+
+            if val_rounded != correct_rounded and val_rounded not in unique_wrongs:
+                unique_wrongs.add(val_rounded)
+                final_wrongs.append(val_rounded)
+            attempt += 1
+
+        # Nếu vẫn chưa đủ 3 đáp án, sinh thêm bằng cách dùng multiplier
+        while len(final_wrongs) < 3:
+            multipliers = [0.5, 0.7, 0.8, 1.2, 1.3, 1.5, 2.0]
+            multiplier = random.choice(multipliers)
+            val_rounded = round2(correct_value * multiplier)
+
+            if val_rounded != correct_rounded and val_rounded not in unique_wrongs:
+                unique_wrongs.add(val_rounded)
+                final_wrongs.append(val_rounded)
+            else:
+                # Nếu vẫn trùng, thêm/trừ một số cố định
+                offset = random.choice([1, 2, 3, 5]) * random.choice([-1, 1])
+                val_rounded = round2(correct_value + offset)
+                if val_rounded != correct_rounded and val_rounded not in unique_wrongs:
+                    unique_wrongs.add(val_rounded)
+                    final_wrongs.append(val_rounded)
+
+        # Format các đáp án sai - đảm bảo chỉ lấy 3 đáp án đầu tiên
         wrong_answers = [f"\\({format_number_clean(val)}\\)" for val in final_wrongs[:3]]
         return wrong_answers
 

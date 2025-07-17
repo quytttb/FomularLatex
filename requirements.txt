@@ -14,3 +14,12 @@
 # sudo apt-get install texlive-xetex texlive-latex-extra
 
 # To install on other systems, search for "XeLaTeX" package
+
+sympy~=1.12
+pip~=24.0
+attrs~=23.2.0
+distro~=1.9.0
+wheel~=0.42.0
+cryptography~=41.0.7
+pillow~=10.2.0
+Jinja2~=3.1.2
