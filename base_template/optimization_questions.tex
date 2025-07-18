@@ -1,0 +1,113 @@
+\documentclass[a4paper,12pt]{article}
+\usepackage{amsmath}
+\usepackage{amsfonts}
+\usepackage{amssymb}
+\usepackage{geometry}
+\geometry{a4paper, margin=1in}
+\usepackage{polyglossia}
+\setmainlanguage{vietnamese}
+\usepackage{tikz}
+\usepackage{tkz-tab}
+\usepackage{tkz-euclide}
+\usetikzlibrary{calc,decorations.pathmorphing,decorations.pathreplacing}
+\begin{document}
+\title{Câu hỏi Tối ưu hóa}
+\author{dev}
+\maketitle
+
+Câu 1: Cho hàm số \(y=f(x)\) có bảng xét dấu \(f'(x)\) như dưới đây:
+
+\begin{tikzpicture}[>=stealth, scale=1]
+	\tkzTabInit[lgt=2,espcl=2]
+	{$x$/1,$f''(x)$/0.8,$f'(x)$/3}
+	{$-\infty$,$-2$,$1$,$5$,$+\infty$}
+	\tkzTabLine{,+,0,-,0,+,0,-,}
+	\path
+	(N13)node[shift={(0,0.2)}](A){$+\infty$}
+	(N22)node[shift={(0,-0.2)}](B){$2$}
+	(N32)node[shift={(0,-1.5)}](C){$-4$}
+	(N42)node[shift={(0,-0.2)}](D){$8$}
+	(N53)node[shift={(0,0.2)}](E){$+\infty$};
+	\foreach \X/\Y in {A/B,B/C,C/D,D/E} \draw[->](\X)--(\Y);
+\end{tikzpicture}
+
+Hàm số đạt cực trị tại điểm nào?
+
+A. \((1,2)\)
+
+B. \(y=-2\)
+
+C. \(x=2\)
+
+*D. \(x=5\)
+
+Lời giải:
+
+
+Dựa vào bảng xét dấu \(f'(x)\), ta xác định được:
+
+- Dấu của \(f'(x)\): dương trên \((-\infty, -2)\), âm trên \((-2, 1)\), dương trên \((1, 5)\), âm trên \((5, +\infty)\)
+
+- Hàm số có các điểm cực trị tại: \(x = -2, x = 1, x = 5\)
+
+- Điểm cực đại: \(x = -2\) và \(x = 5\) (chuyển từ tăng sang giảm)
+
+- Điểm cực tiểu: \(x = 1\) (chuyển từ giảm sang tăng)
+
+- Hàm số đồng biến trên \((-\infty, -2) \cup (1, 5)\)
+
+- Hàm số nghịch biến trên \((-2, 1) \cup (5, +\infty)\)
+
+Từ đó suy ra đáp án cho câu hỏi đã cho.
+
+
+
+
+Câu 2: Cho hàm số \(y=f(x)\) có bảng xét dấu \(f'(x)\) như dưới đây:
+
+\begin{tikzpicture}[>=stealth, scale=1]
+	\tkzTabInit[lgt=2,espcl=2]
+	{$x$/1,$f''(x)$/0.8,$f'(x)$/3}
+	{$-\infty$,$-5$,$1$,$6$,$+\infty$}
+	\tkzTabLine{,-,0,+,0,-,0,+,}
+	\path
+	(N12)node[shift={(0,-0.2)}](A){$+\infty$}
+	(N23)node[shift={(0,0.2)}](B){$-8$}
+	(N32)node[shift={(0,-1.5)}](C){$8$}
+	(N43)node[shift={(0,0.2)}](D){$-2$}
+	(N52)node[shift={(0,-0.2)}](E){$+\infty$};
+	\foreach \X/\Y in {A/B,B/C,C/D,D/E} \draw[->](\X)--(\Y);
+\end{tikzpicture}
+
+Hàm số đạt cực đại tại điểm nào?
+
+A. \((3,-1)\)
+
+B. \((-8,-2)\)
+
+C. \(x=-4\)
+
+*D. \(x=1\)
+
+Lời giải:
+
+
+Dựa vào bảng xét dấu \(f'(x)\), ta xác định được:
+
+- Dấu của \(f'(x)\): âm trên \((-\infty, -5)\), dương trên \((-5, 1)\), âm trên \((1, 6)\), dương trên \((6, +\infty)\)
+
+- Hàm số có các điểm cực trị tại: \(x = -5, x = 1, x = 6\)
+
+- Điểm cực tiểu: \(x = -5\) và \(x = 6\) (chuyển từ giảm sang tăng)
+
+- Điểm cực đại: \(x = 1\) (chuyển từ tăng sang giảm)
+
+- Hàm số nghịch biến trên \((-\infty, -5) \cup (1, 6)\)
+
+- Hàm số đồng biến trên \((-5, 1) \cup (6, +\infty)\)
+
+Từ đó suy ra đáp án cho câu hỏi đã cho.
+
+
+
+\end{document}

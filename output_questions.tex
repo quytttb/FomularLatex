@@ -1,0 +1,178 @@
+\documentclass[a4paper,12pt]{article}
+\usepackage{amsmath}
+\usepackage{amsfonts}
+\usepackage{amssymb}
+\usepackage{geometry}
+\geometry{a4paper, margin=1in}
+\usepackage{polyglossia}
+\setmainlanguage{vietnamese}
+\setmainfont{Times New Roman}
+\usepackage{tikz}
+\usepackage{tkz-tab}
+\usepackage{tkz-euclide}
+\usetikzlibrary{calc,decorations.pathmorphing,decorations.pathreplacing}
+\begin{document}
+\title{Câu hỏi Tối ưu hóa}
+\author{dev}
+\maketitle
+
+Câu 1: Cho hàm số \(y=f(x)\) có bảng xét dấu \(f'(x)\) như dưới đây:
+
+\begin{tikzpicture}[>=stealth, scale=1]
+	\tkzTabInit[lgt=2,espcl=2]
+	{$x$/1,$f''(x)$/0.8,$f'(x)$/3}
+	{$-\infty$,$-5$,$3$,$5$,$+\infty$}
+	\tkzTabLine{,-,0,+,0,-,0,+,}
+	\path
+	(N12)node[shift={(0,-0.2)}](A){$+\infty$}
+	(N23)node[shift={(0,0.2)}](B){$-8$}
+	(N32)node[shift={(0,-1.5)}](C){$8$}
+	(N43)node[shift={(0,0.2)}](D){$-4$}
+	(N52)node[shift={(0,-0.2)}](E){$+\infty$};
+	\foreach \X/\Y in {A/B,B/C,C/D,D/E} \draw[->](\X)--(\Y);
+\end{tikzpicture}
+
+Hàm số có bao nhiêu cực tiểu?
+
+A. 1
+
+*B. 2
+
+C. 5
+
+D. 3
+
+Lời giải:
+
+Dựa vào bảng xét dấu \(f'(x)\), ta xác định được: - Dấu của \(f'(x)\): âm trên \((-\infty; -5)\), dương trên \((-5; 3)\), âm trên \((3; 5)\), dương trên \((5; +\infty)\) - Hàm số có các điểm cực trị tại: \(x = -5, x = 3, x = 5\) - Điểm cực tiểu: \(x = -5\) và \(x = 5\) (chuyển từ giảm sang tăng) - Điểm cực đại: \(x = 3\) (chuyển từ tăng sang giảm) - Hàm số nghịch biến trên \((-\infty; -5) \cup (3; 5)\) - Hàm số đồng biến trên \((-5; 3) \cup (5; +\infty)\) **Kết luận:** Hàm số có 2 cực tiểu (tại x = -5 và x = 5).
+
+
+
+Câu 2: Cho hàm số \(y=f(x)\) có bảng xét dấu \(f'(x)\) như dưới đây:
+
+\begin{tikzpicture}[>=stealth, scale=1]
+	\tkzTabInit[lgt=2,espcl=2]
+	{$x$/1,$f''(x)$/0.8,$f'(x)$/3}
+	{$-\infty$,$-4$,$0$,$6$,$+\infty$}
+	\tkzTabLine{,+,0,-,0,+,0,-,}
+	\path
+	(N13)node[shift={(0,0.2)}](A){$+\infty$}
+	(N22)node[shift={(0,-0.2)}](B){$1$}
+	(N32)node[shift={(0,-1.5)}](C){$-1$}
+	(N42)node[shift={(0,-0.2)}](D){$8$}
+	(N53)node[shift={(0,0.2)}](E){$+\infty$};
+	\foreach \X/\Y in {A/B,B/C,C/D,D/E} \draw[->](\X)--(\Y);
+\end{tikzpicture}
+
+Hàm số có bao nhiêu cực trị?
+
+A. 5
+
+B. 4
+
+C. 1
+
+*D. 3
+
+Lời giải:
+
+Dựa vào bảng xét dấu \(f'(x)\), ta xác định được: - Dấu của \(f'(x)\): dương trên \((-\infty; -4)\), âm trên \((-4; 0)\), dương trên \((0; 6)\), âm trên \((6; +\infty)\) - Hàm số có các điểm cực trị tại: \(x = -4, x = 0, x = 6\) - Điểm cực đại: \(x = -4\) và \(x = 6\) (chuyển từ tăng sang giảm) - Điểm cực tiểu: \(x = 0\) (chuyển từ giảm sang tăng) - Hàm số đồng biến trên \((-\infty; -4) \cup (0; 6)\) - Hàm số nghịch biến trên \((-4; 0) \cup (6; +\infty)\) **Kết luận:** Hàm số có 3 cực trị (tại x = -4, x = 0, x = 6).
+
+
+
+Câu 3: Cho hàm số \(y=f(x)\) có bảng xét dấu \(f'(x)\) như dưới đây:
+
+\begin{tikzpicture}[>=stealth, scale=1]
+	\tkzTabInit[lgt=2,espcl=2]
+	{$x$/1,$f''(x)$/0.8,$f'(x)$/3}
+	{$-\infty$,$-3$,$3$,$5$,$+\infty$}
+	\tkzTabLine{,+,0,-,0,+,0,-,}
+	\path
+	(N13)node[shift={(0,0.2)}](A){$+\infty$}
+	(N22)node[shift={(0,-0.2)}](B){$1$}
+	(N32)node[shift={(0,-1.5)}](C){$-1$}
+	(N42)node[shift={(0,-0.2)}](D){$10$}
+	(N53)node[shift={(0,0.2)}](E){$+\infty$};
+	\foreach \X/\Y in {A/B,B/C,C/D,D/E} \draw[->](\X)--(\Y);
+\end{tikzpicture}
+
+Hàm số có bao nhiêu cực đại?
+
+A. 5
+
+B. 3
+
+*C. 2
+
+D. 0
+
+Lời giải:
+
+Dựa vào bảng xét dấu \(f'(x)\), ta xác định được: - Dấu của \(f'(x)\): dương trên \((-\infty; -3)\), âm trên \((-3; 3)\), dương trên \((3; 5)\), âm trên \((5; +\infty)\) - Hàm số có các điểm cực trị tại: \(x = -3, x = 3, x = 5\) - Điểm cực đại: \(x = -3\) và \(x = 5\) (chuyển từ tăng sang giảm) - Điểm cực tiểu: \(x = 3\) (chuyển từ giảm sang tăng) - Hàm số đồng biến trên \((-\infty; -3) \cup (3; 5)\) - Hàm số nghịch biến trên \((-3; 3) \cup (5; +\infty)\) **Kết luận:** Hàm số có 2 cực đại (tại x = -3 và x = 5).
+
+
+
+Câu 4: Cho hàm số \(y=f(x)\) có bảng xét dấu \(f'(x)\) như dưới đây:
+
+\begin{tikzpicture}[>=stealth, scale=1]
+	\tkzTabInit[lgt=2,espcl=2]
+	{$x$/1,$f''(x)$/0.8,$f'(x)$/3}
+	{$-\infty$,$-2$,$1$,$5$,$+\infty$}
+	\tkzTabLine{,+,0,-,0,+,0,-,}
+	\path
+	(N13)node[shift={(0,0.2)}](A){$+\infty$}
+	(N22)node[shift={(0,-0.2)}](B){$2$}
+	(N32)node[shift={(0,-1.5)}](C){$-5$}
+	(N42)node[shift={(0,-0.2)}](D){$10$}
+	(N53)node[shift={(0,0.2)}](E){$+\infty$};
+	\foreach \X/\Y in {A/B,B/C,C/D,D/E} \draw[->](\X)--(\Y);
+\end{tikzpicture}
+
+Phương trình f'(x) = a có bao nhiêu nghiệm?
+
+A. 2
+
+B. 4
+
+C. 5
+
+*D. 3
+
+Lời giải:
+
+Dựa vào bảng xét dấu \(f'(x)\), ta xác định được: - Dấu của \(f'(x)\): dương trên \((-\infty; -2)\), âm trên \((-2; 1)\), dương trên \((1; 5)\), âm trên \((5; +\infty)\) - Hàm số có các điểm cực trị tại: \(x = -2, x = 1, x = 5\) - Điểm cực đại: \(x = -2\) và \(x = 5\) (chuyển từ tăng sang giảm) - Điểm cực tiểu: \(x = 1\) (chuyển từ giảm sang tăng) - Hàm số đồng biến trên \((-\infty; -2) \cup (1; 5)\) - Hàm số nghịch biến trên \((-2; 1) \cup (5; +\infty)\) **Kết luận:** Với a = 0, phương trình f'(x) = 0 có 3 nghiệm (tại x = -2, x = 1, x = 5).
+
+
+
+Câu 5: Cho hàm số \(y=f(x)\) có bảng xét dấu \(f'(x)\) như dưới đây:
+
+\begin{tikzpicture}[>=stealth, scale=1]
+	\tkzTabInit[lgt=2,espcl=2]
+	{$x$/1,$f''(x)$/0.8,$f'(x)$/3}
+	{$-\infty$,$-5$,$1$,$6$,$+\infty$}
+	\tkzTabLine{,+,0,-,0,+,0,-,}
+	\path
+	(N13)node[shift={(0,0.2)}](A){$+\infty$}
+	(N22)node[shift={(0,-0.2)}](B){$2$}
+	(N32)node[shift={(0,-1.5)}](C){$-2$}
+	(N42)node[shift={(0,-0.2)}](D){$10$}
+	(N53)node[shift={(0,0.2)}](E){$+\infty$};
+	\foreach \X/\Y in {A/B,B/C,C/D,D/E} \draw[->](\X)--(\Y);
+\end{tikzpicture}
+
+Hàm số có bao nhiêu cực đại?
+
+A. 0
+
+B. 1
+
+*C. 2
+
+D. 4
+
+Lời giải:
+
+Dựa vào bảng xét dấu \(f'(x)\), ta xác định được: - Dấu của \(f'(x)\): dương trên \((-\infty; -5)\), âm trên \((-5; 1)\), dương trên \((1; 6)\), âm trên \((6; +\infty)\) - Hàm số có các điểm cực trị tại: \(x = -5, x = 1, x = 6\) - Điểm cực đại: \(x = -5\) và \(x = 6\) (chuyển từ tăng sang giảm) - Điểm cực tiểu: \(x = 1\) (chuyển từ giảm sang tăng) - Hàm số đồng biến trên \((-\infty; -5) \cup (1; 6)\) - Hàm số nghịch biến trên \((-5; 1) \cup (6; +\infty)\) **Kết luận:** Hàm số có 2 cực đại (tại x = -5 và x = 6).
+
+
+\end{document}

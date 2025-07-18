@@ -6,109 +6,101 @@ import random
 from typing import Dict, Any, List
 from base_optimization_question import BaseOptimizationQuestion
 from tikz_figure_library import (
-    # generate_tkztabinit_latex, 
-    # generate_cubic_type1_latex,
-    # generate_cubic_type2_latex, 
-    # generate_quartic_latex
+    generate_monotonicity_table_type1,
+    generate_monotonicity_table_type2
 )
+from latex_utils import (
+    clean_latex_expression,
+    format_number_clean,
+    strip_latex_inline_math
+)
+
+def format_interval_simple(a, b, open_left=True, open_right=True):
+    """Hàm đơn giản để format khoảng"""
+    left = "(" if open_left else "["
+    right = ")" if open_right else "]"
+    
+    # Xử lý các giá trị đặc biệt
+    if str(a) == '-\\infty' or str(a) == '-infty':
+        a_str = "-\\infty"
+    else:
+        a_str = format_number_clean(a) if isinstance(a, (int, float)) else str(a)
+    
+    if str(b) == '+\\infty' or str(b) == '+infty':
+        b_str = "+\\infty"
+    else:
+        b_str = format_number_clean(b) if isinstance(b, (int, float)) else str(b)
+    
+    return f"{left}{a_str}; {b_str}{right}"
 
 class ExtremumFromTikzQuestion(BaseOptimizationQuestion):
     """
     Dạng toán nhận diện cực trị, giá trị cực trị, điểm cực trị, hoặc tính đơn điệu
-    Dựa trên bảng biến thiên hoặc đồ thị hàm số (tkzTabInit hoặc tikzpicture)
+    Dựa trên bảng biến thiên
     """
-    # Danh sách các câu hỏi dạng cực trị, loại bỏ trùng lặp
-    QUESTIONS = [
-        "Hàm số đồng biến/nghịch biến trên khoảng nào dưới đây?",
-        "Hàm số đạt cực trị tại điểm nào?",
-        "Hàm số đạt cực đại tại điểm nào?",
-        "Hàm số đạt cực tiểu tại điểm nào?",
-        "Hàm số có cực đại là giá trị nào?",
-        "Hàm số có cực tiểu là giá trị nào?",
-        "Đồ thị hàm số có điểm cực đại là điểm nào?",
-        "Đồ thị hàm số có điểm cực tiểu là điểm nào?",
-
+    # Template câu hỏi cho 2 dạng bảng biến thiên
+    QUESTIONS_TYPE1 = [
+        "Hàm số nghịch biến trên khoảng nào?",
+        "Hàm số có bao nhiêu cực trị?", 
+        "Hàm số có bao nhiêu cực tiểu?",
+        "Phương trình f'(x) = a có bao nhiêu nghiệm?"
+    ]
+    
+    QUESTIONS_TYPE2 = [
+        "Hàm số đồng biến trên khoảng nào?",
+        "Hàm số có bao nhiêu cực trị?",
+        "Hàm số có bao nhiêu cực đại?", 
+        "Phương trình f'(x) = a có bao nhiêu nghiệm?"
     ]
 
     def generate_parameters(self) -> Dict[str, Any]:
-        """Sinh tham số cho bài toán cực trị từ bảng biến thiên hoặc đồ thị"""
-        # Chọn kiểu thể hiện trước để sinh tham số phù hợp
-        style = random.choice(['tkztab', 'cubic_type1', 'cubic_type2', 'quartic', 'tikzpicture'])
+        """Sinh tham số cho bài toán cực trị từ bảng biến thiên monotonicity"""
+        # Chọn kiểu bảng biến thiên: type1 (dạng W) hoặc type2 (dạng M)
+        monotonicity_type = random.choice(['monotonicity_type1', 'monotonicity_type2'])
         
-        if style == 'tkztab':
-            # Bảng biến thiên - sinh như cũ
-            x_values = random.sample([-3, -2, -1, 1, 2, 3], 3)
-            x_values.sort()  # Sắp xếp tăng dần: [x1, x2, x3]
-            y_values = random.sample([-4, -3, -2, -1, 1, 2, 3, 4], 3)
-            A, B, C = x_values
-            D, E, F = y_values
-            m = random.randint(0, 2)
-            
-        elif style in ['cubic_type1', 'tikzpicture']:
-            # Cubic type 1: A âm (cực đại), B dương (cực tiểu)
-            A = random.choice([-3, -2, -1])  # x cực đại (âm)
-            B = random.choice([1, 2])        # x cực tiểu (dương) - giảm để có chỗ cho offset
-            D = random.choice([1, 2, 3, 4])  # y cực đại (dương)
-            E = random.choice([-4, -3, -2, -1])  # y cực tiểu (âm)
-            
-            # Tham số m: đảm bảo B+m > 0 và B+m > |A|
-            min_m_positive = -B + 1  # Đảm bảo B+m > 0
-            min_m_greater = abs(A) - B + 1  # Đảm bảo B+m > |A|
-            min_m = max(min_m_positive, min_m_greater)
-            max_m = 5  # Giới hạn để không quá lớn
-            m = random.randint(min_m, max_m) if min_m <= max_m else abs(A) - B + 1
-            
-            C = random.choice([1, 2, 3])  # Không sử dụng nhưng cần có
-            F = random.choice([-4, -3, -2, -1])  # Không sử dụng nhưng cần có
-            
-        elif style == 'cubic_type2':
-            # Cubic type 2: A âm (cực tiểu), B dương (cực đại)
-            A = random.choice([-3, -2, -1])  # x cực tiểu (âm)
-            B = random.choice([1, 2])        # x cực đại (dương) - giảm để có chỗ cho offset
-            D = random.choice([-4, -3, -2, -1])  # y cực tiểu (âm)
-            E = random.choice([1, 2, 3, 4])  # y cực đại (dương)
-            
-            # Tham số m: đảm bảo B+m > 0 và B+m > |A|
-            min_m_positive = -B + 1  # Đảm bảo B+m > 0
-            min_m_greater = abs(A) - B + 1  # Đảm bảo B+m > |A|
-            min_m = max(min_m_positive, min_m_greater)
-            max_m = 5  # Giới hạn để không quá lớn
-            m = random.randint(min_m, max_m) if min_m <= max_m else abs(A) - B + 1
-            
-            C = random.choice([1, 2, 3])  # Không sử dụng nhưng cần có
-            F = random.choice([-4, -3, -2, -1])  # Không sử dụng nhưng cần có
-            
-        else:  # quartic
-            # Quartic: A âm (cực tiểu trái), C dương (cực tiểu phải)
-            A = random.choice([-3, -2, -1])  # x cực tiểu trái (âm)
-            C = random.choice([1, 2, 3])     # x cực tiểu phải (dương)
-            D = random.choice([-4, -3, -2, -1])  # y cực tiểu (âm)
-            E = random.choice([-3, -2, -1])  # y cực đại (âm nhưng cao hơn D)
-            
-            # Đảm bảo E > D (cực đại cao hơn cực tiểu)
-            while E <= D:
-                E = random.choice([-3, -2, -1])
-            
-            B = random.choice([1, 2, 3])  # Không sử dụng nhưng cần có
-            F = random.choice([-4, -3, -2, -1])  # Không sử dụng nhưng cần có
-            m = 0  # Quartic không dùng m
+        # Sinh 3 điểm nghiệm của f"(x) = 0, đảm bảo A < B < C (tham khảo dothihamso3.py)
+        A = random.randint(-5, -1)
+        B = random.randint(0, 3) 
+        C = random.randint(4, 7)
+        while B <= A or C <= B:
+            A = random.randint(-5, -1)
+            B = random.randint(0, 3)
+            C = random.randint(4, 7)
+        
+        # Sinh các giá trị của f'(x) tại các điểm đặc biệt (tham khảo dothihamso3.py)
+        if monotonicity_type == 'monotonicity_type1':
+            # Type 1 (W): giống generate_question_type_1
+            D = random.randint(-10, -6)
+            F = random.randint(-4, -1)
+            while D == F or D in [A, B, C] or F in [A, B, C]:
+                D = random.randint(-10, -6)
+                F = random.randint(-4, -1)
+            O = random.randint(8, 10)
+        else:
+            # Type 2 (M): giống generate_question_type_2  
+            D = random.randint(1, 3)
+            F = random.randint(8, 10)
+            while D == F or D in [A, B, C] or F in [A, B, C]:
+                D = random.randint(1, 3)
+                F = random.randint(8, 10)
+            O = random.randint(-5, -1)
         
         # Sinh thêm các giá trị ngẫu nhiên khác để làm đáp án nhiễu
         all_x = [A, B, C]
-        all_y = [D, E, F]
+        all_y = [D, F, O]
         extra_x = random.sample([i for i in range(-5, 6) if i not in all_x and i != 0], 2)
         extra_y = random.sample([i for i in range(-5, 6) if i not in all_y and i != 0], 2)
         
         return {
-            # Các điểm cực trị (x-coordinates)
+            # Các điểm nghiệm của f"(x) = 0 (x-coordinates)
             "A": A,
-            "B": B,
+            "B": B, 
             "C": C,
             
-            # Các giá trị cực trị (y-coordinates)
+            # Các giá trị của f'(x) tại các điểm đặc biệt (y-coordinates)
             "D": D,
-            "E": E,
             "F": F,
+            "O": O,
             
             # Giá trị phụ để làm đáp án nhiễu
             "extra_x": extra_x,
@@ -116,43 +108,35 @@ class ExtremumFromTikzQuestion(BaseOptimizationQuestion):
             
             # Danh sách đầy đủ để dễ truy cập
             "x_extrema": [A, B, C],
-            "y_extrema": [D, E, F],
+            "y_extrema": [D, F, O],
             
-            # Kiểu hình vẽ
-            "style": style,
-            
-            # Offset cho biến thể đồ thị
-            "m": m
+            # Kiểu bảng biến thiên
+            "monotonicity_type": monotonicity_type
         }
 
     def generate_question_text(self) -> str:
-        """Sinh đề bài bằng LaTeX, random chọn bảng biến thiên hoặc đồ thị"""
+        """Sinh đề bài bằng LaTeX với bảng biến thiên monotonicity"""
         # Đảm bảo parameters đã được khởi tạo
         if not self.parameters:
             self.parameters = self.generate_parameters()
             
         p = self.parameters
         
-        # Chọn hàm sinh hình vẽ phù hợp
-        if p["style"] == "tkztab":
-            figure = generate_tkztabinit_latex(p)
-            intro = "Cho hàm số \\(y=f(x)\\) có bảng biến thiên như dưới đây:"
-        elif p["style"] == "cubic_type1":
-            figure = generate_cubic_type1_latex(p)
-            intro = "Cho đồ thị hàm số \\(y=f(x)\\) có đồ thị như hình vẽ dưới đây:"
-        elif p["style"] == "cubic_type2": 
-            figure = generate_cubic_type2_latex(p)
-            intro = "Cho đồ thị hàm số \\(y=f(x)\\) có đồ thị như hình vẽ dưới đây:"
-        elif p["style"] == "quartic":
-            figure = generate_quartic_latex(p)
-            intro = "Cho đồ thị hàm số \\(y=f(x)\\) có đồ thị như hình vẽ dưới đây:"
-        else:  # tikzpicture - sử dụng cubic_type1 thay thế
-            figure = generate_cubic_type1_latex(p)
-            intro = "Cho đồ thị hàm số \\(y=f(x)\\) có đồ thị như hình vẽ dưới đây:"
+        # Chọn hàm sinh bảng biến thiên phù hợp
+        if p["monotonicity_type"] == "monotonicity_type1":
+            figure = generate_monotonicity_table_type1(p)
+            intro = "Cho hàm số \\(y=f(x)\\) có bảng biến thiên \\(f'(x)\\) như dưới đây:"
+        else:  # monotonicity_type2
+            figure = generate_monotonicity_table_type2(p)
+            intro = "Cho hàm số \\(y=f(x)\\) có bảng biến thiên \\(f'(x)\\) như dưới đây:"
         
         # Sử dụng câu hỏi đã được chọn trong calculate_answer
         if not hasattr(self, '_current_question'):
-            self._current_question = random.choice(self.QUESTIONS)
+            # Chọn câu hỏi theo monotonicity_type
+            if p["monotonicity_type"] == "monotonicity_type1":
+                self._current_question = random.choice(self.QUESTIONS_TYPE1)
+            else:
+                self._current_question = random.choice(self.QUESTIONS_TYPE2)
         question = self._current_question
         
         return f"""{intro}
@@ -170,229 +154,218 @@ class ExtremumFromTikzQuestion(BaseOptimizationQuestion):
         p = self.parameters
         # Lưu trữ câu hỏi hiện tại để có thể phân tích
         if not hasattr(self, '_current_question'):
-            self._current_question = random.choice(self.QUESTIONS)
+            # Chọn câu hỏi theo monotonicity_type
+            if p["monotonicity_type"] == "monotonicity_type1":
+                self._current_question = random.choice(self.QUESTIONS_TYPE1)
+            else:
+                self._current_question = random.choice(self.QUESTIONS_TYPE2)
         q = self._current_question
         
-        # Lấy giá trị số nguyên từ parameters
-        A, B, C = p["A"], p["B"], p["C"]  # Điểm cực trị
-        D, E, F = p["D"], p["E"], p["F"]  # Giá trị cực trị
-        style = p["style"]
-        m = p.get("m", 0)
-        B_actual = B + m  # Điểm thực tế sau offset
+        # Lấy giá trị từ parameters
+        A, B, C = p["A"], p["B"], p["C"]  # Điểm nghiệm của f'(x) = 0
+        D, F, O = p["D"], p["F"], p["O"]  # Giá trị của f(x)
+        monotonicity_type = p["monotonicity_type"]
         
-        # Quy tắc lấy đáp án đúng dựa trên loại đồ thị và câu hỏi
-        if style == "tkztab":
-            # Bảng biến thiên có đầy đủ 3 điểm cực trị
-            if "cực trị tại điểm" in q:
-                # Chọn random 1 trong 3 điểm cực trị
-                return f"\\(x={random.choice([A, B, C])}\\)"
-            if "cực đại tại điểm" in q:
-                return f"\\(x={A}\\)"  # A là điểm cực đại
-            if "cực tiểu tại điểm" in q:
-                return f"\\(x={B}\\)"  # B là điểm cực tiểu
-            if "cực đại là giá trị" in q:
-                return f"\\(y={D}\\)"  # D là giá trị cực đại
-            if "cực tiểu là giá trị" in q:
-                return f"\\(y={E}\\)"  # E là giá trị cực tiểu
-            if "điểm cực đại" in q:
-                return f"\\(({A},{D})\\)"  # (x_cực_đại, y_cực_đại)
-            if "điểm cực tiểu" in q:
-                return f"\\(({B},{E})\\)"  # (x_cực_tiểu, y_cực_tiểu)
-            if "đồng biến" in q or "nghịch biến" in q:
-                return f"\\(({A};{B})\\)"  # Khoảng giữa 2 điểm
-        elif style in ["cubic_type1", "cubic_type2", "tikzpicture"]:
-            # Hàm bậc 3 chỉ có 2 điểm cực trị (bao gồm cả tikzpicture cũ)
-            if "cực trị tại điểm" in q:
-                # Chọn random 1 trong 2 điểm cực trị
-                return f"\\(x={random.choice([A, B_actual])}\\)"
-            if style in ["cubic_type1", "tikzpicture"]:
-                # A là cực đại, B_actual là cực tiểu
-                if "cực đại tại điểm" in q:
-                    return f"\\(x={A}\\)"
-                if "cực tiểu tại điểm" in q:
-                    return f"\\(x={B_actual}\\)"
-                if "cực đại là giá trị" in q:
-                    return f"\\(y={D}\\)"
-                if "cực tiểu là giá trị" in q:
-                    return f"\\(y={E}\\)"
-                if "điểm cực đại" in q:
-                    return f"\\(({A},{D})\\)"
-                if "điểm cực tiểu" in q:
-                    return f"\\(({B_actual},{E})\\)"
-            else:  # cubic_type2
-                # A là cực tiểu, B_actual là cực đại
-                if "cực đại tại điểm" in q:
-                    return f"\\(x={B_actual}\\)"
-                if "cực tiểu tại điểm" in q:
-                    return f"\\(x={A}\\)"
-                if "cực đại là giá trị" in q:
-                    return f"\\(y={E}\\)"
-                if "cực tiểu là giá trị" in q:
-                    return f"\\(y={D}\\)"
-                if "điểm cực đại" in q:
-                    return f"\\(({B_actual},{E})\\)"
-                if "điểm cực tiểu" in q:
-                    return f"\\(({A},{D})\\)"
-            if "đồng biến" in q or "nghịch biến" in q:
-                return f"\\(({A};{B_actual})\\)"
-        elif style == "quartic":
-            # Hàm bậc 4 có 3 điểm: A (cực tiểu), 0 (cực đại), C (cực tiểu)
-            if "cực trị tại điểm" in q:
-                # Chọn random 1 trong 3 điểm cực trị
-                return f"\\(x={random.choice([A, 0, C])}\\)"
-            if "cực đại tại điểm" in q:
-                return f"\\(x=0\\)"
-            if "cực tiểu tại điểm" in q:
-                return f"\\(x={A}\\)"  # hoặc C, chọn A làm đại diện
-            if "cực đại là giá trị" in q:
-                return f"\\(y={E}\\)"
-            if "cực tiểu là giá trị" in q:
-                return f"\\(y={D}\\)"
-            if "điểm cực đại" in q:
-                return f"\\((0,{E})\\)"
-            if "điểm cực tiểu" in q:
-                return f"\\(({A},{D})\\)"
-            if "đồng biến" in q or "nghịch biến" in q:
-                return f"\\(({A};0)\\)"
-        else:  # tikzpicture - generic case với 2 điểm
-            if "cực trị tại điểm" in q:
-                # Chọn random 1 trong 2 điểm cực trị
-                return f"\\(x={random.choice([A, B])}\\)"
-            if "cực đại tại điểm" in q:
-                return f"\\(x={A}\\)"
-            if "cực tiểu tại điểm" in q:
-                return f"\\(x={B}\\)"
-            if "cực đại là giá trị" in q:
-                return f"\\(y={D}\\)"
-            if "cực tiểu là giá trị" in q:
-                return f"\\(y={E}\\)"
-            if "điểm cực đại" in q:
-                return f"\\(({A},{D})\\)"
-            if "điểm cực tiểu" in q:
-                return f"\\(({B},{E})\\)"
-            if "đồng biến" in q or "nghịch biến" in q:
-                return f"\\(({A};{B})\\)"
+        # Quy tắc lấy đáp án đúng dựa trên loại bảng biến thiên và câu hỏi
+        if monotonicity_type == "monotonicity_type1":
+            # Type 1 (dạng W): dấu -, 0, +, 0, -, 0, +
+            # Cực trị: A (cực tiểu), B (cực đại), C (cực tiểu)
+            # Nghịch biến trên: (-∞,A) ∪ (B,C), đồng biến trên: (A,B) ∪ (C,+∞)
+            
+            if "nghịch biến" in q:
+                # a) Hàm số nghịch biến trên khoảng nào?
+                intervals = [
+                    f"\\({format_interval_simple('-\\infty', A, True, True)}\\)",
+                    f"\\({format_interval_simple(B, C, True, True)}\\)"
+                ]
+                return random.choice(intervals)
+                
+            elif "có bao nhiêu cực trị" in q:
+                # b) Hàm số có bao nhiêu cực trị?
+                return "3"
+                
+            elif "có bao nhiêu cực tiểu" in q:
+                # c) Hàm số có bao nhiêu cực tiểu?
+                return "2"
+                
+            elif "f'(x) = a có bao nhiêu nghiệm" in q:
+                # d) Phương trình f'(x) = a có bao nhiêu nghiệm?
+                # Phụ thuộc vào giá trị a, thường cho a = 0 hoặc a trong khoảng đặc biệt
+                # Cho a = 0: có 3 nghiệm (tại A, B, C)
+                return "3"  # Mặc định cho a = 0
+                
+        else:  # monotonicity_type2
+            # Type 2 (dạng M): dấu +, 0, -, 0, +, 0, -
+            # Cực trị: A (cực đại), B (cực tiểu), C (cực đại)  
+            # Đồng biến trên: (-∞,A) ∪ (B,C), nghịch biến trên: (A,B) ∪ (C,+∞)
+            
+            if "đồng biến" in q:
+                # a) Hàm số đồng biến trên khoảng nào?
+                intervals = [
+                    f"\\({format_interval_simple('-\\infty', A, True, True)}\\)",
+                    f"\\({format_interval_simple(B, C, True, True)}\\)"
+                ]
+                return random.choice(intervals)
+                
+            elif "có bao nhiêu cực trị" in q:
+                # b) Hàm số có bao nhiêu cực trị?
+                return "3"
+                
+            elif "có bao nhiêu cực đại" in q:
+                # c) Hàm số có bao nhiêu cực đại?
+                return "2"
+                
+            elif "f'(x) = a có bao nhiêu nghiệm" in q:
+                # d) Phương trình f'(x) = a có bao nhiêu nghiệm?
+                # Phụ thuộc vào giá trị a, thường cho a = 0 hoặc a trong khoảng đặc biệt
+                # Cho a = 0: có 3 nghiệm (tại A, B, C)
+                return "3"  # Mặc định cho a = 0
+                
         return ""
 
     def generate_wrong_answers(self) -> List[str]:
-        """Sinh đáp án sai (nhiễu) theo quy tắc trong file 1200k.tex"""
+        """Sinh đáp án sai (nhiễu) theo template câu hỏi mới"""
         # Đảm bảo parameters đã được khởi tạo
         if not self.parameters:
             self.parameters = self.generate_parameters()
             
         p = self.parameters
-        A, B, C = p["A"], p["B"], p["C"]  # Điểm cực trị
-        D, E, F = p["D"], p["E"], p["F"]  # Giá trị cực trị
-        extra_x = p["extra_x"]
-        extra_y = p["extra_y"]
-        m = p.get("m", 0)
-        B_actual = B + m  # Điểm thực tế sau offset
+        A, B, C = p["A"], p["B"], p["C"]  # Điểm nghiệm của f'(x) = 0
+        monotonicity_type = p["monotonicity_type"]
         
-        # Đáp án nhiễu: đánh tráo x/y, ghép cặp sai, lấy giá trị không liên quan
-        wrongs = [
-            f"\\(x={D}\\)",  # Đánh tráo x/y (dùng giá trị y thay x)
-            f"\\(y={A}\\)",  # Đánh tráo x/y (dùng giá trị x thay y)
-            f"\\(({C},{B})\\)",  # Ghép cặp sai
-            f"\\(({D},{E})\\)",  # Ghép 2 giá trị y làm điểm
-            f"\\(x={extra_x[0]}\\)",  # Dùng giá trị không liên quan
-            f"\\(y={extra_y[0]}\\)",  # Dùng giá trị không liên quan
-            f"\\(({A},{F})\\)",  # Cặp điểm sai
-            f"\\(({extra_x[1]},{extra_y[1]})\\)",  # Điểm hoàn toàn sai
-            f"\\(x={B}\\)",  # Dùng B thay vì B_actual
-            f"\\(({B},{E})\\)",  # Dùng B thay vì B_actual trong cặp
-        ]
-        return random.sample(wrongs, 3)
+        # Lấy câu hỏi hiện tại
+        if not hasattr(self, '_current_question'):
+            if monotonicity_type == "monotonicity_type1":
+                self._current_question = random.choice(self.QUESTIONS_TYPE1)
+            else:
+                self._current_question = random.choice(self.QUESTIONS_TYPE2)
+        q = self._current_question
+        
+        # Sinh đáp án sai dựa trên loại câu hỏi
+        if "nghịch biến" in q or "đồng biến" in q:
+            # Câu a) - Đáp án sai là các khoảng ngược lại hoặc sai
+            if monotonicity_type == "monotonicity_type1":
+                # Đúng: nghịch biến trên (-∞,A) ∪ (B,C)
+                # Sai: đưa khoảng đồng biến hoặc khoảng sai
+                wrongs = [
+                    f"\\({format_interval_simple(A, B, True, True)}\\)",  # Khoảng đồng biến thay vì nghịch biến
+                    f"\\({format_interval_simple(C, '+\\infty', True, True)}\\)",  # Khoảng đồng biến khác
+                    f"\\({format_interval_simple('-\\infty', '+\\infty', True, True)}\\)",  # Toàn bộ tập xác định
+                    f"\\({format_interval_simple(A, C, True, True)}\\)"  # Khoảng sai
+                ]
+            else:  # type2
+                # Đúng: đồng biến trên (-∞,A) ∪ (B,C)
+                # Sai: đưa khoảng nghịch biến hoặc khoảng sai
+                wrongs = [
+                    f"\\({format_interval_simple(A, B, True, True)}\\)",  # Khoảng nghịch biến thay vì đồng biến
+                    f"\\({format_interval_simple(C, '+\\infty', True, True)}\\)",  # Khoảng nghịch biến khác
+                    f"\\({format_interval_simple('-\\infty', '+\\infty', True, True)}\\)",  # Toàn bộ tập xác định
+                    f"\\({format_interval_simple(A, C, True, True)}\\)"  # Khoảng sai
+                ]
+        
+        elif "có bao nhiêu cực trị" in q:
+            # Câu b) - Đúng: 3, Sai: 1, 2, 4, 5
+            wrongs = ["1", "2", "4", "5", "0"]
+            
+        elif "có bao nhiêu cực tiểu" in q or "có bao nhiêu cực đại" in q:
+            # Câu c) - Đúng: 2, Sai: 0, 1, 3, 4
+            wrongs = ["0", "1", "3", "4", "5"]
+            
+        elif "f'(x) = a có bao nhiêu nghiệm" in q:
+            # Câu d) - Đúng: 3 (cho a=0), Sai: 0, 1, 2, 4, 5, 6
+            wrongs = ["0", "1", "2", "4", "5", "6"]
+            
+        else:
+            # Fallback - đáp án mặc định
+            wrongs = ["1", "2", "4", "5"]
+        
+        return random.sample(wrongs, min(3, len(wrongs)))
 
     def generate_solution(self) -> str:
-        """Sinh lời giải chi tiết dựa trên bảng biến thiên hoặc đồ thị"""
+        """Sinh lời giải chi tiết dựa trên bảng biến thiên và template câu hỏi mới"""
         # Đảm bảo parameters đã được khởi tạo
         if not self.parameters:
             self.parameters = self.generate_parameters()
             
         p = self.parameters
-        A, B, C = p["A"], p["B"], p["C"]  # Điểm cực trị
-        D, E, F = p["D"], p["E"], p["F"]  # Giá trị cực trị
-        style = p["style"]
-        m = p.get("m", 0)
-        B_actual = B + m  # Điểm thực tế sau offset
+        A, B, C = p["A"], p["B"], p["C"]  # Điểm nghiệm của f'(x) = 0
+        monotonicity_type = p["monotonicity_type"]
         
-        if style == "tkztab":
-            return f"""
-Dựa vào bảng biến thiên, ta xác định được:
+        # Lấy câu hỏi hiện tại
+        if not hasattr(self, '_current_question'):
+            if monotonicity_type == "monotonicity_type1":
+                self._current_question = random.choice(self.QUESTIONS_TYPE1)
+            else:
+                self._current_question = random.choice(self.QUESTIONS_TYPE2)
+        q = self._current_question
+        
+        if monotonicity_type == "monotonicity_type1":
+            # Dạng W: dấu -, 0, +, 0, -, 0, +
+            base_analysis = f"""Dựa vào bảng biến thiên \\(f'(x)\\), ta xác định được:
 
-- Hàm số có các điểm cực trị tại: \\(x = {A}, x = {B}, x = {C}\\)
+- Dấu của \\(f'(x)\\): âm trên \\({format_interval_simple('-\\infty', A, True, True)}\\), dương trên \\({format_interval_simple(A, B, True, True)}\\), âm trên \\({format_interval_simple(B, C, True, True)}\\), dương trên \\({format_interval_simple(C, '+\\infty', True, True)}\\)
 
-- Giá trị cực đại: \\(y = {D}\\) tại \\(x = {A}\\)
+- Hàm số có các điểm cực trị tại: \\(x = {format_number_clean(A)}, x = {format_number_clean(B)}, x = {format_number_clean(C)}\\)
 
-- Giá trị cực tiểu: \\(y = {E}\\) tại \\(x = {B}\\)
+- Điểm cực tiểu: \\(x = {format_number_clean(A)}\\) và \\(x = {format_number_clean(C)}\\) (chuyển từ giảm sang tăng)
 
-- Điểm cực đại: \\(({A}, {D})\\)
+- Điểm cực đại: \\(x = {format_number_clean(B)}\\) (chuyển từ tăng sang giảm)
 
-- Điểm cực tiểu: \\(({B}, {E})\\)
+- Hàm số nghịch biến trên \\({format_interval_simple('-\\infty', A, True, True)} \\cup {format_interval_simple(B, C, True, True)}\\)
 
-Từ đó suy ra đáp án cho câu hỏi đã cho.
-"""
-        elif style in ["cubic_type1", "cubic_type2"]:
-            # Hàm bậc 3 chỉ có 2 điểm cực trị
-            if style == "cubic_type1":
-                # A là cực đại, B là cực tiểu
-                return f"""
-            Quan sát đồ thị hàm số, ta thấy:
+- Hàm số đồng biến trên \\({format_interval_simple(A, B, True, True)} \\cup {format_interval_simple(C, '+\\infty', True, True)}\\)"""
 
-- Hàm số có các điểm cực trị tại: \\(x = {A}, x = {B_actual}\\)
+            if "nghịch biến" in q:
+                return clean_latex_expression(base_analysis + f"""
 
-- Đỉnh cao nhất (cực đại) tại điểm \\(({A}, {D})\\)
+**Kết luận:** Hàm số nghịch biến trên các khoảng \\({format_interval_simple('-\\infty', A, True, True)}\\) và \\({format_interval_simple(B, C, True, True)}\\).""")
+            elif "có bao nhiêu cực trị" in q:
+                return clean_latex_expression(base_analysis + f"""
 
-- Đỉnh thấp nhất (cực tiểu) tại điểm \\(({B_actual}, {E})\\)
+**Kết luận:** Hàm số có 3 cực trị (tại x = {format_number_clean(A)}, x = {format_number_clean(B)}, x = {format_number_clean(C)}).""")
+            elif "có bao nhiêu cực tiểu" in q:
+                return clean_latex_expression(base_analysis + f"""
 
-- Các giá trị số nguyên tương ứng trên đồ thị
+**Kết luận:** Hàm số có 2 cực tiểu (tại x = {format_number_clean(A)} và x = {format_number_clean(C)}).""")
+            elif "f'(x) = a có bao nhiêu nghiệm" in q:
+                return clean_latex_expression(base_analysis + f"""
 
-Từ đó suy ra đáp án cho câu hỏi đã cho.
-"""
-            else:  # cubic_type2
-                # A là cực tiểu, B là cực đại (ngược lại)
-                return f"""
-            Quan sát đồ thị hàm số, ta thấy:
+**Kết luận:** Với a = 0, phương trình f'(x) = 0 có 3 nghiệm (tại x = {format_number_clean(A)}, x = {format_number_clean(B)}, x = {format_number_clean(C)}).""")
+            
+        else:  # monotonicity_type2
+            # Dạng M: dấu +, 0, -, 0, +, 0, -
+            base_analysis = f"""Dựa vào bảng biến thiên \\(f'(x)\\), ta xác định được:
 
-- Hàm số có các điểm cực trị tại: \\(x = {A}, x = {B_actual}\\)
+- Dấu của \\(f'(x)\\): dương trên \\({format_interval_simple('-\\infty', A, True, True)}\\), âm trên \\({format_interval_simple(A, B, True, True)}\\), dương trên \\({format_interval_simple(B, C, True, True)}\\), âm trên \\({format_interval_simple(C, '+\\infty', True, True)}\\)
 
-- Đỉnh cao nhất (cực đại) tại điểm \\(({B_actual}, {E})\\)
+- Hàm số có các điểm cực trị tại: \\(x = {format_number_clean(A)}, x = {format_number_clean(B)}, x = {format_number_clean(C)}\\)
 
-- Đỉnh thấp nhất (cực tiểu) tại điểm \\(({A}, {D})\\)
+- Điểm cực đại: \\(x = {format_number_clean(A)}\\) và \\(x = {format_number_clean(C)}\\) (chuyển từ tăng sang giảm)
 
-- Các giá trị số nguyên tương ứng trên đồ thị
+- Điểm cực tiểu: \\(x = {format_number_clean(B)}\\) (chuyển từ giảm sang tăng)
 
-Từ đó suy ra đáp án cho câu hỏi đã cho.
-"""
-        elif style == "quartic":
-            # Hàm bậc 4 có 3 điểm cực trị: A (cực tiểu), 0 (cực đại), C (cực tiểu)
-            return f"""
-            Quan sát đồ thị hàm số, ta thấy:
+- Hàm số đồng biến trên \\({format_interval_simple('-\\infty', A, True, True)} \\cup {format_interval_simple(B, C, True, True)}\\)
 
-- Hàm số có các điểm cực trị tại: \\(x = {A}, x = 0, x = {C}\\)
+- Hàm số nghịch biến trên \\({format_interval_simple(A, B, True, True)} \\cup {format_interval_simple(C, '+\\infty', True, True)}\\)"""
 
-- Đỉnh cao nhất (cực đại) tại điểm \\((0, {E})\\)
+            if "đồng biến" in q:
+                return clean_latex_expression(base_analysis + f"""
 
-- Đỉnh thấp nhất (cực tiểu) tại điểm \\(({A}, {D})\\) và \\(({C}, {D})\\)
+**Kết luận:** Hàm số đồng biến trên các khoảng \\({format_interval_simple('-\\infty', A, True, True)}\\) và \\({format_interval_simple(B, C, True, True)}\\).""")
+            elif "có bao nhiêu cực trị" in q:
+                return clean_latex_expression(base_analysis + f"""
 
-- Các giá trị số nguyên tương ứng trên đồ thị
+**Kết luận:** Hàm số có 3 cực trị (tại x = {format_number_clean(A)}, x = {format_number_clean(B)}, x = {format_number_clean(C)}).""")
+            elif "có bao nhiêu cực đại" in q:
+                return clean_latex_expression(base_analysis + f"""
 
-Từ đó suy ra đáp án cho câu hỏi đã cho.
-"""
-        else:  # tikzpicture - default generic case
-            return f"""
-            Quan sát đồ thị hàm số, ta thấy:
+**Kết luận:** Hàm số có 2 cực đại (tại x = {format_number_clean(A)} và x = {format_number_clean(C)}).""")
+            elif "f'(x) = a có bao nhiêu nghiệm" in q:
+                return clean_latex_expression(base_analysis + f"""
 
-- Hàm số có các điểm cực trị tại: \\(x = {A}, x = {B_actual}\\)
-
-- Đỉnh cao nhất (cực đại) tại điểm \\(({A}, {D})\\)
-
-- Đỉnh thấp nhất (cực tiểu) tại điểm \\(({B_actual}, {E})\\)
-
-- Các giá trị số nguyên tương ứng trên đồ thị
-
-Từ đó suy ra đáp án cho câu hỏi đã cho.
-""" 
+**Kết luận:** Với a = 0, phương trình f'(x) = 0 có 3 nghiệm (tại x = {format_number_clean(A)}, x = {format_number_clean(B)}, x = {format_number_clean(C)}).""")
+        
+        return clean_latex_expression(base_analysis) 
 
 # Alias để tương thích với naming convention
 ExtremumFromTikz = ExtremumFromTikzQuestion
