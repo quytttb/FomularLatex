@@ -1,0 +1,819 @@
+
+\documentclass[a4paper,12pt]{article}
+\usepackage{amsmath}
+\usepackage{mathtools}
+\usepackage{amsfonts}
+\usepackage{amssymb}
+\usepackage{geometry}
+\geometry{a4paper, margin=1in}
+\usepackage{polyglossia}
+\setmainlanguage{vietnamese}
+\setmainfont{Times New Roman}
+\usepackage{tikz}
+\usepackage{tkz-tab}
+\usepackage{tkz-euclide}
+\usetikzlibrary{calc,decorations.pathmorphing,decorations.pathreplacing}
+\begin{document}
+\title{Bài toán}
+\maketitle
+Câu 1: 
+Với một hình hộp chữ nhật \(ABCD.A'B'C'D'\) có \(AB=24\), \(AD=29\), \(AA'=9\) như hình vẽ. Ở cùng một thời điểm hai con kiến coi như bò chuyển động thẳng đều, con kiến \(M\) bò từ \(B'\) đến điểm \(A\) với tốc độ \(1.3\,\mathrm{cm/s}\) và con kiến \(N\) bò từ \(C\) đến \(D'\) với tốc độ bằng \(2.0\,\mathrm{cm/s}\). Hãy tính khoảng cách nhỏ nhất giữa hai con kiến theo đơn vị centimet (làm tròn kết quả đến hàng phần mười)?
+
+\begin{tikzpicture}[scale=1.0]
+% Định nghĩa các đỉnh của hình hộp với phép chiếu đúng
+\coordinate (B) at (0,0);
+\coordinate (C) at (4,0);
+\coordinate (A) at (1.5,1.5);
+\coordinate (D) at (5.5,1.5);
+\coordinate (B') at (0,3);
+\coordinate (C') at (4,3);
+\coordinate (A') at (1.5,4.5);
+\coordinate (D') at (5.5,4.5);
+% Vẽ các cạnh nhìn thấy của hình hộp
+\draw (B) -- (C);
+\draw (B') -- (C') -- (D') -- (A') -- cycle;
+\draw (B) -- (B');
+\draw (C) -- (C');
+\draw (C) -- (D);
+\draw (D) -- (D');
+% Vẽ các cạnh ẩn bằng đường đứt nét
+\draw[dashed] (B) -- (A);
+\draw[dashed] (A) -- (D);
+\draw[dashed] (A') -- (A);
+% Định nghĩa điểm M trên đường chéo AB'
+\coordinate (M) at (0.75,2.25);
+% Định nghĩa điểm N trên cạnh CD'
+\coordinate (N) at (4.75,2.25);
+% Vẽ đường chéo AB' bằng đường đứt nét đỏ (nhưng dùng màu đen theo yêu cầu)
+\draw[dashed, thick] (A) -- (B');
+% Vẽ đường từ C đến N đến D' (đường xanh trong gốc, nhưng dùng màu đen)
+\draw[thick] (C) -- (N) -- (D');
+% Vẽ các mũi tên
+\draw[->, thick] (0.1,2.7) -- (0.5,2.3);  % Mũi tên từ B' về phía M
+\draw[->, thick] (4.17,0.3) -- (4.57,1.4);
+% Đánh dấu các điểm
+\fill (A) circle (1.2pt);
+\fill (B) circle (1.2pt);
+\fill (C) circle (1.2pt);
+\fill (D) circle (1.2pt);
+\fill (A') circle (1.2pt);
+\fill (B') circle (1.2pt);
+\fill (C') circle (1.2pt);
+\fill (D') circle (1.2pt);
+\fill (M) circle (1.2pt);
+\fill (N) circle (1.2pt);
+% Gắn nhãn cho các điểm
+\node[below right] at (A) {\(A\)};
+\node[below left] at (B) {\(B\)};
+\node[below right] at (C) {\(C\)};
+\node[below right] at (D) {\(D\)};
+\node[above right] at (A') {\(A'\)};
+\node[above left] at (B') {\(B'\)};
+\node[above left] at (C') {\(C'\)};
+\node[above right] at (D') {\(D'\)};
+\node[right] at (M) {\(M\)};
+\node[right] at (N) {\(N\)};
+\end{tikzpicture}
+
+
+Lời giải:
+
+
+Dữ kiện:\\
++ Hình hộp chữ nhật \(ABCD.A'B'C'D'\) có:\\
+\[
+AB = 24,\quad AD = 29,\quad AA' = 9
+\]
++ Gán tọa độ:
+\[
+A = (0, 0, 0),\quad B = (24, 0, 0),\quad D = (0, 29, 0),\quad B' = (24, 0, 9),\quad D' = (0, 29, 9)
+\]
++ Con kiến \(M\) bò từ \(B'\) đến \(A\) với tốc độ \(1.3\, \text{cm/s}\)\\
++ Con kiến \(N\) bò từ \(C\) đến \(D'\) với tốc độ \(2.0\, \text{cm/s}\)\\
+Bước 1: Phương trình chuyển động\\
+Con kiến \(M\):\\
+Vector chỉ phương đường đi:
+\[
+\overrightarrow{B'A} = (0, 0, 0) - (24, 0, 9) = ( -24, 0, -9 )
+\]
+Chiều dài đoạn \(B'A\):
+\[
+|\overrightarrow{B'A}| = \sqrt{24^2 + 9^2} = \sqrt{576 + 81} = \sqrt{657}
+\]
+Trong một giây con kiến tại \(M\) đi được \(\frac{1.3}{\sqrt{657}}\) lần \(\overrightarrow{B'A}\)\\
+Véctơ vận tốc của con kiến tại \(M\) là:
+\[
+\overrightarrow{v}_M = \frac{1.3}{\sqrt{657}} \cdot ( -24, 0, -9 )
+\]
+Vị trí tại thời điểm \(t\):
+\[
+M(t) = (24, 0, 9) + t \cdot \frac{1.3}{\sqrt{657}} \cdot ( -24, 0, -9 )
+= \left( 24 - \frac{1.2t}{\sqrt{657}},\; 0,\; 9 - \frac{0.5t}{\sqrt{657}} \right)
+\]
+Con kiến \(N\): Làm tương tự ta có:\\
+Vị trí tại thời điểm \(t\):
+\[
+N(t) = (24, 29, 0) + t \cdot \frac{2.0}{\sqrt{657}} \cdot (-24, 0, 9)
+= \left( 24 - \frac{1.9t}{\sqrt{657}},\; 29,\; \frac{0.7t}{\sqrt{657}} \right)
+\]
+Bước 2: Tính khoảng cách giữa hai con kiến tại thời điểm \(t\)
+\[
+d(t) = \sqrt{\left(24 - \frac{1.2t}{\sqrt{657}}\right)^2 + 29^2 + \left(9 - \frac{0.5t}{\sqrt{657}} - 2.0t\right)^2}
+\]
+Bước 3: Tìm khoảng cách nhỏ nhất
+\[
+d'(t)=0\Leftrightarrow t \approx 5.88 \Rightarrow d_{min}=29.3cm\
+\]
+
+
+
+
+Câu 2: 
+Với một hình hộp chữ nhật \(ABCD.A'B'C'D'\) có \(AB=11\), \(AD=15\), \(AA'=16\) như hình vẽ. Ở cùng một thời điểm hai con kiến coi như bò chuyển động thẳng đều, con kiến \(M\) bò từ \(B'\) đến điểm \(A\) với tốc độ \(2.8\,\mathrm{cm/s}\) và con kiến \(N\) bò từ \(C\) đến \(D'\) với tốc độ bằng \(3.3\,\mathrm{cm/s}\). Hãy tính khoảng cách nhỏ nhất giữa hai con kiến theo đơn vị centimet (làm tròn kết quả đến hàng phần mười)?
+
+\begin{tikzpicture}[scale=1.0]
+% Định nghĩa các đỉnh của hình hộp với phép chiếu đúng
+\coordinate (B) at (0,0);
+\coordinate (C) at (4,0);
+\coordinate (A) at (1.5,1.5);
+\coordinate (D) at (5.5,1.5);
+\coordinate (B') at (0,3);
+\coordinate (C') at (4,3);
+\coordinate (A') at (1.5,4.5);
+\coordinate (D') at (5.5,4.5);
+% Vẽ các cạnh nhìn thấy của hình hộp
+\draw (B) -- (C);
+\draw (B') -- (C') -- (D') -- (A') -- cycle;
+\draw (B) -- (B');
+\draw (C) -- (C');
+\draw (C) -- (D);
+\draw (D) -- (D');
+% Vẽ các cạnh ẩn bằng đường đứt nét
+\draw[dashed] (B) -- (A);
+\draw[dashed] (A) -- (D);
+\draw[dashed] (A') -- (A);
+% Định nghĩa điểm M trên đường chéo AB'
+\coordinate (M) at (0.75,2.25);
+% Định nghĩa điểm N trên cạnh CD'
+\coordinate (N) at (4.75,2.25);
+% Vẽ đường chéo AB' bằng đường đứt nét đỏ (nhưng dùng màu đen theo yêu cầu)
+\draw[dashed, thick] (A) -- (B');
+% Vẽ đường từ C đến N đến D' (đường xanh trong gốc, nhưng dùng màu đen)
+\draw[thick] (C) -- (N) -- (D');
+% Vẽ các mũi tên
+\draw[->, thick] (0.1,2.7) -- (0.5,2.3);  % Mũi tên từ B' về phía M
+\draw[->, thick] (4.17,0.3) -- (4.57,1.4);
+% Đánh dấu các điểm
+\fill (A) circle (1.2pt);
+\fill (B) circle (1.2pt);
+\fill (C) circle (1.2pt);
+\fill (D) circle (1.2pt);
+\fill (A') circle (1.2pt);
+\fill (B') circle (1.2pt);
+\fill (C') circle (1.2pt);
+\fill (D') circle (1.2pt);
+\fill (M) circle (1.2pt);
+\fill (N) circle (1.2pt);
+% Gắn nhãn cho các điểm
+\node[below right] at (A) {\(A\)};
+\node[below left] at (B) {\(B\)};
+\node[below right] at (C) {\(C\)};
+\node[below right] at (D) {\(D\)};
+\node[above right] at (A') {\(A'\)};
+\node[above left] at (B') {\(B'\)};
+\node[above left] at (C') {\(C'\)};
+\node[above right] at (D') {\(D'\)};
+\node[right] at (M) {\(M\)};
+\node[right] at (N) {\(N\)};
+\end{tikzpicture}
+
+
+Lời giải:
+
+
+Dữ kiện:\\
++ Hình hộp chữ nhật \(ABCD.A'B'C'D'\) có:\\
+\[
+AB = 11,\quad AD = 15,\quad AA' = 16
+\]
++ Gán tọa độ:
+\[
+A = (0, 0, 0),\quad B = (11, 0, 0),\quad D = (0, 15, 0),\quad B' = (11, 0, 16),\quad D' = (0, 15, 16)
+\]
++ Con kiến \(M\) bò từ \(B'\) đến \(A\) với tốc độ \(2.8\, \text{cm/s}\)\\
++ Con kiến \(N\) bò từ \(C\) đến \(D'\) với tốc độ \(3.3\, \text{cm/s}\)\\
+Bước 1: Phương trình chuyển động\\
+Con kiến \(M\):\\
+Vector chỉ phương đường đi:
+\[
+\overrightarrow{B'A} = (0, 0, 0) - (11, 0, 16) = ( -11, 0, -16 )
+\]
+Chiều dài đoạn \(B'A\):
+\[
+|\overrightarrow{B'A}| = \sqrt{11^2 + 16^2} = \sqrt{121 + 256} = \sqrt{377}
+\]
+Trong một giây con kiến tại \(M\) đi được \(\frac{2.8}{\sqrt{377}}\) lần \(\overrightarrow{B'A}\)\\
+Véctơ vận tốc của con kiến tại \(M\) là:
+\[
+\overrightarrow{v}_M = \frac{2.8}{\sqrt{377}} \cdot ( -11, 0, -16 )
+\]
+Vị trí tại thời điểm \(t\):
+\[
+M(t) = (11, 0, 16) + t \cdot \frac{2.8}{\sqrt{377}} \cdot ( -11, 0, -16 )
+= \left( 11 - \frac{1.6t}{\sqrt{377}},\; 0,\; 16 - \frac{2.3t}{\sqrt{377}} \right)
+\]
+Con kiến \(N\): Làm tương tự ta có:\\
+Vị trí tại thời điểm \(t\):
+\[
+N(t) = (11, 15, 0) + t \cdot \frac{3.3}{\sqrt{377}} \cdot (-11, 0, 16)
+= \left( 11 - \frac{1.9t}{\sqrt{377}},\; 15,\; \frac{2.7t}{\sqrt{377}} \right)
+\]
+Bước 2: Tính khoảng cách giữa hai con kiến tại thời điểm \(t\)
+\[
+d(t) = \sqrt{\left(11 - \frac{1.6t}{\sqrt{377}}\right)^2 + 15^2 + \left(16 - \frac{2.3t}{\sqrt{377}} - 3.3t\right)^2}
+\]
+Bước 3: Tìm khoảng cách nhỏ nhất
+\[
+d'(t)=0\Leftrightarrow t \approx 3.17 \Rightarrow d_{min}=15.0cm\
+\]
+
+
+
+
+Câu 3: 
+Với một hình hộp chữ nhật \(ABCD.A'B'C'D'\) có \(AB=18\), \(AD=15\), \(AA'=15\) như hình vẽ. Ở cùng một thời điểm hai con kiến coi như bò chuyển động thẳng đều, con kiến \(M\) bò từ \(B'\) đến điểm \(A\) với tốc độ \(2.4\,\mathrm{cm/s}\) và con kiến \(N\) bò từ \(C\) đến \(D'\) với tốc độ bằng \(2.0\,\mathrm{cm/s}\). Hãy tính khoảng cách nhỏ nhất giữa hai con kiến theo đơn vị centimet (làm tròn kết quả đến hàng phần mười)?
+
+\begin{tikzpicture}[scale=1.0]
+% Định nghĩa các đỉnh của hình hộp với phép chiếu đúng
+\coordinate (B) at (0,0);
+\coordinate (C) at (4,0);
+\coordinate (A) at (1.5,1.5);
+\coordinate (D) at (5.5,1.5);
+\coordinate (B') at (0,3);
+\coordinate (C') at (4,3);
+\coordinate (A') at (1.5,4.5);
+\coordinate (D') at (5.5,4.5);
+% Vẽ các cạnh nhìn thấy của hình hộp
+\draw (B) -- (C);
+\draw (B') -- (C') -- (D') -- (A') -- cycle;
+\draw (B) -- (B');
+\draw (C) -- (C');
+\draw (C) -- (D);
+\draw (D) -- (D');
+% Vẽ các cạnh ẩn bằng đường đứt nét
+\draw[dashed] (B) -- (A);
+\draw[dashed] (A) -- (D);
+\draw[dashed] (A') -- (A);
+% Định nghĩa điểm M trên đường chéo AB'
+\coordinate (M) at (0.75,2.25);
+% Định nghĩa điểm N trên cạnh CD'
+\coordinate (N) at (4.75,2.25);
+% Vẽ đường chéo AB' bằng đường đứt nét đỏ (nhưng dùng màu đen theo yêu cầu)
+\draw[dashed, thick] (A) -- (B');
+% Vẽ đường từ C đến N đến D' (đường xanh trong gốc, nhưng dùng màu đen)
+\draw[thick] (C) -- (N) -- (D');
+% Vẽ các mũi tên
+\draw[->, thick] (0.1,2.7) -- (0.5,2.3);  % Mũi tên từ B' về phía M
+\draw[->, thick] (4.17,0.3) -- (4.57,1.4);
+% Đánh dấu các điểm
+\fill (A) circle (1.2pt);
+\fill (B) circle (1.2pt);
+\fill (C) circle (1.2pt);
+\fill (D) circle (1.2pt);
+\fill (A') circle (1.2pt);
+\fill (B') circle (1.2pt);
+\fill (C') circle (1.2pt);
+\fill (D') circle (1.2pt);
+\fill (M) circle (1.2pt);
+\fill (N) circle (1.2pt);
+% Gắn nhãn cho các điểm
+\node[below right] at (A) {\(A\)};
+\node[below left] at (B) {\(B\)};
+\node[below right] at (C) {\(C\)};
+\node[below right] at (D) {\(D\)};
+\node[above right] at (A') {\(A'\)};
+\node[above left] at (B') {\(B'\)};
+\node[above left] at (C') {\(C'\)};
+\node[above right] at (D') {\(D'\)};
+\node[right] at (M) {\(M\)};
+\node[right] at (N) {\(N\)};
+\end{tikzpicture}
+
+
+Lời giải:
+
+
+Dữ kiện:\\
++ Hình hộp chữ nhật \(ABCD.A'B'C'D'\) có:\\
+\[
+AB = 18,\quad AD = 15,\quad AA' = 15
+\]
++ Gán tọa độ:
+\[
+A = (0, 0, 0),\quad B = (18, 0, 0),\quad D = (0, 15, 0),\quad B' = (18, 0, 15),\quad D' = (0, 15, 15)
+\]
++ Con kiến \(M\) bò từ \(B'\) đến \(A\) với tốc độ \(2.4\, \text{cm/s}\)\\
++ Con kiến \(N\) bò từ \(C\) đến \(D'\) với tốc độ \(2.0\, \text{cm/s}\)\\
+Bước 1: Phương trình chuyển động\\
+Con kiến \(M\):\\
+Vector chỉ phương đường đi:
+\[
+\overrightarrow{B'A} = (0, 0, 0) - (18, 0, 15) = ( -18, 0, -15 )
+\]
+Chiều dài đoạn \(B'A\):
+\[
+|\overrightarrow{B'A}| = \sqrt{18^2 + 15^2} = \sqrt{324 + 225} = \sqrt{549}
+\]
+Trong một giây con kiến tại \(M\) đi được \(\frac{2.4}{\sqrt{549}}\) lần \(\overrightarrow{B'A}\)\\
+Véctơ vận tốc của con kiến tại \(M\) là:
+\[
+\overrightarrow{v}_M = \frac{2.4}{\sqrt{549}} \cdot ( -18, 0, -15 )
+\]
+Vị trí tại thời điểm \(t\):
+\[
+M(t) = (18, 0, 15) + t \cdot \frac{2.4}{\sqrt{549}} \cdot ( -18, 0, -15 )
+= \left( 18 - \frac{1.8t}{\sqrt{549}},\; 0,\; 15 - \frac{1.5t}{\sqrt{549}} \right)
+\]
+Con kiến \(N\): Làm tương tự ta có:\\
+Vị trí tại thời điểm \(t\):
+\[
+N(t) = (18, 15, 0) + t \cdot \frac{2.0}{\sqrt{549}} \cdot (-18, 0, 15)
+= \left( 18 - \frac{1.5t}{\sqrt{549}},\; 15,\; \frac{1.3t}{\sqrt{549}} \right)
+\]
+Bước 2: Tính khoảng cách giữa hai con kiến tại thời điểm \(t\)
+\[
+d(t) = \sqrt{\left(18 - \frac{1.8t}{\sqrt{549}}\right)^2 + 15^2 + \left(15 - \frac{1.5t}{\sqrt{549}} - 2.0t\right)^2}
+\]
+Bước 3: Tìm khoảng cách nhỏ nhất
+\[
+d'(t)=0\Leftrightarrow t \approx 5.26 \Rightarrow d_{min}=15.1cm\
+\]
+
+
+
+
+Câu 4: 
+Với một hình hộp chữ nhật \(ABCD.A'B'C'D'\) có \(AB=20\), \(AD=21\), \(AA'=13\) như hình vẽ. Ở cùng một thời điểm hai con kiến coi như bò chuyển động thẳng đều, con kiến \(M\) bò từ \(B'\) đến điểm \(A\) với tốc độ \(1.8\,\mathrm{cm/s}\) và con kiến \(N\) bò từ \(C\) đến \(D'\) với tốc độ bằng \(3.3\,\mathrm{cm/s}\). Hãy tính khoảng cách nhỏ nhất giữa hai con kiến theo đơn vị centimet (làm tròn kết quả đến hàng phần mười)?
+
+\begin{tikzpicture}[scale=1.0]
+% Định nghĩa các đỉnh của hình hộp với phép chiếu đúng
+\coordinate (B) at (0,0);
+\coordinate (C) at (4,0);
+\coordinate (A) at (1.5,1.5);
+\coordinate (D) at (5.5,1.5);
+\coordinate (B') at (0,3);
+\coordinate (C') at (4,3);
+\coordinate (A') at (1.5,4.5);
+\coordinate (D') at (5.5,4.5);
+% Vẽ các cạnh nhìn thấy của hình hộp
+\draw (B) -- (C);
+\draw (B') -- (C') -- (D') -- (A') -- cycle;
+\draw (B) -- (B');
+\draw (C) -- (C');
+\draw (C) -- (D);
+\draw (D) -- (D');
+% Vẽ các cạnh ẩn bằng đường đứt nét
+\draw[dashed] (B) -- (A);
+\draw[dashed] (A) -- (D);
+\draw[dashed] (A') -- (A);
+% Định nghĩa điểm M trên đường chéo AB'
+\coordinate (M) at (0.75,2.25);
+% Định nghĩa điểm N trên cạnh CD'
+\coordinate (N) at (4.75,2.25);
+% Vẽ đường chéo AB' bằng đường đứt nét đỏ (nhưng dùng màu đen theo yêu cầu)
+\draw[dashed, thick] (A) -- (B');
+% Vẽ đường từ C đến N đến D' (đường xanh trong gốc, nhưng dùng màu đen)
+\draw[thick] (C) -- (N) -- (D');
+% Vẽ các mũi tên
+\draw[->, thick] (0.1,2.7) -- (0.5,2.3);  % Mũi tên từ B' về phía M
+\draw[->, thick] (4.17,0.3) -- (4.57,1.4);
+% Đánh dấu các điểm
+\fill (A) circle (1.2pt);
+\fill (B) circle (1.2pt);
+\fill (C) circle (1.2pt);
+\fill (D) circle (1.2pt);
+\fill (A') circle (1.2pt);
+\fill (B') circle (1.2pt);
+\fill (C') circle (1.2pt);
+\fill (D') circle (1.2pt);
+\fill (M) circle (1.2pt);
+\fill (N) circle (1.2pt);
+% Gắn nhãn cho các điểm
+\node[below right] at (A) {\(A\)};
+\node[below left] at (B) {\(B\)};
+\node[below right] at (C) {\(C\)};
+\node[below right] at (D) {\(D\)};
+\node[above right] at (A') {\(A'\)};
+\node[above left] at (B') {\(B'\)};
+\node[above left] at (C') {\(C'\)};
+\node[above right] at (D') {\(D'\)};
+\node[right] at (M) {\(M\)};
+\node[right] at (N) {\(N\)};
+\end{tikzpicture}
+
+
+Lời giải:
+
+
+Dữ kiện:\\
++ Hình hộp chữ nhật \(ABCD.A'B'C'D'\) có:\\
+\[
+AB = 20,\quad AD = 21,\quad AA' = 13
+\]
++ Gán tọa độ:
+\[
+A = (0, 0, 0),\quad B = (20, 0, 0),\quad D = (0, 21, 0),\quad B' = (20, 0, 13),\quad D' = (0, 21, 13)
+\]
++ Con kiến \(M\) bò từ \(B'\) đến \(A\) với tốc độ \(1.8\, \text{cm/s}\)\\
++ Con kiến \(N\) bò từ \(C\) đến \(D'\) với tốc độ \(3.3\, \text{cm/s}\)\\
+Bước 1: Phương trình chuyển động\\
+Con kiến \(M\):\\
+Vector chỉ phương đường đi:
+\[
+\overrightarrow{B'A} = (0, 0, 0) - (20, 0, 13) = ( -20, 0, -13 )
+\]
+Chiều dài đoạn \(B'A\):
+\[
+|\overrightarrow{B'A}| = \sqrt{20^2 + 13^2} = \sqrt{400 + 169} = \sqrt{569}
+\]
+Trong một giây con kiến tại \(M\) đi được \(\frac{1.8}{\sqrt{569}}\) lần \(\overrightarrow{B'A}\)\\
+Véctơ vận tốc của con kiến tại \(M\) là:
+\[
+\overrightarrow{v}_M = \frac{1.8}{\sqrt{569}} \cdot ( -20, 0, -13 )
+\]
+Vị trí tại thời điểm \(t\):
+\[
+M(t) = (20, 0, 13) + t \cdot \frac{1.8}{\sqrt{569}} \cdot ( -20, 0, -13 )
+= \left( 20 - \frac{1.5t}{\sqrt{569}},\; 0,\; 13 - \frac{1.0t}{\sqrt{569}} \right)
+\]
+Con kiến \(N\): Làm tương tự ta có:\\
+Vị trí tại thời điểm \(t\):
+\[
+N(t) = (20, 21, 0) + t \cdot \frac{3.3}{\sqrt{569}} \cdot (-20, 0, 13)
+= \left( 20 - \frac{2.8t}{\sqrt{569}},\; 21,\; \frac{1.8t}{\sqrt{569}} \right)
+\]
+Bước 2: Tính khoảng cách giữa hai con kiến tại thời điểm \(t\)
+\[
+d(t) = \sqrt{\left(20 - \frac{1.5t}{\sqrt{569}}\right)^2 + 21^2 + \left(13 - \frac{1.0t}{\sqrt{569}} - 3.3t\right)^2}
+\]
+Bước 3: Tìm khoảng cách nhỏ nhất
+\[
+d'(t)=0\Leftrightarrow t \approx 3.88 \Rightarrow d_{min}=21.7cm\
+\]
+
+
+
+
+Câu 5: 
+Với một hình hộp chữ nhật \(ABCD.A'B'C'D'\) có \(AB=24\), \(AD=27\), \(AA'=12\) như hình vẽ. Ở cùng một thời điểm hai con kiến coi như bò chuyển động thẳng đều, con kiến \(M\) bò từ \(B'\) đến điểm \(A\) với tốc độ \(2.0\,\mathrm{cm/s}\) và con kiến \(N\) bò từ \(C\) đến \(D'\) với tốc độ bằng \(2.1\,\mathrm{cm/s}\). Hãy tính khoảng cách nhỏ nhất giữa hai con kiến theo đơn vị centimet (làm tròn kết quả đến hàng phần mười)?
+
+\begin{tikzpicture}[scale=1.0]
+% Định nghĩa các đỉnh của hình hộp với phép chiếu đúng
+\coordinate (B) at (0,0);
+\coordinate (C) at (4,0);
+\coordinate (A) at (1.5,1.5);
+\coordinate (D) at (5.5,1.5);
+\coordinate (B') at (0,3);
+\coordinate (C') at (4,3);
+\coordinate (A') at (1.5,4.5);
+\coordinate (D') at (5.5,4.5);
+% Vẽ các cạnh nhìn thấy của hình hộp
+\draw (B) -- (C);
+\draw (B') -- (C') -- (D') -- (A') -- cycle;
+\draw (B) -- (B');
+\draw (C) -- (C');
+\draw (C) -- (D);
+\draw (D) -- (D');
+% Vẽ các cạnh ẩn bằng đường đứt nét
+\draw[dashed] (B) -- (A);
+\draw[dashed] (A) -- (D);
+\draw[dashed] (A') -- (A);
+% Định nghĩa điểm M trên đường chéo AB'
+\coordinate (M) at (0.75,2.25);
+% Định nghĩa điểm N trên cạnh CD'
+\coordinate (N) at (4.75,2.25);
+% Vẽ đường chéo AB' bằng đường đứt nét đỏ (nhưng dùng màu đen theo yêu cầu)
+\draw[dashed, thick] (A) -- (B');
+% Vẽ đường từ C đến N đến D' (đường xanh trong gốc, nhưng dùng màu đen)
+\draw[thick] (C) -- (N) -- (D');
+% Vẽ các mũi tên
+\draw[->, thick] (0.1,2.7) -- (0.5,2.3);  % Mũi tên từ B' về phía M
+\draw[->, thick] (4.17,0.3) -- (4.57,1.4);
+% Đánh dấu các điểm
+\fill (A) circle (1.2pt);
+\fill (B) circle (1.2pt);
+\fill (C) circle (1.2pt);
+\fill (D) circle (1.2pt);
+\fill (A') circle (1.2pt);
+\fill (B') circle (1.2pt);
+\fill (C') circle (1.2pt);
+\fill (D') circle (1.2pt);
+\fill (M) circle (1.2pt);
+\fill (N) circle (1.2pt);
+% Gắn nhãn cho các điểm
+\node[below right] at (A) {\(A\)};
+\node[below left] at (B) {\(B\)};
+\node[below right] at (C) {\(C\)};
+\node[below right] at (D) {\(D\)};
+\node[above right] at (A') {\(A'\)};
+\node[above left] at (B') {\(B'\)};
+\node[above left] at (C') {\(C'\)};
+\node[above right] at (D') {\(D'\)};
+\node[right] at (M) {\(M\)};
+\node[right] at (N) {\(N\)};
+\end{tikzpicture}
+
+
+Lời giải:
+
+
+Dữ kiện:\\
++ Hình hộp chữ nhật \(ABCD.A'B'C'D'\) có:\\
+\[
+AB = 24,\quad AD = 27,\quad AA' = 12
+\]
++ Gán tọa độ:
+\[
+A = (0, 0, 0),\quad B = (24, 0, 0),\quad D = (0, 27, 0),\quad B' = (24, 0, 12),\quad D' = (0, 27, 12)
+\]
++ Con kiến \(M\) bò từ \(B'\) đến \(A\) với tốc độ \(2.0\, \text{cm/s}\)\\
++ Con kiến \(N\) bò từ \(C\) đến \(D'\) với tốc độ \(2.1\, \text{cm/s}\)\\
+Bước 1: Phương trình chuyển động\\
+Con kiến \(M\):\\
+Vector chỉ phương đường đi:
+\[
+\overrightarrow{B'A} = (0, 0, 0) - (24, 0, 12) = ( -24, 0, -12 )
+\]
+Chiều dài đoạn \(B'A\):
+\[
+|\overrightarrow{B'A}| = \sqrt{24^2 + 12^2} = \sqrt{576 + 144} = \sqrt{720}
+\]
+Trong một giây con kiến tại \(M\) đi được \(\frac{2.0}{\sqrt{720}}\) lần \(\overrightarrow{B'A}\)\\
+Véctơ vận tốc của con kiến tại \(M\) là:
+\[
+\overrightarrow{v}_M = \frac{2.0}{\sqrt{720}} \cdot ( -24, 0, -12 )
+\]
+Vị trí tại thời điểm \(t\):
+\[
+M(t) = (24, 0, 12) + t \cdot \frac{2.0}{\sqrt{720}} \cdot ( -24, 0, -12 )
+= \left( 24 - \frac{1.8t}{\sqrt{720}},\; 0,\; 12 - \frac{0.9t}{\sqrt{720}} \right)
+\]
+Con kiến \(N\): Làm tương tự ta có:\\
+Vị trí tại thời điểm \(t\):
+\[
+N(t) = (24, 27, 0) + t \cdot \frac{2.1}{\sqrt{720}} \cdot (-24, 0, 12)
+= \left( 24 - \frac{1.9t}{\sqrt{720}},\; 27,\; \frac{0.9t}{\sqrt{720}} \right)
+\]
+Bước 2: Tính khoảng cách giữa hai con kiến tại thời điểm \(t\)
+\[
+d(t) = \sqrt{\left(24 - \frac{1.8t}{\sqrt{720}}\right)^2 + 27^2 + \left(12 - \frac{0.9t}{\sqrt{720}} - 2.1t\right)^2}
+\]
+Bước 3: Tìm khoảng cách nhỏ nhất
+\[
+d'(t)=0\Leftrightarrow t \approx 6.53 \Rightarrow d_{min}=27.0cm\
+\]
+
+
+
+
+Câu 6: 
+Với một hình hộp chữ nhật \(ABCD.A'B'C'D'\) có \(AB=10\), \(AD=26\), \(AA'=16\) như hình vẽ. Ở cùng một thời điểm hai con kiến coi như bò chuyển động thẳng đều, con kiến \(M\) bò từ \(B'\) đến điểm \(A\) với tốc độ \(1.7\,\mathrm{cm/s}\) và con kiến \(N\) bò từ \(C\) đến \(D'\) với tốc độ bằng \(2.7\,\mathrm{cm/s}\). Hãy tính khoảng cách nhỏ nhất giữa hai con kiến theo đơn vị centimet (làm tròn kết quả đến hàng phần mười)?
+
+\begin{tikzpicture}[scale=1.0]
+% Định nghĩa các đỉnh của hình hộp với phép chiếu đúng
+\coordinate (B) at (0,0);
+\coordinate (C) at (4,0);
+\coordinate (A) at (1.5,1.5);
+\coordinate (D) at (5.5,1.5);
+\coordinate (B') at (0,3);
+\coordinate (C') at (4,3);
+\coordinate (A') at (1.5,4.5);
+\coordinate (D') at (5.5,4.5);
+% Vẽ các cạnh nhìn thấy của hình hộp
+\draw (B) -- (C);
+\draw (B') -- (C') -- (D') -- (A') -- cycle;
+\draw (B) -- (B');
+\draw (C) -- (C');
+\draw (C) -- (D);
+\draw (D) -- (D');
+% Vẽ các cạnh ẩn bằng đường đứt nét
+\draw[dashed] (B) -- (A);
+\draw[dashed] (A) -- (D);
+\draw[dashed] (A') -- (A);
+% Định nghĩa điểm M trên đường chéo AB'
+\coordinate (M) at (0.75,2.25);
+% Định nghĩa điểm N trên cạnh CD'
+\coordinate (N) at (4.75,2.25);
+% Vẽ đường chéo AB' bằng đường đứt nét đỏ (nhưng dùng màu đen theo yêu cầu)
+\draw[dashed, thick] (A) -- (B');
+% Vẽ đường từ C đến N đến D' (đường xanh trong gốc, nhưng dùng màu đen)
+\draw[thick] (C) -- (N) -- (D');
+% Vẽ các mũi tên
+\draw[->, thick] (0.1,2.7) -- (0.5,2.3);  % Mũi tên từ B' về phía M
+\draw[->, thick] (4.17,0.3) -- (4.57,1.4);
+% Đánh dấu các điểm
+\fill (A) circle (1.2pt);
+\fill (B) circle (1.2pt);
+\fill (C) circle (1.2pt);
+\fill (D) circle (1.2pt);
+\fill (A') circle (1.2pt);
+\fill (B') circle (1.2pt);
+\fill (C') circle (1.2pt);
+\fill (D') circle (1.2pt);
+\fill (M) circle (1.2pt);
+\fill (N) circle (1.2pt);
+% Gắn nhãn cho các điểm
+\node[below right] at (A) {\(A\)};
+\node[below left] at (B) {\(B\)};
+\node[below right] at (C) {\(C\)};
+\node[below right] at (D) {\(D\)};
+\node[above right] at (A') {\(A'\)};
+\node[above left] at (B') {\(B'\)};
+\node[above left] at (C') {\(C'\)};
+\node[above right] at (D') {\(D'\)};
+\node[right] at (M) {\(M\)};
+\node[right] at (N) {\(N\)};
+\end{tikzpicture}
+
+
+Lời giải:
+
+
+Dữ kiện:\\
++ Hình hộp chữ nhật \(ABCD.A'B'C'D'\) có:\\
+\[
+AB = 10,\quad AD = 26,\quad AA' = 16
+\]
++ Gán tọa độ:
+\[
+A = (0, 0, 0),\quad B = (10, 0, 0),\quad D = (0, 26, 0),\quad B' = (10, 0, 16),\quad D' = (0, 26, 16)
+\]
++ Con kiến \(M\) bò từ \(B'\) đến \(A\) với tốc độ \(1.7\, \text{cm/s}\)\\
++ Con kiến \(N\) bò từ \(C\) đến \(D'\) với tốc độ \(2.7\, \text{cm/s}\)\\
+Bước 1: Phương trình chuyển động\\
+Con kiến \(M\):\\
+Vector chỉ phương đường đi:
+\[
+\overrightarrow{B'A} = (0, 0, 0) - (10, 0, 16) = ( -10, 0, -16 )
+\]
+Chiều dài đoạn \(B'A\):
+\[
+|\overrightarrow{B'A}| = \sqrt{10^2 + 16^2} = \sqrt{100 + 256} = \sqrt{356}
+\]
+Trong một giây con kiến tại \(M\) đi được \(\frac{1.7}{\sqrt{356}}\) lần \(\overrightarrow{B'A}\)\\
+Véctơ vận tốc của con kiến tại \(M\) là:
+\[
+\overrightarrow{v}_M = \frac{1.7}{\sqrt{356}} \cdot ( -10, 0, -16 )
+\]
+Vị trí tại thời điểm \(t\):
+\[
+M(t) = (10, 0, 16) + t \cdot \frac{1.7}{\sqrt{356}} \cdot ( -10, 0, -16 )
+= \left( 10 - \frac{0.9t}{\sqrt{356}},\; 0,\; 16 - \frac{1.4t}{\sqrt{356}} \right)
+\]
+Con kiến \(N\): Làm tương tự ta có:\\
+Vị trí tại thời điểm \(t\):
+\[
+N(t) = (10, 26, 0) + t \cdot \frac{2.7}{\sqrt{356}} \cdot (-10, 0, 16)
+= \left( 10 - \frac{1.4t}{\sqrt{356}},\; 26,\; \frac{2.3t}{\sqrt{356}} \right)
+\]
+Bước 2: Tính khoảng cách giữa hai con kiến tại thời điểm \(t\)
+\[
+d(t) = \sqrt{\left(10 - \frac{0.9t}{\sqrt{356}}\right)^2 + 26^2 + \left(16 - \frac{1.4t}{\sqrt{356}} - 2.7t\right)^2}
+\]
+Bước 3: Tìm khoảng cách nhỏ nhất
+\[
+d'(t)=0\Leftrightarrow t \approx 4.20 \Rightarrow d_{min}=26.1cm\
+\]
+
+
+
+
+Câu 7: 
+Với một hình hộp chữ nhật \(ABCD.A'B'C'D'\) có \(AB=25\), \(AD=28\), \(AA'=15\) như hình vẽ. Ở cùng một thời điểm hai con kiến coi như bò chuyển động thẳng đều, con kiến \(M\) bò từ \(B'\) đến điểm \(A\) với tốc độ \(2.3\,\mathrm{cm/s}\) và con kiến \(N\) bò từ \(C\) đến \(D'\) với tốc độ bằng \(2.5\,\mathrm{cm/s}\). Hãy tính khoảng cách nhỏ nhất giữa hai con kiến theo đơn vị centimet (làm tròn kết quả đến hàng phần mười)?
+
+\begin{tikzpicture}[scale=1.0]
+% Định nghĩa các đỉnh của hình hộp với phép chiếu đúng
+\coordinate (B) at (0,0);
+\coordinate (C) at (4,0);
+\coordinate (A) at (1.5,1.5);
+\coordinate (D) at (5.5,1.5);
+\coordinate (B') at (0,3);
+\coordinate (C') at (4,3);
+\coordinate (A') at (1.5,4.5);
+\coordinate (D') at (5.5,4.5);
+% Vẽ các cạnh nhìn thấy của hình hộp
+\draw (B) -- (C);
+\draw (B') -- (C') -- (D') -- (A') -- cycle;
+\draw (B) -- (B');
+\draw (C) -- (C');
+\draw (C) -- (D);
+\draw (D) -- (D');
+% Vẽ các cạnh ẩn bằng đường đứt nét
+\draw[dashed] (B) -- (A);
+\draw[dashed] (A) -- (D);
+\draw[dashed] (A') -- (A);
+% Định nghĩa điểm M trên đường chéo AB'
+\coordinate (M) at (0.75,2.25);
+% Định nghĩa điểm N trên cạnh CD'
+\coordinate (N) at (4.75,2.25);
+% Vẽ đường chéo AB' bằng đường đứt nét đỏ (nhưng dùng màu đen theo yêu cầu)
+\draw[dashed, thick] (A) -- (B');
+% Vẽ đường từ C đến N đến D' (đường xanh trong gốc, nhưng dùng màu đen)
+\draw[thick] (C) -- (N) -- (D');
+% Vẽ các mũi tên
+\draw[->, thick] (0.1,2.7) -- (0.5,2.3);  % Mũi tên từ B' về phía M
+\draw[->, thick] (4.17,0.3) -- (4.57,1.4);
+% Đánh dấu các điểm
+\fill (A) circle (1.2pt);
+\fill (B) circle (1.2pt);
+\fill (C) circle (1.2pt);
+\fill (D) circle (1.2pt);
+\fill (A') circle (1.2pt);
+\fill (B') circle (1.2pt);
+\fill (C') circle (1.2pt);
+\fill (D') circle (1.2pt);
+\fill (M) circle (1.2pt);
+\fill (N) circle (1.2pt);
+% Gắn nhãn cho các điểm
+\node[below right] at (A) {\(A\)};
+\node[below left] at (B) {\(B\)};
+\node[below right] at (C) {\(C\)};
+\node[below right] at (D) {\(D\)};
+\node[above right] at (A') {\(A'\)};
+\node[above left] at (B') {\(B'\)};
+\node[above left] at (C') {\(C'\)};
+\node[above right] at (D') {\(D'\)};
+\node[right] at (M) {\(M\)};
+\node[right] at (N) {\(N\)};
+\end{tikzpicture}
+
+
+Lời giải:
+
+
+Dữ kiện:\\
++ Hình hộp chữ nhật \(ABCD.A'B'C'D'\) có:\\
+\[
+AB = 25,\quad AD = 28,\quad AA' = 15
+\]
++ Gán tọa độ:
+\[
+A = (0, 0, 0),\quad B = (25, 0, 0),\quad D = (0, 28, 0),\quad B' = (25, 0, 15),\quad D' = (0, 28, 15)
+\]
++ Con kiến \(M\) bò từ \(B'\) đến \(A\) với tốc độ \(2.3\, \text{cm/s}\)\\
++ Con kiến \(N\) bò từ \(C\) đến \(D'\) với tốc độ \(2.5\, \text{cm/s}\)\\
+Bước 1: Phương trình chuyển động\\
+Con kiến \(M\):\\
+Vector chỉ phương đường đi:
+\[
+\overrightarrow{B'A} = (0, 0, 0) - (25, 0, 15) = ( -25, 0, -15 )
+\]
+Chiều dài đoạn \(B'A\):
+\[
+|\overrightarrow{B'A}| = \sqrt{25^2 + 15^2} = \sqrt{625 + 225} = \sqrt{850}
+\]
+Trong một giây con kiến tại \(M\) đi được \(\frac{2.3}{\sqrt{850}}\) lần \(\overrightarrow{B'A}\)\\
+Véctơ vận tốc của con kiến tại \(M\) là:
+\[
+\overrightarrow{v}_M = \frac{2.3}{\sqrt{850}} \cdot ( -25, 0, -15 )
+\]
+Vị trí tại thời điểm \(t\):
+\[
+M(t) = (25, 0, 15) + t \cdot \frac{2.3}{\sqrt{850}} \cdot ( -25, 0, -15 )
+= \left( 25 - \frac{2.0t}{\sqrt{850}},\; 0,\; 15 - \frac{1.2t}{\sqrt{850}} \right)
+\]
+Con kiến \(N\): Làm tương tự ta có:\\
+Vị trí tại thời điểm \(t\):
+\[
+N(t) = (25, 28, 0) + t \cdot \frac{2.5}{\sqrt{850}} \cdot (-25, 0, 15)
+= \left( 25 - \frac{2.1t}{\sqrt{850}},\; 28,\; \frac{1.3t}{\sqrt{850}} \right)
+\]
+Bước 2: Tính khoảng cách giữa hai con kiến tại thời điểm \(t\)
+\[
+d(t) = \sqrt{\left(25 - \frac{2.0t}{\sqrt{850}}\right)^2 + 28^2 + \left(15 - \frac{1.2t}{\sqrt{850}} - 2.5t\right)^2}
+\]
+Bước 3: Tìm khoảng cách nhỏ nhất
+\[
+d'(t)=0\Leftrightarrow t \approx 6.04 \Rightarrow d_{min}=28.0cm\
+\]
+
+
+
+
+Đáp án
+
+1. 29.3 cm
+
+2. 15.0 cm
+
+3. 15.1 cm
+
+4. 21.7 cm
+
+5. 27.0 cm
+
+6. 26.1 cm
+
+7. 28.0 cm
+
+\end{document}

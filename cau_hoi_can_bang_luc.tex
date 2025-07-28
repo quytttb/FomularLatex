@@ -1,0 +1,805 @@
+
+\documentclass[a4paper,12pt]{article}
+\usepackage{amsmath}
+\usepackage{mathtools}
+
+\usepackage{amsfonts}
+\usepackage{amssymb}
+\usepackage{geometry}
+\geometry{a4paper, margin=1in}
+\usepackage{polyglossia}
+\setmainlanguage{vietnamese}
+\setmainfont{Times New Roman}
+\usepackage{tikz}
+\usepackage{tkz-tab}
+\usepackage{tkz-euclide}
+\usetikzlibrary{calc,decorations.pathmorphing,decorations.pathreplacing}
+
+\begin{document}
+\title{Bài tập Cân bằng lực}
+\author{Dev}
+\maketitle
+Câu 1: Trong không gian \(Oxyz\), một vật có trọng lượng \(90N\) đặt trên một giá đỡ ba chân với điểm đặt là D(3 ; 5 ; 1), là ba điểm tiếp xúc với mặt đất A(-2 ; 2 ; 0), B(-3 ; 4 ; 0), C(a ; b ; c) nằm trên mặt phẳng \((O x y )\). Biết tọa độ các điểm A(-2 ; 2 ; 0), B(-3 ; 4 ; 0), C(a ; b ; c), tam giác \(ABC\) đều. Biết rằng trọng lực \(\overrightarrow{P}=(0 ; 0 ; -3)\) sẽ ép vào ba thanh DA, DB, DC các lực \(\overrightarrow{F}_1, \overrightarrow{F}_2, \overrightarrow{F}_3\) lần lượt hướng dọc theo các vectơ \(\overrightarrow{DA}, \overrightarrow{DB}, \overrightarrow{DC}\). Theo tính chất Vật Lý thì ta có: \(\overrightarrow{F_1}+\overrightarrow{F_2}+\overrightarrow{F_3}=\overrightarrow{P}\).
+
+Hỏi trong các mệnh đề dưới đây, mệnh đề nào đúng, mệnh đề nào sai?
+
+\begin{center}
+    \begin{tikzpicture}[line join = round, line cap=round,>=stealth,font=\footnotesize,scale=.6]
+        \draw[fill=cyan] (0,0)--(1,0)--(1.25,0.25)--(1.25,1)--(0.25,1)--(0,0.75)--cycle;
+        \draw (1,0)--(1,0.75)--(0,0.75);
+        \draw    (1,0.75)--(1.25,1);
+        \draw[black,line width=1pt] (0.5,0)coordinate (D)node[above]{$D$}--(-1.5,-4)coordinate (A) node[below]{$A$};
+        \draw[->,blue,line width=1pt] (0.5,0)--(-0.5,-2)node[left]{$\overrightarrow{F}_1$};
+        \draw[red,->,,line width=1pt] (0.5,0)--(0.5,-2.5) node[below]{$\overrightarrow{P}$};
+        \draw[black,line width=1pt] (0.5,0)--(3,-5)coordinate (B)node[right]{$B$};
+        \draw[blue,->,line width=1pt] (0.5,0)--(1.5,-2) node[right]{$\overrightarrow{F}_2$};
+        \draw[black,line width=1pt] (0.5,0)--(3,-2.5)coordinate (C)node[right]{$C$};
+        \draw[blue,->,line width=1pt] (0.5,0)--(1.75,-1.25)node[right]{$\overrightarrow{F}_3$};
+        \fill (A) circle(2pt)(B) circle(2pt)(C) circle(2pt)(D) circle(2pt);
+        \draw (-5,-6) --(6,-6)(-5,-6) --(-2.5,-2);
+        \clip (-2.5,-2)-- (-5,-6)--(6,-6);
+        \draw (-5,-6) circle(2cm) node[above,xshift=0.9cm]{$Oxy$};
+    \end{tikzpicture}
+\end{center}
+
+* a) \(a^2+b^2+c^2=\left(3 - \frac{\sqrt{3}}{2}\right)^{2} + \left(- \frac{5}{2} - \sqrt{3}\right)^{2}\)\\
+b) Một đơn vị dài trong hệ trục toạ độ Oxyz tương ứng với độ lớn của lực là \( 2 + 30 \)\\
+* c) Diện tích tam giác ABC bằng \( \frac{5 \sqrt{3}}{4} \)\\
+* d) Độ lớn của lực \(\overrightarrow{F}_3\) bằng \( 2119 N \) (làm tròn kết quả đến hàng đơn vị khi tính theo newton).
+
+Lời giải:
+
+a) \(a^2+b^2+c^2=\left(3 - \frac{\sqrt{3}}{2}\right)^{2} + \left(- \frac{5}{2} - \sqrt{3}\right)^{2}\) và c) Diện tích tam giác ABC bằng \(\frac{5 \sqrt{3}}{4}\)
+
++ Bước 1: Tìm tọa độ điểm \(C\) để tam giác \(ABC\) đều.
+Do C thuộc (Oxy) nên C(a; b; 0).
+\[ AB = \sqrt{5} \Rightarrow AB^2 = 5 \]
+\begin{align}
+AC^2 = (a +2)^2 + (b - 2)^2 = 5 \tag{1} \\
+BC^2 = (a +3)^2 + (b - 4)^2 = 5 \tag{2}
+\end{align}
+\[\text{Trừ (2) cho (1): }(a + 3)^2 + (b - 4)^2 - (a + 2)^2 + (b - 2)^2 = 0 \Rightarrow 2 a - 4 b + 17 = 0\]
+Thế vào phương trình (1): \(\left(2 - b\right)^{2} + \left(\frac{13}{2} - 2 b\right)^{2} = 5 \Rightarrow b=3 - \frac{\sqrt{3}}{2}\)
+\[C = (- \frac{5}{2} - \sqrt{3}; 3 - \frac{\sqrt{3}}{2}; 0) \Rightarrow a^2+b^2+c^2=\left(3 - \frac{\sqrt{3}}{2}\right)^{2} + \left(- \frac{5}{2} - \sqrt{3}\right)^{2}\]
++ Bước 2: Tính các vectơ \(\overrightarrow{AB}\), \(\overrightarrow{AC}\):
+\[ \overrightarrow{AB} = \overrightarrow{B} - \overrightarrow{A} = (-1; 2; 0) \]
+\[ \overrightarrow{AC} = \overrightarrow{C} - \overrightarrow{A} = (- \sqrt{3} - \frac{1}{2}; 1 - \frac{\sqrt{3}}{2}; 0) \]
++ Bước 3: Tính tích có hướng \(\left[\overrightarrow{AB}, \overrightarrow{AC}\right]\):
+\[ [\overrightarrow{AB},  \overrightarrow{AC}] = (0; 0; \frac{5 \sqrt{3}}{2}) \]
++ Bước 4: Tính diện tích tam giác:
+\[
+S = \frac{1}{2} \left\| \overrightarrow{AB} \times \overrightarrow{AC} \right\| = \frac{1}{2} \cdot \frac{5 \sqrt{3}}{2}
+= \frac{5 \sqrt{3}}{4}
+\]
+\[\text{Diện tích tam giác } ABC = \frac{5 \sqrt{3}}{4}\]
+b) Một đơn vị dài trong hệ trục toạ độ Oxyz tương ứng với độ lớn của lực là \(30\).
+
+
+Ta có: \(|\overrightarrow{P}| = 3\) ứng với \(90\) nên một đơn vị độ dài ứng với \(30\).
+
+
+
+
+d) Độ lớn của \(\overrightarrow{F}_3\) (làm tròn kết quả đến hàng đơn vị khi tính theo newton).
+
+
++ Tính các vectơ từ D đến A, B, C:
+
+
+\[ \overrightarrow{DA} = (-2 - 3, 2 - 5, 0 - 1) = (-5; -3; -1) \]
+\[ \overrightarrow{DB} = (-3 - 3, 4 - 5, 0 - 1) = (-6; -1; -1) \]
+\[ \overrightarrow{DC} = (- \frac{11}{2} - \sqrt{3}; -2 - \frac{\sqrt{3}}{2}; -1) \]
+
+
+Do \(\overrightarrow{F_1},\overrightarrow{F_2}, \overrightarrow{F_3}\) lần lượt cùng phương với \(\overrightarrow{DA}, \overrightarrow{DB}, \overrightarrow{DC}\) nên ta có:
+
+
+\[ \overrightarrow{F_1} = x_1 \cdot \overrightarrow{DA},\quad \overrightarrow{F_2} = x_2 \cdot \overrightarrow{DB},\quad \overrightarrow{F_3} = x_3 \cdot \overrightarrow{DC} \]
+\[ \Rightarrow x_1 \cdot \overrightarrow{DA} + x_2 \cdot \overrightarrow{DB} + x_3 \cdot \overrightarrow{DC} = \overrightarrow{P} \]
+\[ x_1(-5; -3; -1) + x_2(-6; -1; -1) + x_3(- \frac{11}{2} - \sqrt{3}; -2 - \frac{\sqrt{3}}{2}; -1) = (0; 0; -3) \]
+
+
+Khai triển hệ phương trình:
+
+
+\[
+\begin{cases}
+-5x_1 + -6x_2 + \left(- \frac{11}{2} - \sqrt{3}\right)x_3 = 0 \\
+-3x_1 + -1x_2 + \left(-2 - \frac{\sqrt{3}}{2}\right)x_3 = 0 \\
+-1x_1 + -1x_2 + -1x_3 = -3
+\end{cases}
+\Leftrightarrow
+\begin{cases}
+x_1 \approx 6.90333 \\
+x_1 \approx 5.10333 \\
+x_1 \approx -9.00666 \\
+\end{cases}
+\]
++ Tính độ lớn của \(\overrightarrow{DC}\):
+
+
+\[ |\overrightarrow{DC}| = \sqrt{-7.232^2 + -2.866^2 + -1^2} = 7.843 \]
++ Tính độ lớn của \(\overrightarrow{F_3}\) theo đơn vị độ dài:
+
+
+\[ |\overrightarrow{F_3}| = x_3 \cdot |\overrightarrow{DC}| \approx -9.00666 \cdot 7.843 = 70.642 \]
++ Đổi sang đơn vị Newton:
+
+
+\[ |\overrightarrow{F_3}| \approx 70.642 \cdot 30 = 2119\,\mathrm{N} \]
+\[|\overrightarrow{F_3}| = 2119\,\mathrm{N}\]
+
+
+
+Câu 2: Trong không gian \(Oxyz\), một vật có trọng lượng \(150N\) đặt trên một giá đỡ ba chân với điểm đặt là D(4 ; 3 ; 5), là ba điểm tiếp xúc với mặt đất A(0 ; -1 ; 0), B(0 ; 1 ; 2), C(a ; b ; c) nằm trên mặt phẳng \((O y z )\). Biết tọa độ các điểm A(0 ; -1 ; 0), B(0 ; 1 ; 2), C(a ; b ; c), tam giác \(ABC\) đều. Biết rằng trọng lực \(\overrightarrow{P}=(0 ; 0 ; -3)\) sẽ ép vào ba thanh DA, DB, DC các lực \(\overrightarrow{F}_1, \overrightarrow{F}_2, \overrightarrow{F}_3\) lần lượt hướng dọc theo các vectơ \(\overrightarrow{DA}, \overrightarrow{DB}, \overrightarrow{DC}\). Theo tính chất Vật Lý thì ta có: \(\overrightarrow{F_1}+\overrightarrow{F_2}+\overrightarrow{F_3}=\overrightarrow{P}\).
+
+Hỏi trong các mệnh đề dưới đây, mệnh đề nào đúng, mệnh đề nào sai?
+
+\begin{center}
+    \begin{tikzpicture}[line join = round, line cap=round,>=stealth,font=\footnotesize,scale=.6]
+        \draw[fill=cyan] (0,0)--(1,0)--(1.25,0.25)--(1.25,1)--(0.25,1)--(0,0.75)--cycle;
+        \draw (1,0)--(1,0.75)--(0,0.75);
+        \draw    (1,0.75)--(1.25,1);
+        \draw[black,line width=1pt] (0.5,0)coordinate (D)node[above]{$D$}--(-1.5,-4)coordinate (A) node[below]{$A$};
+        \draw[->,blue,line width=1pt] (0.5,0)--(-0.5,-2)node[left]{$\overrightarrow{F}_1$};
+        \draw[red,->,,line width=1pt] (0.5,0)--(0.5,-2.5) node[below]{$\overrightarrow{P}$};
+        \draw[black,line width=1pt] (0.5,0)--(3,-5)coordinate (B)node[right]{$B$};
+        \draw[blue,->,line width=1pt] (0.5,0)--(1.5,-2) node[right]{$\overrightarrow{F}_2$};
+        \draw[black,line width=1pt] (0.5,0)--(3,-2.5)coordinate (C)node[right]{$C$};
+        \draw[blue,->,line width=1pt] (0.5,0)--(1.75,-1.25)node[right]{$\overrightarrow{F}_3$};
+        \fill (A) circle(2pt)(B) circle(2pt)(C) circle(2pt)(D) circle(2pt);
+        \draw (-5,-6) --(6,-6)(-5,-6) --(-2.5,-2);
+        \clip (-2.5,-2)-- (-5,-6)--(6,-6);
+        \draw (-5,-6) circle(2cm) node[above,xshift=0.9cm]{$Oxy$};
+    \end{tikzpicture}
+\end{center}
+
+a) \(a^2+b^2+c^2=4 + \left(1 + \sqrt{3}\right)^{2}\)\\
+b) Một đơn vị dài trong hệ trục toạ độ Oxyz tương ứng với độ lớn của lực là \( -2 + 50 \)\\
+* c) Diện tích tam giác ABC bằng \( 2 \sqrt{3} \)\\
+d) Độ lớn của lực \(\overrightarrow{F}_3\) bằng \( 53 N \) (làm tròn kết quả đến hàng đơn vị khi tính theo newton).
+
+Lời giải:
+
+a) \(a^2+b^2+c^2=3 + \left(1 + \sqrt{3}\right)^{2}\) và c) Diện tích tam giác ABC bằng \(2 \sqrt{3}\)
+
++ Bước 1: Tìm tọa độ điểm \(C\) để tam giác \(ABC\) đều.
+Do C thuộc (Oyz) nên C(0; b; c).
+\[ AB = 2 \sqrt{2} \Rightarrow AB^2 = 8 \]
+\begin{align}
+AC^2 = (b +1)^2 + (c - 0)^2 = 8 \tag{1} \\
+BC^2 = (b - 1)^2 + (c - 2)^2 = 8 \tag{2}
+\end{align}
+\[\text{Trừ (2) cho (1): }(b - 1)^2 + (c - 2)^2 - (b + 1)^2 + (c - 0)^2 = 0 \Rightarrow - 4 b - 4 c + 4 = 0\]
+Thế vào phương trình (1): \(c^{2} + \left(c - 2\right)^{2} = 8 \Rightarrow c=1 - \sqrt{3}\)
+\[C = (0; - \sqrt{3}; 1 + \sqrt{3}) \Rightarrow a^2+b^2+c^2=3 + \left(1 + \sqrt{3}\right)^{2}\]
++ Bước 2: Tính các vectơ \(\overrightarrow{AB}\), \(\overrightarrow{AC}\):
+\[ \overrightarrow{AB} = \overrightarrow{B} - \overrightarrow{A} = (0; 2; 2) \]
+\[ \overrightarrow{AC} = \overrightarrow{C} - \overrightarrow{A} = (0; 1 - \sqrt{3}; 1 + \sqrt{3}) \]
++ Bước 3: Tính tích có hướng \(\left[\overrightarrow{AB}, \overrightarrow{AC}\right]\):
+\[ [\overrightarrow{AB},  \overrightarrow{AC}] = (4 \sqrt{3}; 0; 0) \]
++ Bước 4: Tính diện tích tam giác:
+\[
+S = \frac{1}{2} \left\| \overrightarrow{AB} \times \overrightarrow{AC} \right\| = \frac{1}{2} \cdot 4 \sqrt{3}
+= 2 \sqrt{3}
+\]
+\[\text{Diện tích tam giác } ABC = 2 \sqrt{3}\]
+b) Một đơn vị dài trong hệ trục toạ độ Oxyz tương ứng với độ lớn của lực là \(50\).
+
+
+Ta có: \(|\overrightarrow{P}| = 3\) ứng với \(150\) nên một đơn vị độ dài ứng với \(50\).
+
+
+
+
+d) Độ lớn của \(\overrightarrow{F}_3\) (làm tròn kết quả đến hàng đơn vị khi tính theo newton).
+
+
++ Tính các vectơ từ D đến A, B, C:
+
+
+\[ \overrightarrow{DA} = (0 - 4, -1 - 3, 0 - 5) = (-4; -4; -5) \]
+\[ \overrightarrow{DB} = (0 - 4, 1 - 3, 2 - 5) = (-4; -2; -3) \]
+\[ \overrightarrow{DC} = (-4; -3 - \sqrt{3}; -4 + \sqrt{3}) \]
+
+
+Do \(\overrightarrow{F_1},\overrightarrow{F_2}, \overrightarrow{F_3}\) lần lượt cùng phương với \(\overrightarrow{DA}, \overrightarrow{DB}, \overrightarrow{DC}\) nên ta có:
+
+
+\[ \overrightarrow{F_1} = x_1 \cdot \overrightarrow{DA},\quad \overrightarrow{F_2} = x_2 \cdot \overrightarrow{DB},\quad \overrightarrow{F_3} = x_3 \cdot \overrightarrow{DC} \]
+\[ \Rightarrow x_1 \cdot \overrightarrow{DA} + x_2 \cdot \overrightarrow{DB} + x_3 \cdot \overrightarrow{DC} = \overrightarrow{P} \]
+\[ x_1(-4; -4; -5) + x_2(-4; -2; -3) + x_3(-4; -3 - \sqrt{3}; -4 + \sqrt{3}) = (0; 0; -3) \]
+
+
+Khai triển hệ phương trình:
+
+
+\[
+\begin{cases}
+-4x_1 + -4x_2 + -4x_3 = 0 \\
+-4x_1 + -2x_2 + \left(-3 - \sqrt{3}\right)x_3 = 0 \\
+-5x_1 + -3x_2 + \left(-4 + \sqrt{3}\right)x_3 = -3
+\end{cases}
+\Leftrightarrow
+\begin{cases}
+x_1 \approx 1.18301 \\
+x_1 \approx -0.316987 \\
+x_1 \approx -0.866025 \\
+\end{cases}
+\]
++ Tính độ lớn của \(\overrightarrow{DC}\):
+
+
+\[ |\overrightarrow{DC}| = \sqrt{-4^2 + -4.732^2 + -2.268^2} = 6.598 \]
++ Tính độ lớn của \(\overrightarrow{F_3}\) theo đơn vị độ dài:
+
+
+\[ |\overrightarrow{F_3}| = x_3 \cdot |\overrightarrow{DC}| \approx -0.866025 \cdot 6.598 = 5.714 \]
++ Đổi sang đơn vị Newton:
+
+
+\[ |\overrightarrow{F_3}| \approx 5.714 \cdot 50 = 286\,\mathrm{N} \]
+\[|\overrightarrow{F_3}| = 286\,\mathrm{N}\]
+
+
+
+Câu 4: Trong không gian \(Oxyz\), một vật có trọng lượng \(156N\) đặt trên một giá đỡ ba chân với điểm đặt là D(4 ; 2 ; 3), là ba điểm tiếp xúc với mặt đất A(0 ; 0 ; -2), B(0 ; 3 ; -2), C(a ; b ; c) nằm trên mặt phẳng \((O y z )\). Biết tọa độ các điểm A(0 ; 0 ; -2), B(0 ; 3 ; -2), C(a ; b ; c), tam giác \(ABC\) đều. Biết rằng trọng lực \(\overrightarrow{P}=(0 ; 0 ; -4)\) sẽ ép vào ba thanh DA, DB, DC các lực \(\overrightarrow{F}_1, \overrightarrow{F}_2, \overrightarrow{F}_3\) lần lượt hướng dọc theo các vectơ \(\overrightarrow{DA}, \overrightarrow{DB}, \overrightarrow{DC}\). Theo tính chất Vật Lý thì ta có: \(\overrightarrow{F_1}+\overrightarrow{F_2}+\overrightarrow{F_3}=\overrightarrow{P}\).
+
+Hỏi trong các mệnh đề dưới đây, mệnh đề nào đúng, mệnh đề nào sai?
+
+\begin{center}
+    \begin{tikzpicture}[line join = round, line cap=round,>=stealth,font=\footnotesize,scale=.6]
+        \draw[fill=cyan] (0,0)--(1,0)--(1.25,0.25)--(1.25,1)--(0.25,1)--(0,0.75)--cycle;
+        \draw (1,0)--(1,0.75)--(0,0.75);
+        \draw    (1,0.75)--(1.25,1);
+        \draw[black,line width=1pt] (0.5,0)coordinate (D)node[above]{$D$}--(-1.5,-4)coordinate (A) node[below]{$A$};
+        \draw[->,blue,line width=1pt] (0.5,0)--(-0.5,-2)node[left]{$\overrightarrow{F}_1$};
+        \draw[red,->,,line width=1pt] (0.5,0)--(0.5,-2.5) node[below]{$\overrightarrow{P}$};
+        \draw[black,line width=1pt] (0.5,0)--(3,-5)coordinate (B)node[right]{$B$};
+        \draw[blue,->,line width=1pt] (0.5,0)--(1.5,-2) node[right]{$\overrightarrow{F}_2$};
+        \draw[black,line width=1pt] (0.5,0)--(3,-2.5)coordinate (C)node[right]{$C$};
+        \draw[blue,->,line width=1pt] (0.5,0)--(1.75,-1.25)node[right]{$\overrightarrow{F}_3$};
+        \fill (A) circle(2pt)(B) circle(2pt)(C) circle(2pt)(D) circle(2pt);
+        \draw (-5,-6) --(6,-6)(-5,-6) --(-2.5,-2);
+        \clip (-2.5,-2)-- (-5,-6)--(6,-6);
+        \draw (-5,-6) circle(2cm) node[above,xshift=0.9cm]{$Oxy$};
+    \end{tikzpicture}
+\end{center}
+
+* a) \(a^2+b^2+c^2=\left(-2 + \frac{3 \sqrt{3}}{2}\right)^{2} + \frac{9}{4}\)\\
+b) Một đơn vị dài trong hệ trục toạ độ Oxyz tương ứng với độ lớn của lực là \( 1 + 39 \)\\
+c) Diện tích tam giác ABC bằng \( -1 + \frac{9 \sqrt{3}}{4} \)\\
+d) Độ lớn của lực \(\overrightarrow{F}_3\) bằng \( 67 N \) (làm tròn kết quả đến hàng đơn vị khi tính theo newton).
+
+Lời giải:
+
+a) \(a^2+b^2+c^2=\left(-2 + \frac{3 \sqrt{3}}{2}\right)^{2} + \frac{9}{4}\) và c) Diện tích tam giác ABC bằng \(\frac{9 \sqrt{3}}{4}\)
+
++ Bước 1: Tìm tọa độ điểm \(C\) để tam giác \(ABC\) đều.
+Do C thuộc (Oyz) nên C(0; b; c).
+\[ AB = 3 \Rightarrow AB^2 = 9 \]
+\begin{align}
+AC^2 = (b - 0)^2 + (c +2)^2 = 9 \tag{1} \\
+BC^2 = (b - 3)^2 + (c +2)^2 = 9 \tag{2}
+\end{align}
+\[\text{Trừ (2) cho (1): }(b - 3)^2 + (c + 2)^2 - (b - 0)^2 + (c + 2)^2 = 0 \Rightarrow 9 - 6 b = 0\]
+Thế vào phương trình (1): \(\left(- c - 2\right)^{2} + \frac{9}{4} = 9 \Rightarrow c=-2 + \frac{3 \sqrt{3}}{2}\)
+\[C = (0; \frac{3}{2}; -2 + \frac{3 \sqrt{3}}{2}) \Rightarrow a^2+b^2+c^2=\left(-2 + \frac{3 \sqrt{3}}{2}\right)^{2} + \frac{9}{4}\]
++ Bước 2: Tính các vectơ \(\overrightarrow{AB}\), \(\overrightarrow{AC}\):
+\[ \overrightarrow{AB} = \overrightarrow{B} - \overrightarrow{A} = (0; 3; 0) \]
+\[ \overrightarrow{AC} = \overrightarrow{C} - \overrightarrow{A} = (0; \frac{3}{2}; \frac{3 \sqrt{3}}{2}) \]
++ Bước 3: Tính tích có hướng \(\left[\overrightarrow{AB}, \overrightarrow{AC}\right]\):
+\[ [\overrightarrow{AB},  \overrightarrow{AC}] = (\frac{9 \sqrt{3}}{2}; 0; 0) \]
++ Bước 4: Tính diện tích tam giác:
+\[
+S = \frac{1}{2} \left\| \overrightarrow{AB} \times \overrightarrow{AC} \right\| = \frac{1}{2} \cdot \frac{9 \sqrt{3}}{2}
+= \frac{9 \sqrt{3}}{4}
+\]
+\[\text{Diện tích tam giác } ABC = \frac{9 \sqrt{3}}{4}\]
+b) Một đơn vị dài trong hệ trục toạ độ Oxyz tương ứng với độ lớn của lực là \(39\).
+
+
+Ta có: \(|\overrightarrow{P}| = 4\) ứng với \(156\) nên một đơn vị độ dài ứng với \(39\).
+
+
+
+
+d) Độ lớn của \(\overrightarrow{F}_3\) (làm tròn kết quả đến hàng đơn vị khi tính theo newton).
+
+
++ Tính các vectơ từ D đến A, B, C:
+
+
+\[ \overrightarrow{DA} = (0 - 4, 0 - 2, -2 - 3) = (-4; -2; -5) \]
+\[ \overrightarrow{DB} = (0 - 4, 3 - 2, -2 - 3) = (-4; 1; -5) \]
+\[ \overrightarrow{DC} = (-4; - \frac{1}{2}; -5 + \frac{3 \sqrt{3}}{2}) \]
+
+
+Do \(\overrightarrow{F_1},\overrightarrow{F_2}, \overrightarrow{F_3}\) lần lượt cùng phương với \(\overrightarrow{DA}, \overrightarrow{DB}, \overrightarrow{DC}\) nên ta có:
+
+
+\[ \overrightarrow{F_1} = x_1 \cdot \overrightarrow{DA},\quad \overrightarrow{F_2} = x_2 \cdot \overrightarrow{DB},\quad \overrightarrow{F_3} = x_3 \cdot \overrightarrow{DC} \]
+\[ \Rightarrow x_1 \cdot \overrightarrow{DA} + x_2 \cdot \overrightarrow{DB} + x_3 \cdot \overrightarrow{DC} = \overrightarrow{P} \]
+\[ x_1(-4; -2; -5) + x_2(-4; 1; -5) + x_3(-4; - \frac{1}{2}; -5 + \frac{3 \sqrt{3}}{2}) = (0; 0; -4) \]
+
+
+Khai triển hệ phương trình:
+
+
+\[
+\begin{cases}
+-4x_1 + -4x_2 + -4x_3 = 0 \\
+-2x_1 + 1x_2 + - \frac{1}{2}x_3 = 0 \\
+-5x_1 + -5x_2 + \left(-5 + \frac{3 \sqrt{3}}{2}\right)x_3 = -4
+\end{cases}
+\Leftrightarrow
+\begin{cases}
+x_1 \approx 0.7698 \\
+x_1 \approx 0.7698 \\
+x_1 \approx -1.5396 \\
+\end{cases}
+\]
++ Tính độ lớn của \(\overrightarrow{DC}\):
+
+
+\[ |\overrightarrow{DC}| = \sqrt{-4^2 + - \frac{1}{2}^2 + -2.402^2} = 4.692 \]
++ Tính độ lớn của \(\overrightarrow{F_3}\) theo đơn vị độ dài:
+
+
+\[ |\overrightarrow{F_3}| = x_3 \cdot |\overrightarrow{DC}| \approx -1.5396 \cdot 4.692 = 7.225 \]
++ Đổi sang đơn vị Newton:
+
+
+\[ |\overrightarrow{F_3}| \approx 7.225 \cdot 39 = 282\,\mathrm{N} \]
+\[|\overrightarrow{F_3}| = 282\,\mathrm{N}\]
+
+
+
+Câu 5: Trong không gian \(Oxyz\), một vật có trọng lượng \(212N\) đặt trên một giá đỡ ba chân với điểm đặt là D(1 ; 3 ; 1), là ba điểm tiếp xúc với mặt đất A(0 ; 3 ; 1), B(0 ; 1 ; 1), C(a ; b ; c) nằm trên mặt phẳng \((O y z )\). Biết tọa độ các điểm A(0 ; 3 ; 1), B(0 ; 1 ; 1), C(a ; b ; c), tam giác \(ABC\) đều. Biết rằng trọng lực \(\overrightarrow{P}=(0 ; 0 ; -4)\) sẽ ép vào ba thanh DA, DB, DC các lực \(\overrightarrow{F}_1, \overrightarrow{F}_2, \overrightarrow{F}_3\) lần lượt hướng dọc theo các vectơ \(\overrightarrow{DA}, \overrightarrow{DB}, \overrightarrow{DC}\). Theo tính chất Vật Lý thì ta có: \(\overrightarrow{F_1}+\overrightarrow{F_2}+\overrightarrow{F_3}=\overrightarrow{P}\).
+
+Hỏi trong các mệnh đề dưới đây, mệnh đề nào đúng, mệnh đề nào sai?
+
+\begin{center}
+    \begin{tikzpicture}[line join = round, line cap=round,>=stealth,font=\footnotesize,scale=.6]
+        \draw[fill=cyan] (0,0)--(1,0)--(1.25,0.25)--(1.25,1)--(0.25,1)--(0,0.75)--cycle;
+        \draw (1,0)--(1,0.75)--(0,0.75);
+        \draw    (1,0.75)--(1.25,1);
+        \draw[black,line width=1pt] (0.5,0)coordinate (D)node[above]{$D$}--(-1.5,-4)coordinate (A) node[below]{$A$};
+        \draw[->,blue,line width=1pt] (0.5,0)--(-0.5,-2)node[left]{$\overrightarrow{F}_1$};
+        \draw[red,->,,line width=1pt] (0.5,0)--(0.5,-2.5) node[below]{$\overrightarrow{P}$};
+        \draw[black,line width=1pt] (0.5,0)--(3,-5)coordinate (B)node[right]{$B$};
+        \draw[blue,->,line width=1pt] (0.5,0)--(1.5,-2) node[right]{$\overrightarrow{F}_2$};
+        \draw[black,line width=1pt] (0.5,0)--(3,-2.5)coordinate (C)node[right]{$C$};
+        \draw[blue,->,line width=1pt] (0.5,0)--(1.75,-1.25)node[right]{$\overrightarrow{F}_3$};
+        \fill (A) circle(2pt)(B) circle(2pt)(C) circle(2pt)(D) circle(2pt);
+        \draw (-5,-6) --(6,-6)(-5,-6) --(-2.5,-2);
+        \clip (-2.5,-2)-- (-5,-6)--(6,-6);
+        \draw (-5,-6) circle(2cm) node[above,xshift=0.9cm]{$Oxy$};
+    \end{tikzpicture}
+\end{center}
+
+a) \(a^2+b^2+c^2=\left(1 - \sqrt{3}\right)^{2} + 6\)\\
+b) Một đơn vị dài trong hệ trục toạ độ Oxyz tương ứng với độ lớn của lực là \( 1 + 53 \)\\
+c) Diện tích tam giác ABC bằng \( \sqrt{3} + 3 \)\\
+d) Độ lớn của lực \(\overrightarrow{F}_3\) bằng \( 51 N \) (làm tròn kết quả đến hàng đơn vị khi tính theo newton).
+
+Lời giải:
+
+a) \(a^2+b^2+c^2=\left(1 - \sqrt{3}\right)^{2} + 4\) và c) Diện tích tam giác ABC bằng \(\sqrt{3}\)
+
++ Bước 1: Tìm tọa độ điểm \(C\) để tam giác \(ABC\) đều.
+Do C thuộc (Oyz) nên C(0; b; c).
+\[ AB = 2 \Rightarrow AB^2 = 4 \]
+\begin{align}
+AC^2 = (b - 3)^2 + (c - 1)^2 = 4 \tag{1} \\
+BC^2 = (b - 1)^2 + (c - 1)^2 = 4 \tag{2}
+\end{align}
+\[\text{Trừ (2) cho (1): }(b - 1)^2 + (c - 1)^2 - (b - 3)^2 + (c - 1)^2 = 0 \Rightarrow 4 b - 8 = 0\]
+Thế vào phương trình (1): \(\left(1 - c\right)^{2} + 1 = 4 \Rightarrow c=1 - \sqrt{3}\)
+\[C = (0; 2; 1 - \sqrt{3}) \Rightarrow a^2+b^2+c^2=\left(1 - \sqrt{3}\right)^{2} + 4\]
++ Bước 2: Tính các vectơ \(\overrightarrow{AB}\), \(\overrightarrow{AC}\):
+\[ \overrightarrow{AB} = \overrightarrow{B} - \overrightarrow{A} = (0; -2; 0) \]
+\[ \overrightarrow{AC} = \overrightarrow{C} - \overrightarrow{A} = (0; -1; - \sqrt{3}) \]
++ Bước 3: Tính tích có hướng \(\left[\overrightarrow{AB}, \overrightarrow{AC}\right]\):
+\[ [\overrightarrow{AB},  \overrightarrow{AC}] = (2 \sqrt{3}; 0; 0) \]
++ Bước 4: Tính diện tích tam giác:
+\[
+S = \frac{1}{2} \left\| \overrightarrow{AB} \times \overrightarrow{AC} \right\| = \frac{1}{2} \cdot 2 \sqrt{3}
+= \sqrt{3}
+\]
+\[\text{Diện tích tam giác } ABC = \sqrt{3}\]
+b) Một đơn vị dài trong hệ trục toạ độ Oxyz tương ứng với độ lớn của lực là \(53\).
+
+
+Ta có: \(|\overrightarrow{P}| = 4\) ứng với \(212\) nên một đơn vị độ dài ứng với \(53\).
+
+
+
+
+d) Độ lớn của \(\overrightarrow{F}_3\) (làm tròn kết quả đến hàng đơn vị khi tính theo newton).
+
+
++ Tính các vectơ từ D đến A, B, C:
+
+
+\[ \overrightarrow{DA} = (0 - 1, 3 - 3, 1 - 1) = (-1; 0; 0) \]
+\[ \overrightarrow{DB} = (0 - 1, 1 - 3, 1 - 1) = (-1; -2; 0) \]
+\[ \overrightarrow{DC} = (-1; -1; - \sqrt{3}) \]
+
+
+Do \(\overrightarrow{F_1},\overrightarrow{F_2}, \overrightarrow{F_3}\) lần lượt cùng phương với \(\overrightarrow{DA}, \overrightarrow{DB}, \overrightarrow{DC}\) nên ta có:
+
+
+\[ \overrightarrow{F_1} = x_1 \cdot \overrightarrow{DA},\quad \overrightarrow{F_2} = x_2 \cdot \overrightarrow{DB},\quad \overrightarrow{F_3} = x_3 \cdot \overrightarrow{DC} \]
+\[ \Rightarrow x_1 \cdot \overrightarrow{DA} + x_2 \cdot \overrightarrow{DB} + x_3 \cdot \overrightarrow{DC} = \overrightarrow{P} \]
+\[ x_1(-1; 0; 0) + x_2(-1; -2; 0) + x_3(-1; -1; - \sqrt{3}) = (0; 0; -4) \]
+
+
+Khai triển hệ phương trình:
+
+
+\[
+\begin{cases}
+-1x_1 + -1x_2 + -1x_3 = 0 \\
+0x_1 + -2x_2 + -1x_3 = 0 \\
+0x_1 + 0x_2 + \left(- \sqrt{3}\right)x_3 = -4
+\end{cases}
+\Leftrightarrow
+\begin{cases}
+x_1 \approx -1.1547 \\
+x_1 \approx -1.1547 \\
+x_1 \approx 2.3094 \\
+\end{cases}
+\]
++ Tính độ lớn của \(\overrightarrow{DC}\):
+
+
+\[ |\overrightarrow{DC}| = \sqrt{-1^2 + -1^2 + -1.732^2} = 2.236 \]
++ Tính độ lớn của \(\overrightarrow{F_3}\) theo đơn vị độ dài:
+
+
+\[ |\overrightarrow{F_3}| = x_3 \cdot |\overrightarrow{DC}| \approx 2.3094 \cdot 2.236 = 5.164 \]
++ Đổi sang đơn vị Newton:
+
+
+\[ |\overrightarrow{F_3}| \approx 5.164 \cdot 53 = 274\,\mathrm{N} \]
+\[|\overrightarrow{F_3}| = 274\,\mathrm{N}\]
+
+
+
+Câu 7: Trong không gian \(Oxyz\), một vật có trọng lượng \(285N\) đặt trên một giá đỡ ba chân với điểm đặt là D(5 ; 5 ; 2), là ba điểm tiếp xúc với mặt đất A(2 ; 0 ; 0), B(3 ; 0 ; 3), C(a ; b ; c) nằm trên mặt phẳng \((O x z )\). Biết tọa độ các điểm A(2 ; 0 ; 0), B(3 ; 0 ; 3), C(a ; b ; c), tam giác \(ABC\) đều. Biết rằng trọng lực \(\overrightarrow{P}=(0 ; 0 ; -5)\) sẽ ép vào ba thanh DA, DB, DC các lực \(\overrightarrow{F}_1, \overrightarrow{F}_2, \overrightarrow{F}_3\) lần lượt hướng dọc theo các vectơ \(\overrightarrow{DA}, \overrightarrow{DB}, \overrightarrow{DC}\). Theo tính chất Vật Lý thì ta có: \(\overrightarrow{F_1}+\overrightarrow{F_2}+\overrightarrow{F_3}=\overrightarrow{P}\).
+
+Hỏi trong các mệnh đề dưới đây, mệnh đề nào đúng, mệnh đề nào sai?
+
+\begin{center}
+    \begin{tikzpicture}[line join = round, line cap=round,>=stealth,font=\footnotesize,scale=.6]
+        \draw[fill=cyan] (0,0)--(1,0)--(1.25,0.25)--(1.25,1)--(0.25,1)--(0,0.75)--cycle;
+        \draw (1,0)--(1,0.75)--(0,0.75);
+        \draw    (1,0.75)--(1.25,1);
+        \draw[black,line width=1pt] (0.5,0)coordinate (D)node[above]{$D$}--(-1.5,-4)coordinate (A) node[below]{$A$};
+        \draw[->,blue,line width=1pt] (0.5,0)--(-0.5,-2)node[left]{$\overrightarrow{F}_1$};
+        \draw[red,->,,line width=1pt] (0.5,0)--(0.5,-2.5) node[below]{$\overrightarrow{P}$};
+        \draw[black,line width=1pt] (0.5,0)--(3,-5)coordinate (B)node[right]{$B$};
+        \draw[blue,->,line width=1pt] (0.5,0)--(1.5,-2) node[right]{$\overrightarrow{F}_2$};
+        \draw[black,line width=1pt] (0.5,0)--(3,-2.5)coordinate (C)node[right]{$C$};
+        \draw[blue,->,line width=1pt] (0.5,0)--(1.75,-1.25)node[right]{$\overrightarrow{F}_3$};
+        \fill (A) circle(2pt)(B) circle(2pt)(C) circle(2pt)(D) circle(2pt);
+        \draw (-5,-6) --(6,-6)(-5,-6) --(-2.5,-2);
+        \clip (-2.5,-2)-- (-5,-6)--(6,-6);
+        \draw (-5,-6) circle(2cm) node[above,xshift=0.9cm]{$Oxy$};
+    \end{tikzpicture}
+\end{center}
+
+* a) \(a^2+b^2+c^2=\left(\frac{5}{2} - \frac{3 \sqrt{3}}{2}\right)^{2} + \left(\frac{\sqrt{3}}{2} + \frac{3}{2}\right)^{2}\)\\
+* b) Một đơn vị dài trong hệ trục toạ độ Oxyz tương ứng với độ lớn của lực là \( 57 \)\\
+c) Diện tích tam giác ABC bằng \( 2 + \frac{5 \sqrt{3}}{2} \)\\
+* d) Độ lớn của lực \(\overrightarrow{F}_3\) bằng \( 235 N \) (làm tròn kết quả đến hàng đơn vị khi tính theo newton).
+
+Lời giải:
+
+a) \(a^2+b^2+c^2=\left(\frac{5}{2} - \frac{3 \sqrt{3}}{2}\right)^{2} + \left(\frac{\sqrt{3}}{2} + \frac{3}{2}\right)^{2}\) và c) Diện tích tam giác ABC bằng \(\frac{5 \sqrt{3}}{2}\)
+
++ Bước 1: Tìm tọa độ điểm \(C\) để tam giác \(ABC\) đều.
+Do C thuộc (Oxz) nên C(a; 0; c).
+\[ AB = \sqrt{10} \Rightarrow AB^2 = 10 \]
+\begin{align}
+AC^2 = (a - 2)^2 + (c - 0)^2 = 10 \tag{1} \\
+BC^2 = (a - 3)^2 + (c - 3)^2 = 10 \tag{2}
+\end{align}
+\[\text{Trừ (2) cho (1): }(a - 3)^2 + (c - 3)^2 - (a - 2)^2 + (c - 0)^2 = 0 \Rightarrow - 2 a - 6 c + 14 = 0\]
+Thế vào phương trình (1): \(c^{2} + \left(3 c - 5\right)^{2} = 10 \Rightarrow c=\frac{3}{2} - \frac{\sqrt{3}}{2}\)
+\[C = (\frac{5}{2} - \frac{3 \sqrt{3}}{2}; 0; \frac{\sqrt{3}}{2} + \frac{3}{2}) \Rightarrow a^2+b^2+c^2=\left(\frac{5}{2} - \frac{3 \sqrt{3}}{2}\right)^{2} + \left(\frac{\sqrt{3}}{2} + \frac{3}{2}\right)^{2}\]
++ Bước 2: Tính các vectơ \(\overrightarrow{AB}\), \(\overrightarrow{AC}\):
+\[ \overrightarrow{AB} = \overrightarrow{B} - \overrightarrow{A} = (1; 0; 3) \]
+\[ \overrightarrow{AC} = \overrightarrow{C} - \overrightarrow{A} = (\frac{1}{2} - \frac{3 \sqrt{3}}{2}; 0; \frac{\sqrt{3}}{2} + \frac{3}{2}) \]
++ Bước 3: Tính tích có hướng \(\left[\overrightarrow{AB}, \overrightarrow{AC}\right]\):
+\[ [\overrightarrow{AB},  \overrightarrow{AC}] = (0; - 5 \sqrt{3}; 0) \]
++ Bước 4: Tính diện tích tam giác:
+\[
+S = \frac{1}{2} \left\| \overrightarrow{AB} \times \overrightarrow{AC} \right\| = \frac{1}{2} \cdot 5 \sqrt{3}
+= \frac{5 \sqrt{3}}{2}
+\]
+\[\text{Diện tích tam giác } ABC = \frac{5 \sqrt{3}}{2}\]
+b) Một đơn vị dài trong hệ trục toạ độ Oxyz tương ứng với độ lớn của lực là \(57\).
+
+
+Ta có: \(|\overrightarrow{P}| = 5\) ứng với \(285\) nên một đơn vị độ dài ứng với \(57\).
+
+
+
+
+d) Độ lớn của \(\overrightarrow{F}_3\) (làm tròn kết quả đến hàng đơn vị khi tính theo newton).
+
+
++ Tính các vectơ từ D đến A, B, C:
+
+
+\[ \overrightarrow{DA} = (2 - 5, 0 - 5, 0 - 2) = (-3; -5; -2) \]
+\[ \overrightarrow{DB} = (3 - 5, 0 - 5, 3 - 2) = (-2; -5; 1) \]
+\[ \overrightarrow{DC} = (- \frac{3 \sqrt{3}}{2} - \frac{5}{2}; -5; - \frac{1}{2} + \frac{\sqrt{3}}{2}) \]
+
+
+Do \(\overrightarrow{F_1},\overrightarrow{F_2}, \overrightarrow{F_3}\) lần lượt cùng phương với \(\overrightarrow{DA}, \overrightarrow{DB}, \overrightarrow{DC}\) nên ta có:
+
+
+\[ \overrightarrow{F_1} = x_1 \cdot \overrightarrow{DA},\quad \overrightarrow{F_2} = x_2 \cdot \overrightarrow{DB},\quad \overrightarrow{F_3} = x_3 \cdot \overrightarrow{DC} \]
+\[ \Rightarrow x_1 \cdot \overrightarrow{DA} + x_2 \cdot \overrightarrow{DB} + x_3 \cdot \overrightarrow{DC} = \overrightarrow{P} \]
+\[ x_1(-3; -5; -2) + x_2(-2; -5; 1) + x_3(- \frac{3 \sqrt{3}}{2} - \frac{5}{2}; -5; - \frac{1}{2} + \frac{\sqrt{3}}{2}) = (0; 0; -5) \]
+
+
+Khai triển hệ phương trình:
+
+
+\[
+\begin{cases}
+-3x_1 + -2x_2 + \left(- \frac{3 \sqrt{3}}{2} - \frac{5}{2}\right)x_3 = 0 \\
+-5x_1 + -5x_2 + -5x_3 = 0 \\
+-2x_1 + 1x_2 + \left(- \frac{1}{2} + \frac{\sqrt{3}}{2}\right)x_3 = -5
+\end{cases}
+\Leftrightarrow
+\begin{cases}
+x_1 \approx 1.78868 \\
+x_1 \approx -1.21132 \\
+x_1 \approx -0.57735 \\
+\end{cases}
+\]
++ Tính độ lớn của \(\overrightarrow{DC}\):
+
+
+\[ |\overrightarrow{DC}| = \sqrt{-5.098^2 + -5^2 + 0.366^2} = 7.15 \]
++ Tính độ lớn của \(\overrightarrow{F_3}\) theo đơn vị độ dài:
+
+
+\[ |\overrightarrow{F_3}| = x_3 \cdot |\overrightarrow{DC}| \approx -0.57735 \cdot 7.15 = 4.128 \]
++ Đổi sang đơn vị Newton:
+
+
+\[ |\overrightarrow{F_3}| \approx 4.128 \cdot 57 = 235\,\mathrm{N} \]
+\[|\overrightarrow{F_3}| = 235\,\mathrm{N}\]
+
+
+
+Câu 8: Trong không gian \(Oxyz\), một vật có trọng lượng \(165N\) đặt trên một giá đỡ ba chân với điểm đặt là D(2 ; 2 ; 2), là ba điểm tiếp xúc với mặt đất A(-2 ; -3 ; 0), B(0 ; -3 ; 0), C(a ; b ; c) nằm trên mặt phẳng \((O x y )\). Biết tọa độ các điểm A(-2 ; -3 ; 0), B(0 ; -3 ; 0), C(a ; b ; c), tam giác \(ABC\) đều. Biết rằng trọng lực \(\overrightarrow{P}=(0 ; 0 ; -5)\) sẽ ép vào ba thanh DA, DB, DC các lực \(\overrightarrow{F}_1, \overrightarrow{F}_2, \overrightarrow{F}_3\) lần lượt hướng dọc theo các vectơ \(\overrightarrow{DA}, \overrightarrow{DB}, \overrightarrow{DC}\). Theo tính chất Vật Lý thì ta có: \(\overrightarrow{F_1}+\overrightarrow{F_2}+\overrightarrow{F_3}=\overrightarrow{P}\).
+
+Hỏi trong các mệnh đề dưới đây, mệnh đề nào đúng, mệnh đề nào sai?
+
+\begin{center}
+    \begin{tikzpicture}[line join = round, line cap=round,>=stealth,font=\footnotesize,scale=.6]
+        \draw[fill=cyan] (0,0)--(1,0)--(1.25,0.25)--(1.25,1)--(0.25,1)--(0,0.75)--cycle;
+        \draw (1,0)--(1,0.75)--(0,0.75);
+        \draw    (1,0.75)--(1.25,1);
+        \draw[black,line width=1pt] (0.5,0)coordinate (D)node[above]{$D$}--(-1.5,-4)coordinate (A) node[below]{$A$};
+        \draw[->,blue,line width=1pt] (0.5,0)--(-0.5,-2)node[left]{$\overrightarrow{F}_1$};
+        \draw[red,->,,line width=1pt] (0.5,0)--(0.5,-2.5) node[below]{$\overrightarrow{P}$};
+        \draw[black,line width=1pt] (0.5,0)--(3,-5)coordinate (B)node[right]{$B$};
+        \draw[blue,->,line width=1pt] (0.5,0)--(1.5,-2) node[right]{$\overrightarrow{F}_2$};
+        \draw[black,line width=1pt] (0.5,0)--(3,-2.5)coordinate (C)node[right]{$C$};
+        \draw[blue,->,line width=1pt] (0.5,0)--(1.75,-1.25)node[right]{$\overrightarrow{F}_3$};
+        \fill (A) circle(2pt)(B) circle(2pt)(C) circle(2pt)(D) circle(2pt);
+        \draw (-5,-6) --(6,-6)(-5,-6) --(-2.5,-2);
+        \clip (-2.5,-2)-- (-5,-6)--(6,-6);
+        \draw (-5,-6) circle(2cm) node[above,xshift=0.9cm]{$Oxy$};
+    \end{tikzpicture}
+\end{center}
+
+a) \(a^2+b^2+c^2=-1 + \left(-3 - \sqrt{3}\right)^{2}\)\\
+* b) Một đơn vị dài trong hệ trục toạ độ Oxyz tương ứng với độ lớn của lực là \( 33 \)\\
+c) Diện tích tam giác ABC bằng \( 1 + \sqrt{3} \)\\
+d) Độ lớn của lực \(\overrightarrow{F}_3\) bằng \( 59 N \) (làm tròn kết quả đến hàng đơn vị khi tính theo newton).
+
+Lời giải:
+
+a) \(a^2+b^2+c^2=1 + \left(-3 - \sqrt{3}\right)^{2}\) và c) Diện tích tam giác ABC bằng \(\sqrt{3}\)
+
++ Bước 1: Tìm tọa độ điểm \(C\) để tam giác \(ABC\) đều.
+Do C thuộc (Oxy) nên C(a; b; 0).
+\[ AB = 2 \Rightarrow AB^2 = 4 \]
+\begin{align}
+AC^2 = (a +2)^2 + (b +3)^2 = 4 \tag{1} \\
+BC^2 = (a - 0)^2 + (b +3)^2 = 4 \tag{2}
+\end{align}
+\[\text{Trừ (2) cho (1): }(a - 0)^2 + (b + 3)^2 - (a + 2)^2 + (b + 3)^2 = 0 \Rightarrow - 4 a - 4 = 0\]
+Thế vào phương trình (1): \(\left(- b - 3\right)^{2} + 1 = 4 \Rightarrow b=-3 - \sqrt{3}\)
+\[C = (-1; -3 - \sqrt{3}; 0) \Rightarrow a^2+b^2+c^2=1 + \left(-3 - \sqrt{3}\right)^{2}\]
++ Bước 2: Tính các vectơ \(\overrightarrow{AB}\), \(\overrightarrow{AC}\):
+\[ \overrightarrow{AB} = \overrightarrow{B} - \overrightarrow{A} = (2; 0; 0) \]
+\[ \overrightarrow{AC} = \overrightarrow{C} - \overrightarrow{A} = (1; - \sqrt{3}; 0) \]
++ Bước 3: Tính tích có hướng \(\left[\overrightarrow{AB}, \overrightarrow{AC}\right]\):
+\[ [\overrightarrow{AB},  \overrightarrow{AC}] = (0; 0; - 2 \sqrt{3}) \]
++ Bước 4: Tính diện tích tam giác:
+\[
+S = \frac{1}{2} \left\| \overrightarrow{AB} \times \overrightarrow{AC} \right\| = \frac{1}{2} \cdot 2 \sqrt{3}
+= \sqrt{3}
+\]
+\[\text{Diện tích tam giác } ABC = \sqrt{3}\]
+b) Một đơn vị dài trong hệ trục toạ độ Oxyz tương ứng với độ lớn của lực là \(33\).
+
+
+Ta có: \(|\overrightarrow{P}| = 5\) ứng với \(165\) nên một đơn vị độ dài ứng với \(33\).
+
+
+
+
+d) Độ lớn của \(\overrightarrow{F}_3\) (làm tròn kết quả đến hàng đơn vị khi tính theo newton).
+
+
++ Tính các vectơ từ D đến A, B, C:
+
+
+\[ \overrightarrow{DA} = (-2 - 2, -3 - 2, 0 - 2) = (-4; -5; -2) \]
+\[ \overrightarrow{DB} = (0 - 2, -3 - 2, 0 - 2) = (-2; -5; -2) \]
+\[ \overrightarrow{DC} = (-3; -5 - \sqrt{3}; -2) \]
+
+
+Do \(\overrightarrow{F_1},\overrightarrow{F_2}, \overrightarrow{F_3}\) lần lượt cùng phương với \(\overrightarrow{DA}, \overrightarrow{DB}, \overrightarrow{DC}\) nên ta có:
+
+
+\[ \overrightarrow{F_1} = x_1 \cdot \overrightarrow{DA},\quad \overrightarrow{F_2} = x_2 \cdot \overrightarrow{DB},\quad \overrightarrow{F_3} = x_3 \cdot \overrightarrow{DC} \]
+\[ \Rightarrow x_1 \cdot \overrightarrow{DA} + x_2 \cdot \overrightarrow{DB} + x_3 \cdot \overrightarrow{DC} = \overrightarrow{P} \]
+\[ x_1(-4; -5; -2) + x_2(-2; -5; -2) + x_3(-3; -5 - \sqrt{3}; -2) = (0; 0; -5) \]
+
+
+Khai triển hệ phương trình:
+
+
+\[
+\begin{cases}
+-4x_1 + -2x_2 + -3x_3 = 0 \\
+-5x_1 + -5x_2 + \left(-5 - \sqrt{3}\right)x_3 = 0 \\
+-2x_1 + -2x_2 + -2x_3 = -5
+\end{cases}
+\Leftrightarrow
+\begin{cases}
+x_1 \approx 1.10844 \\
+x_1 \approx 8.60844 \\
+x_1 \approx -7.21688 \\
+\end{cases}
+\]
++ Tính độ lớn của \(\overrightarrow{DC}\):
+
+
+\[ |\overrightarrow{DC}| = \sqrt{-3^2 + -6.732^2 + -2^2} = 7.637 \]
++ Tính độ lớn của \(\overrightarrow{F_3}\) theo đơn vị độ dài:
+
+
+\[ |\overrightarrow{F_3}| = x_3 \cdot |\overrightarrow{DC}| \approx -7.21688 \cdot 7.637 = 55.114 \]
++ Đổi sang đơn vị Newton:
+
+
+\[ |\overrightarrow{F_3}| \approx 55.114 \cdot 33 = 1819\,\mathrm{N} \]
+\[|\overrightarrow{F_3}| = 1819\,\mathrm{N}\]
+
+
+
+Câu 9: Trong không gian \(Oxyz\), một vật có trọng lượng \(220N\) đặt trên một giá đỡ ba chân với điểm đặt là D(4 ; 4 ; 2), là ba điểm tiếp xúc với mặt đất A(0 ; -2 ; -3), B(0 ; -1 ; -3), C(a ; b ; c) nằm trên mặt phẳng \((O y z )\). Biết tọa độ các điểm A(0 ; -2 ; -3), B(0 ; -1 ; -3), C(a ; b ; c), tam giác \(ABC\) đều. Biết rằng trọng lực \(\overrightarrow{P}=(0 ; 0 ; -5)\) sẽ ép vào ba thanh DA, DB, DC các lực \(\overrightarrow{F}_1, \overrightarrow{F}_2, \overrightarrow{F}_3\) lần lượt hướng dọc theo các vectơ \(\overrightarrow{DA}, \overrightarrow{DB}, \overrightarrow{DC}\). Theo tính chất Vật Lý thì ta có: \(\overrightarrow{F_1}+\overrightarrow{F_2}+\overrightarrow{F_3}=\overrightarrow{P}\).
+
+Hỏi trong các mệnh đề dưới đây, mệnh đề nào đúng, mệnh đề nào sai?
+
+\begin{center}
+    \begin{tikzpicture}[line join = round, line cap=round,>=stealth,font=\footnotesize,scale=.6]
+        \draw[fill=cyan] (0,0)--(1,0)--(1.25,0.25)--(1.25,1)--(0.25,1)--(0,0.75)--cycle;
+        \draw (1,0)--(1,0.75)--(0,0.75);
+        \draw    (1,0.75)--(1.25,1);
+        \draw[black,line width=1pt] (0.5,0)coordinate (D)node[above]{$D$}--(-1.5,-4)coordinate (A) node[below]{$A$};
+        \draw[->,blue,line width=1pt] (0.5,0)--(-0.5,-2)node[left]{$\overrightarrow{F}_1$};
+        \draw[red,->,,line width=1pt] (0.5,0)--(0.5,-2.5) node[below]{$\overrightarrow{P}$};
+        \draw[black,line width=1pt] (0.5,0)--(3,-5)coordinate (B)node[right]{$B$};
+        \draw[blue,->,line width=1pt] (0.5,0)--(1.5,-2) node[right]{$\overrightarrow{F}_2$};
+        \draw[black,line width=1pt] (0.5,0)--(3,-2.5)coordinate (C)node[right]{$C$};
+        \draw[blue,->,line width=1pt] (0.5,0)--(1.75,-1.25)node[right]{$\overrightarrow{F}_3$};
+        \fill (A) circle(2pt)(B) circle(2pt)(C) circle(2pt)(D) circle(2pt);
+        \draw (-5,-6) --(6,-6)(-5,-6) --(-2.5,-2);
+        \clip (-2.5,-2)-- (-5,-6)--(6,-6);
+        \draw (-5,-6) circle(2cm) node[above,xshift=0.9cm]{$Oxy$};
+    \end{tikzpicture}
+\end{center}
+
+a) \(a^2+b^2+c^2=\frac{17}{4} + \left(-3 - \frac{\sqrt{3}}{2}\right)^{2}\)\\
+b) Một đơn vị dài trong hệ trục toạ độ Oxyz tương ứng với độ lớn của lực là \( -1 + 44 \)\\
+* c) Diện tích tam giác ABC bằng \( \frac{\sqrt{3}}{4} \)\\
+* d) Độ lớn của lực \(\overrightarrow{F}_3\) bằng \( 2282 N \) (làm tròn kết quả đến hàng đơn vị khi tính theo newton).
+
+Lời giải:
+
+a) \(a^2+b^2+c^2=\frac{9}{4} + \left(-3 - \frac{\sqrt{3}}{2}\right)^{2}\) và c) Diện tích tam giác ABC bằng \(\frac{\sqrt{3}}{4}\)
+
++ Bước 1: Tìm tọa độ điểm \(C\) để tam giác \(ABC\) đều.
+Do C thuộc (Oyz) nên C(0; b; c).
+\[ AB = 1 \Rightarrow AB^2 = 1 \]
+\begin{align}
+AC^2 = (b +2)^2 + (c +3)^2 = 1 \tag{1} \\
+BC^2 = (b +1)^2 + (c +3)^2 = 1 \tag{2}
+\end{align}
+\[\text{Trừ (2) cho (1): }(b + 1)^2 + (c + 3)^2 - (b + 2)^2 + (c + 3)^2 = 0 \Rightarrow - 2 b - 3 = 0\]
+Thế vào phương trình (1): \(\left(- c - 3\right)^{2} + \frac{1}{4} = 1 \Rightarrow c=-3 - \frac{\sqrt{3}}{2}\)
+\[C = (0; - \frac{3}{2}; -3 - \frac{\sqrt{3}}{2}) \Rightarrow a^2+b^2+c^2=\frac{9}{4} + \left(-3 - \frac{\sqrt{3}}{2}\right)^{2}\]
++ Bước 2: Tính các vectơ \(\overrightarrow{AB}\), \(\overrightarrow{AC}\):
+\[ \overrightarrow{AB} = \overrightarrow{B} - \overrightarrow{A} = (0; 1; 0) \]
+\[ \overrightarrow{AC} = \overrightarrow{C} - \overrightarrow{A} = (0; \frac{1}{2}; - \frac{\sqrt{3}}{2}) \]
++ Bước 3: Tính tích có hướng \(\left[\overrightarrow{AB}, \overrightarrow{AC}\right]\):
+\[ [\overrightarrow{AB},  \overrightarrow{AC}] = (- \frac{\sqrt{3}}{2}; 0; 0) \]
++ Bước 4: Tính diện tích tam giác:
+\[
+S = \frac{1}{2} \left\| \overrightarrow{AB} \times \overrightarrow{AC} \right\| = \frac{1}{2} \cdot \frac{\sqrt{3}}{2}
+= \frac{\sqrt{3}}{4}
+\]
+\[\text{Diện tích tam giác } ABC = \frac{\sqrt{3}}{4}\]
+b) Một đơn vị dài trong hệ trục toạ độ Oxyz tương ứng với độ lớn của lực là \(44\).
+
+
+Ta có: \(|\overrightarrow{P}| = 5\) ứng với \(220\) nên một đơn vị độ dài ứng với \(44\).
+
+
+
+
+d) Độ lớn của \(\overrightarrow{F}_3\) (làm tròn kết quả đến hàng đơn vị khi tính theo newton).
+
+
++ Tính các vectơ từ D đến A, B, C:
+
+
+\[ \overrightarrow{DA} = (0 - 4, -2 - 4, -3 - 2) = (-4; -6; -5) \]
+\[ \overrightarrow{DB} = (0 - 4, -1 - 4, -3 - 2) = (-4; -5; -5) \]
+\[ \overrightarrow{DC} = (-4; - \frac{11}{2}; -5 - \frac{\sqrt{3}}{2}) \]
+
+
+Do \(\overrightarrow{F_1},\overrightarrow{F_2}, \overrightarrow{F_3}\) lần lượt cùng phương với \(\overrightarrow{DA}, \overrightarrow{DB}, \overrightarrow{DC}\) nên ta có:
+
+
+\[ \overrightarrow{F_1} = x_1 \cdot \overrightarrow{DA},\quad \overrightarrow{F_2} = x_2 \cdot \overrightarrow{DB},\quad \overrightarrow{F_3} = x_3 \cdot \overrightarrow{DC} \]
+\[ \Rightarrow x_1 \cdot \overrightarrow{DA} + x_2 \cdot \overrightarrow{DB} + x_3 \cdot \overrightarrow{DC} = \overrightarrow{P} \]
+\[ x_1(-4; -6; -5) + x_2(-4; -5; -5) + x_3(-4; - \frac{11}{2}; -5 - \frac{\sqrt{3}}{2}) = (0; 0; -5) \]
+
+
+Khai triển hệ phương trình:
+
+
+\[
+\begin{cases}
+-4x_1 + -4x_2 + -4x_3 = 0 \\
+-6x_1 + -5x_2 + - \frac{11}{2}x_3 = 0 \\
+-5x_1 + -5x_2 + \left(-5 - \frac{\sqrt{3}}{2}\right)x_3 = -5
+\end{cases}
+\Leftrightarrow
+\begin{cases}
+x_1 \approx -2.88675 \\
+x_1 \approx -2.88675 \\
+x_1 \approx 5.7735 \\
+\end{cases}
+\]
++ Tính độ lớn của \(\overrightarrow{DC}\):
+
+
+\[ |\overrightarrow{DC}| = \sqrt{-4^2 + - \frac{11}{2}^2 + -5.866^2} = 8.981 \]
++ Tính độ lớn của \(\overrightarrow{F_3}\) theo đơn vị độ dài:
+
+
+\[ |\overrightarrow{F_3}| = x_3 \cdot |\overrightarrow{DC}| \approx 5.7735 \cdot 8.981 = 51.852 \]
++ Đổi sang đơn vị Newton:
+
+
+\[ |\overrightarrow{F_3}| \approx 51.852 \cdot 44 = 2282\,\mathrm{N} \]
+\[|\overrightarrow{F_3}| = 2282\,\mathrm{N}\]
+
+
+\end{document}

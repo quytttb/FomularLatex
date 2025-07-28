@@ -6,6 +6,7 @@
 \geometry{a4paper, margin=1in}
 \usepackage{polyglossia}
 \setmainlanguage{vietnamese}
+\setmainfont{Times New Roman}
 \usepackage{tikz}
 \usepackage{tkz-tab}
 \usepackage{tkz-euclide}
@@ -15,99 +16,25 @@
 \author{dev}
 \maketitle
 
-Câu 1: Cho hàm số \(y=f(x)\) có bảng xét dấu \(f'(x)\) như dưới đây:
+Câu 1: Trong khong gian \(Oxyz\), mot vat co trong luong \(P=248N\) dat tren mot gia do ba chan voi diem dat la \(D(2; 5; 5)\). Ba diem tiep xuc voi mat dat \(A, B, C\) nam tren mat phang \((Oxz)\). Biet toa do cac diem \(A(0; 0; 1), B(1; 0; 0), C(a; b; c)\), tam giac \(ABC\) deu. 
 
-\begin{tikzpicture}[>=stealth, scale=1]
-	\tkzTabInit[lgt=2,espcl=2]
-	{$x$/1,$f''(x)$/0.8,$f'(x)$/3}
-	{$-\infty$,$-2$,$1$,$5$,$+\infty$}
-	\tkzTabLine{,+,0,-,0,+,0,-,}
-	\path
-	(N13)node[shift={(0,0.2)}](A){$+\infty$}
-	(N22)node[shift={(0,-0.2)}](B){$2$}
-	(N32)node[shift={(0,-1.5)}](C){$-4$}
-	(N42)node[shift={(0,-0.2)}](D){$8$}
-	(N53)node[shift={(0,0.2)}](E){$+\infty$};
-	\foreach \X/\Y in {A/B,B/C,C/D,D/E} \draw[->](\X)--(\Y);
-\end{tikzpicture}
+Biet rang trong luc \(\overrightarrow{P}=(0; 0; -2)\) se ep vao ba thanh \(DA, DB, DC\) cac luc \overrightarrow{F}_1, \overrightarrow{F}_2, \overrightarrow{F}_3\) lan luot huong doc theo cac vectơ \overrightarrow{DA}, \overrightarrow{DB}, \overrightarrow{DC}\). 
 
-Hàm số đạt cực trị tại điểm nào?
+Theo tinh chat Vat Ly thi ta co: \overrightarrow{F_1}+\overrightarrow{F_2}+\overrightarrow{F_3}=\overrightarrow{P}\).
 
-A. \((1,2)\)
+Hoi trong cac menh de duoi day, menh de nao dung, menh de nao sai?
 
-B. \(y=-2\)
+*A. a²+b²+c²=0{,}27; 1 don vi=124 N; S=0{,}87; F₃=1103 N
 
-C. \(x=2\)
+B. a²+b²+c²=-2{,}73; 1 don vi=144 N; S=0{,}69; F₃=1576 N
 
-*D. \(x=5\)
+C. a²+b²+c²=2{,}27; 1 don vi=144 N; S=0{,}69; F₃=912 N
+
+D. a²+b²+c²=2{,}27; 1 don vi=114 N; S=1{,}19; F₃=958 N
 
 Lời giải:
 
-
-Dựa vào bảng xét dấu \(f'(x)\), ta xác định được:
-
-- Dấu của \(f'(x)\): dương trên \((-\infty, -2)\), âm trên \((-2, 1)\), dương trên \((1, 5)\), âm trên \((5, +\infty)\)
-
-- Hàm số có các điểm cực trị tại: \(x = -2, x = 1, x = 5\)
-
-- Điểm cực đại: \(x = -2\) và \(x = 5\) (chuyển từ tăng sang giảm)
-
-- Điểm cực tiểu: \(x = 1\) (chuyển từ giảm sang tăng)
-
-- Hàm số đồng biến trên \((-\infty, -2) \cup (1, 5)\)
-
-- Hàm số nghịch biến trên \((-2, 1) \cup (5, +\infty)\)
-
-Từ đó suy ra đáp án cho câu hỏi đã cho.
-
-
-
-
-Câu 2: Cho hàm số \(y=f(x)\) có bảng xét dấu \(f'(x)\) như dưới đây:
-
-\begin{tikzpicture}[>=stealth, scale=1]
-	\tkzTabInit[lgt=2,espcl=2]
-	{$x$/1,$f''(x)$/0.8,$f'(x)$/3}
-	{$-\infty$,$-5$,$1$,$6$,$+\infty$}
-	\tkzTabLine{,-,0,+,0,-,0,+,}
-	\path
-	(N12)node[shift={(0,-0.2)}](A){$+\infty$}
-	(N23)node[shift={(0,0.2)}](B){$-8$}
-	(N32)node[shift={(0,-1.5)}](C){$8$}
-	(N43)node[shift={(0,0.2)}](D){$-2$}
-	(N52)node[shift={(0,-0.2)}](E){$+\infty$};
-	\foreach \X/\Y in {A/B,B/C,C/D,D/E} \draw[->](\X)--(\Y);
-\end{tikzpicture}
-
-Hàm số đạt cực đại tại điểm nào?
-
-A. \((3,-1)\)
-
-B. \((-8,-2)\)
-
-C. \(x=-4\)
-
-*D. \(x=1\)
-
-Lời giải:
-
-
-Dựa vào bảng xét dấu \(f'(x)\), ta xác định được:
-
-- Dấu của \(f'(x)\): âm trên \((-\infty, -5)\), dương trên \((-5, 1)\), âm trên \((1, 6)\), dương trên \((6, +\infty)\)
-
-- Hàm số có các điểm cực trị tại: \(x = -5, x = 1, x = 6\)
-
-- Điểm cực tiểu: \(x = -5\) và \(x = 6\) (chuyển từ giảm sang tăng)
-
-- Điểm cực đại: \(x = 1\) (chuyển từ tăng sang giảm)
-
-- Hàm số nghịch biến trên \((-\infty, -5) \cup (1, 6)\)
-
-- Hàm số đồng biến trên \((-5, 1) \cup (6, +\infty)\)
-
-Từ đó suy ra đáp án cho câu hỏi đã cho.
-
+a) \(a^2+b^2+c^2=0{,}27\) \\ c) Dien tich tam giac ABC bang \(0{,}87\)\\ + Buoc 1: Tim toa do diem \(C\) de tam giac \(ABC\) deu. \\ Do \(C\) thuoc \(Oxz\) nen \(C(a; 0; c)\) Biet: \[ AB = 1{,}414 \Rightarrow AB^2 = 2 \] \[ AC^2 = (a - 0)^2 + (b - 0)^2 + (c - 1)^2 = 2 \tag{1} \] \[ BC^2 = (a - 1)^2 + (b - 0)^2 + (c - 0)^2 = 2 \tag{2} \] Tru \(2\) cho \(1\): \[ \left[(a - 1)^2 + (b - 0)^2 + (c - 0)^2\right] - \left[(a - 0)^2 + (b - 0)^2 + (c - 1)^2\right] = 0 \] \[ \Leftrightarrow - a^{2} + c^{2} + \left(a - 1\right)^{2} - \left(c - 1\right)^{2} = 0 = 0 \] The vao de tim cac gia tri con lai, ta duoc: \[ C = C(-0.366; 0; -0.366) \] \[ a^2 + b^2 + c^2 = 0{,}27 \] + Buoc 2: Tinh tich co huong \([\overrightarrow{AB} , \overrightarrow{AC}]\): \[ \overrightarrow{AB} = (1, 0, -1) \] \[ \overrightarrow{AC} = (-0{,}366, 0, -1{,}366) \] \[ [\overrightarrow{AB}, \overrightarrow{AC}] = (0; 1.732; 0) \] + Buoc 3: Tinh dien tich tam giac: \[ S = \dfrac{1}{2} \left\| \overrightarrow{AB} \times \overrightarrow{AC} \right\| = 0{,}87 \] Ket luan: \[ \boxed{\text{Dien tich tam giac } ABC = 0{,}87} \] b) Mot don vi dai trong he truc toa do Oxyz tuong ung voi do lon cua luc la \(124 N\). Ta co: \(|\overrightarrow{P}|=2\) ung voi \(248 N\) nen mot don vi do dai ung voi \(124 N\) d) Do lon cua luc \(\overrightarrow{F}_3\) bang \(1103 N\) (lam tron ket qua den hang don vi khi tinh theo newton). \[ \overrightarrow{DA} = (0-2, 0-5, 1-5) = (-2; -5; -4) \] \[ \overrightarrow{DB} = (1-2, 0-5, 0-5) = (-1; -5; -5) \] \[ \overrightarrow{DC} = (-0{,}366-2, 0-5, -0{,}366-5) = (-2{,}366; -5; -5{,}366) \] Do \(\overrightarrow{F_1},\overrightarrow{F_2}, \overrightarrow{F_3}\) lan luot cung phuong voi \(\overrightarrow{DA}, \overrightarrow{DB}, \overrightarrow{DC}\) nen ta co: \[ \overrightarrow{F_1} = x_1 \cdot \overrightarrow{DA},\quad \overrightarrow{F_2} = x_2 \cdot \overrightarrow{DB},\quad \overrightarrow{F_3} = x_3 \cdot \overrightarrow{DC} \] \[ \Rightarrow x_1 \cdot \overrightarrow{DA} + x_2 \cdot \overrightarrow{DB} + x_3 \cdot \overrightarrow{DC} = (0, 0, -2) \] Tu day ta co he phuong trinh va nghiem: \[ x_1 = -1{,}57735,\quad x_2 = 0{,}42265,\quad x_3 = 1{,}154701 \] + Tinh do lon cua \(\overrightarrow{F_3}\) \[ |\overrightarrow{DC}| = \sqrt{-2{,}366^2 - 5^2 - 5{,}366^2} = 7{,}707 \Rightarrow |\overrightarrow{F_3}| = |x_3| \cdot |\overrightarrow{DC}| = 1{,}155 \cdot 7{,}707 = 8{,}899 \] Nhan voi \(124 N\): \[ |\overrightarrow{F_3}| = 8{,}899 \cdot 124 N = 1103 N \]
 
 
 \end{document}

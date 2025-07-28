@@ -933,8 +933,14 @@ class LineIntersectionOptimization(BaseOptimizationQuestion):
 
         # Điểm A (dưới mặt phẳng) - thường sâu 1m đến 3m (đảm bảo z âm)
         a_z = random.randint(-3, -1)
-        a_x_dist = random.randint(1, 8)  # Khoảng cách đến mặt phẳng (Oyz)
-        a_y_dist = random.randint(1, 8)  # Khoảng cách đến mặt phẳng (Oxz)
+        # Đảm bảo a_x_dist khác c_x_dist
+        a_x_dist = random.randint(1, 8)
+        while a_x_dist == c_x_dist:
+            a_x_dist = random.randint(1, 8)
+        # Đảm bảo a_y_dist khác c_y_dist
+        a_y_dist = random.randint(1, 8)
+        while a_y_dist == c_y_dist:
+            a_y_dist = random.randint(1, 8)
 
         # Tính tọa độ từ khoảng cách
         c_x, c_y = c_x_dist, c_y_dist

@@ -149,7 +149,7 @@ class QuestionTypeLoader:
             List[Tuple[str, str]]: Danh sách (module_name, class_name)
         """
         return [
-            ("extremum_from_tikz", "ExtremumFromTikz"),
+            ("force_equilibrium_three_legs", "CanBangLucBaChan"),
             # Có thể thêm modules khác ở đây trong tương lai
             # ("optimization_problem_2", "OptimizationProblem2"),
             # ("calculus_problems", "CalculusQuestion"),

@@ -124,12 +124,14 @@ class BaseOptimizationQuestion(ABC):
             # Trộn đáp án và tạo format trắc nghiệm
             random.shuffle(all_answers)
             correct_index = all_answers.index(self.correct_answer)
-            
+
+            # Sử dụng môi trường choices của LaTeX
+            question_content += "\\begin{choices}\n"
             for j, ans in enumerate(all_answers):
-                letter = chr(65 + j)
-                marker = "*" if j == correct_index else ""
-                question_content += f"{marker}{letter}. {ans}\n\n"
-            
+                # Không đánh dấu * trong LaTeX, chỉ dùng cho kiểm tra nội bộ
+                question_content += f"  \\choice {ans}\\n"
+            question_content += "\\end{choices}\n\n"
+
             question_content += f"Lời giải:\n\n{solution}\n\n"
             return question_content
         else:

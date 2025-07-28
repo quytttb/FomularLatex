@@ -5,6 +5,11 @@ __pycache__/
 *.pyd
 .Python
 
+# Virtual environment
+.venv/
+venv/
+env/
+
 # LaTeX temporary files
 *.aux
 *.log

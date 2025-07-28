@@ -1,0 +1,148 @@
+
+\documentclass[a4paper,12pt]{article}
+\usepackage{amsmath}
+\usepackage{mathtools}
+\usepackage{amsfonts}
+\usepackage{amssymb}
+\usepackage{geometry}
+\geometry{a4paper, margin=1in}
+\usepackage{polyglossia}
+\setmainlanguage{vietnamese}
+\setmainfont{Times New Roman}
+\usepackage{tikz}
+\usepackage{tkz-tab}
+\usepackage{tkz-euclide}
+\usetikzlibrary{calc,decorations.pathmorphing,decorations.pathreplacing}
+\begin{document}
+\title{Bài toán cực trị hình học}
+\maketitle
+Câu 1: 
+Với một hình hộp chữ nhật \(ABCD.A'B'C'D'\) có \(AB=12\), \(AD=17\), \(AA'=10\) như hình vẽ. Ở cùng một thời điểm hai con kiến coi như bò chuyển động thẳng đều, con kiến \(M\) bò từ \(B'\) đến điểm \(A\) với tốc độ \(2.9\,\mathrm{cm/s}\) và con kiến \(N\) bò từ \(C\) đến \(D'\) với tốc độ bằng \(1.7\,\mathrm{cm/s}\). Hãy tính khoảng cách nhỏ nhất giữa hai con kiến theo đơn vị centimet (làm tròn kết quả đến hàng phần mười)?
+
+% BEGIN TIKZ (không cần sửa phần này)
+\begin{tikzpicture}[scale=1.0]
+% Định nghĩa các đỉnh của hình hộp với phép chiếu đúng
+\coordinate (B) at (0,0);
+\coordinate (C) at (4,0);
+\coordinate (A) at (1.5,1.5);
+\coordinate (D) at (5.5,1.5);
+\coordinate (B') at (0,3);
+\coordinate (C') at (4,3);
+\coordinate (A') at (1.5,4.5);
+\coordinate (D') at (5.5,4.5);
+% Vẽ các cạnh nhìn thấy của hình hộp
+\draw (B) -- (C);
+\draw (B') -- (C') -- (D') -- (A') -- cycle;
+\draw (B) -- (B');
+\draw (C) -- (C');
+\draw (C) -- (D);
+\draw (D) -- (D');
+% Vẽ các cạnh ẩn bằng đường đứt nét
+\draw[dashed] (B) -- (A);
+\draw[dashed] (A) -- (D);
+\draw[dashed] (A') -- (A);
+% Định nghĩa điểm M trên đường chéo AB'
+\coordinate (M) at (0.75,2.25);
+% Định nghĩa điểm N trên cạnh CD'
+\coordinate (N) at (4.75,2.25);
+% Vẽ đường chéo AB' bằng đường đứt nét đỏ (nhưng dùng màu đen theo yêu cầu)
+\draw[dashed, thick] (A) -- (B');
+% Vẽ đường từ C đến N đến D' (đường xanh trong gốc, nhưng dùng màu đen)
+\draw[thick] (C) -- (N) -- (D');
+% Vẽ các mũi tên
+\draw[->, thick] (0.1,2.7) -- (0.5,2.3);  % Mũi tên từ B' về phía M
+\draw[->, thick] (4.17,0.3) -- (4.57,1.4);
+% Đánh dấu các điểm
+\fill (A) circle (1.2pt);
+\fill (B) circle (1.2pt);
+\fill (C) circle (1.2pt);
+\fill (D) circle (1.2pt);
+\fill (A') circle (1.2pt);
+\fill (B') circle (1.2pt);
+\fill (C') circle (1.2pt);
+\fill (D') circle (1.2pt);
+\fill (M) circle (1.2pt);
+\fill (N) circle (1.2pt);
+% Gắn nhãn cho các điểm
+\node[below right] at (A) {\(A\)};
+\node[below left] at (B) {\(B\)};
+\node[below right] at (C) {\(C\)};
+\node[below right] at (D) {\(D\)};
+\node[above right] at (A') {\(A'\)};
+\node[above left] at (B') {\(B'\)};
+\node[above left] at (C') {\(C'\)};
+\node[above right] at (D') {\(D'\)};
+\node[right] at (M) {\(M\)};
+\node[right] at (N) {\(N\)};
+\end{tikzpicture}
+
+
+A. 17.9 cm
+
+B. 15.6 cm
+
+*C. 17.3 cm
+
+D. 18.7 cm
+
+Lời giải:
+
+
+Dữ kiện:
++ Hình hộp chữ nhật \(ABCD.A'B'C'D'\) có:
+\[
+AB = 12,\quad AD = 17,\quad AA' = 10
+\]
++ Gán tọa độ:
+\[
+A = (0, 0, 0),\quad B = (12, 0, 0),\quad D = (0, 17, 0),\quad B' = (12, 0, 10),\quad D' = (0, 17, 10)
+\]
++ Con kiến \(M\) bò từ \(B'\) đến \(A\) với tốc độ \(2.9\, \text{cm/s}\)
+
++ Con kiến \(N\) bò từ \(C\) đến \(D'\) với tốc độ \(1.7\, \text{cm/s}\)
+
+Bước 1: Phương trình chuyển động
+
+Con kiến \(M\):
+
+Vector chỉ phương đường đi:
+\[
+\overrightarrow{B'A} = (0, 0, 0) - (12, 0, 10) = ( -12, 0, -10 )
+\]
+Chiều dài đoạn \(B'A\):
+\[
+|\overrightarrow{B'A}| = \sqrt{12^2 + 10^2} = \sqrt{144 + 100} = \sqrt{244}
+\]
+
+Trong một giây con kiến tại \(M\) đi được \(\frac{2.9}{\sqrt{244}}\) lần \(\overrightarrow{B'A}\)
+
+Véctơ vận tốc của con kiến tại \(M\) là:
+\[
+\overrightarrow{v}_M = \frac{2.9}{\sqrt{244}} \cdot ( -12, 0, -10 )
+\]
+
+Vị trí tại thời điểm \(t\):
+\[
+M(t) = (12, 0, 10) + t \cdot \frac{2.9}{\sqrt{244}} \cdot ( -12, 0, -10 )
+= \left( 12 - \frac{2.2t}{\sqrt{244}},\; 0,\; 10 - \frac{1.9t}{\sqrt{244}} \right)
+\]
+
+Con kiến \(N\):
+
+Vị trí tại thời điểm \(t\):
+\[
+N(t) = (12, 17, 0) + t \cdot (0, 0, 1.7) = (12, 17, 1.7t)
+\]
+
+Bước 2: Tính khoảng cách giữa hai con kiến tại thời điểm \(t\)
+
+\[
+d(t) = \sqrt{\left(12 - \frac{2.2t}{\sqrt{244}}\right)^2 + 17^2 + \left(10 - \frac{1.9t}{\sqrt{244}} - 1.7t\right)^2}
+\]
+
+Bước 3: Tìm khoảng cách nhỏ nhất
+
+\(d'(t)=0\Leftrightarrow t \approx 3.09 \Rightarrow d_{min}=17.3cm\)
+
+
+\end{document}
