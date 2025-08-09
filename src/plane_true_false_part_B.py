@@ -132,11 +132,21 @@ PART_B_GROUPS: List[List] = [
 
 
 def generate_question(question_number: int) -> str:
-    group = random.choice(PART_B_GROUPS)
-    propositions: List[Dict[str, str]] = []
-    while len(propositions) < 4:
-        gen = random.choice(group)
-        propositions.append(gen())
+    # Chọn 1 nhóm mapping trong phần B, lấy 1 mệnh đề từ nhóm đó
+    selected_group = random.choice(PART_B_GROUPS)
+    primary_gen = random.choice(selected_group)
+    # Pool còn lại là tất cả generator của phần B trừ nhóm đã chọn
+    all_gens: List = []
+    for grp in PART_B_GROUPS:
+        for g in grp:
+            all_gens.append(g)
+    remaining_pool = [g for g in all_gens if g not in selected_group]
+    if len(remaining_pool) >= 3:
+        other_gens = random.sample(remaining_pool, 3)
+    else:
+        other_gens = [random.choice(remaining_pool) for _ in range(3)] if remaining_pool else [primary_gen]*3
+    selected_gens = [primary_gen] + other_gens
+    propositions: List[Dict[str, str]] = [gen() for gen in selected_gens]
     num_true = random.randint(1, 4)
     true_indices = set(random.sample(range(4), num_true))
     option_labels = ['a', 'b', 'c', 'd']

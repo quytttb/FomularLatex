@@ -357,13 +357,25 @@ PART_A_GROUPS: List[List] = [
 
 
 def generate_question(question_number: int) -> str:
-    # Pick a group randomly and sample four propositions from it (allow repeats of type with different params)
-    group = random.choice(PART_A_GROUPS)
-    propositions: List[Dict[str, str]] = []
-    while len(propositions) < 4:
-        gen = random.choice(group)
-        propositions.append(gen())
-    # Decide which are true
+    # Chọn 1 nhóm mapping trong phần A, lấy 1 mệnh đề từ nhóm đó
+    selected_group = random.choice(PART_A_GROUPS)
+    primary_gen = random.choice(selected_group)
+    # Tạo pool còn lại: tất cả generator của phần A trừ nhóm đã chọn
+    all_gens: List = []
+    for grp in PART_A_GROUPS:
+        for g in grp:
+            all_gens.append(g)
+    # Loại bỏ các generator thuộc nhóm đã chọn
+    remaining_pool = [g for g in all_gens if g not in selected_group]
+    # Lấy 3 generator khác nhau từ remaining_pool (nếu thiếu thì cho phép lặp)
+    if len(remaining_pool) >= 3:
+        other_gens = random.sample(remaining_pool, 3)
+    else:
+        other_gens = [random.choice(remaining_pool) for _ in range(3)] if remaining_pool else [primary_gen]*3
+    selected_gens = [primary_gen] + other_gens
+    # Sinh 4 mệnh đề
+    propositions: List[Dict[str, str]] = [gen() for gen in selected_gens]
+    # Gán ngẫu nhiên mệnh đề đúng
     num_true = random.randint(1, 4)
     true_indices = set(random.sample(range(4), num_true))
     option_labels = ['a', 'b', 'c', 'd']
