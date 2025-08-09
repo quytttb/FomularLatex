@@ -1,0 +1,809 @@
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% Tài liệu được tạo bởi AI Gemini của Google
+% Nguồn: File ảnh được cung cấp
+% Ngày: 07/08/2025
+% Chỉnh sửa: Thay thế $...$ bằng \(...\)
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\documentclass[12pt, a4paper]{article}
+
+% --- CÁC GÓI CẦN THIẾT ---
+% XeLaTeX: use fontspec + polyglossia for Vietnamese
+\usepackage{fontspec}
+\usepackage{polyglossia}
+\setmainlanguage{vietnamese}
+\setmainfont{DejaVu Serif}
+\setsansfont{DejaVu Sans}
+\setmonofont{DejaVu Sans Mono}
+\usepackage{amsmath, amssymb, amsfonts} % Gói toán học
+\usepackage{geometry} % Tùy chỉnh lề giấy
+\usepackage{tasks}    % Để tạo danh sách trắc nghiệm
+\usepackage{parskip}  % Tạo khoảng cách giữa các đoạn
+\usepackage{enumitem} % Tùy chỉnh danh sách
+
+% --- TÙY CHỈNH LỀ GIẤY ---
+\geometry{
+    a4paper,
+    total={170mm,257mm},
+    left=20mm,
+    top=20mm,
+}
+
+% --- CÁC LỆNH TÙY CHỈNH VÀ CÀI ĐẶT ---
+\renewcommand{\vec}[1]{\overrightarrow{#1}}
+\settasks{
+    label-width = 2em,
+    item-indent = 2.5em,
+    label-align = right
+}
+
+% --- BẮT ĐẦU TÀI LIỆU ---
+\begin{document}
+
+\begin{center}
+    \huge\textbf{Bài 6. Phương trình mặt phẳng}
+\end{center}
+
+\section*{A. Các bài toán về các thông số liên quan}
+\begin{enumerate}[label=\textbf{\arabic*.}, wide=0pt, leftmargin=*]
+    \item[\textbf{Ví dụ 1.}] Cho mặt phẳng \((P) : 3x - z + 2 = 0\). Véctơ nào là một véctơ pháp tuyến của \((P)\)?
+    \begin{tasks}(2)
+        \task \(\vec{n}_1 = (-1;0;-1)\).
+        \task \(\vec{n}_1 = (3;-1;2)\).
+        \task \(\vec{n}_3 = (3;-1;0)\).
+        \task \(\vec{n}_2 = (3;0;-1)\).
+    \end{tasks}
+
+    \item[\textbf{Câu 1.}] Cho mặt phẳng \((P): -3x + 2z - 1 = 0\). Véctơ nào là véctơ pháp tuyến của \((P)\)?
+    \begin{tasks}(2)
+        \task \(\vec{n} = (-3;2;-1)\).
+        \task \(\vec{n} = (3;2;-1)\).
+        \task \(\vec{n} = (-3;0;2)\).
+        \task \(\vec{n} = (3;0;2)\).
+    \end{tasks}
+    
+    \item[\textbf{Ví dụ 2.}] Trong không gian \(Oxyz\), véctơ nào sau đây là một véctơ pháp tuyến của \((P)\). Biết \(\vec{u} = (1;-2;0)\), \(\vec{v} = (0;2;-1)\) là cặp véctơ chỉ phương của \((P)\).
+    \begin{tasks}(2)
+        \task \(\vec{n} = (1;2;0)\).
+        \task \(\vec{n} = (2;1;2)\).
+        \task \(\vec{n} = (0;1;2)\).
+        \task \(\vec{n} = (2;1;-2)\).
+    \end{tasks}
+    
+    \item[\textbf{Câu 2.}] Tìm một VTPT của mặt phẳng \((P)\) khi biết cặp véctơ chỉ phương là \(\vec{u} = (2;1;2)\), \(\vec{v} = (3;2;-1)\).
+    \begin{tasks}(2)
+        \task \(\vec{n} = (-5;8;1)\).
+        \task \(\vec{n} = (5;-8;1)\).
+        \task \(\vec{n} = (1;1;-3)\).
+        \task \(\vec{n} = (-5;8;-1)\).
+    \end{tasks}
+
+    \item[\textbf{Ví dụ 3.}] Cho mặt phẳng \((P) : x - 2y + z = 5\). Điểm nào dưới đây thuộc \((P)\)?
+    \begin{tasks}(2)
+        \task \(Q(2;-1;5)\).
+        \task \(P(0;0;-5)\).
+        \task \(N(-5;0;0)\).
+        \task \(M(1;1;6)\).
+    \end{tasks}
+
+    \item[\textbf{Câu 3.}] Tìm \(m\) để điểm \(M(m;1;6)\) thuộc mặt phẳng \((P) : x - 2y + z - 5 = 0\).
+    \begin{tasks}(4)
+        \task \(m = 1\).
+        \task \(m = -1\).
+        \task \(m = 3\).
+        \task \(m = 2\).
+    \end{tasks}
+
+    \item[\textbf{Câu 4.}] Tìm \(m\) để điểm \(A(m; m-1; 1+2m)\) thuộc mặt phẳng \((P) : 2x - y - z + 1 = 0\).
+    \begin{tasks}(4)
+        \task \(m = -1\).
+        \task \(m = 1\).
+        \task \(m = -2\).
+        \task \(m = 2\).
+    \end{tasks}
+
+    \item[\textbf{Ví dụ 4.}] Khoảng cách từ điểm \(A(1;-2;3)\) đến mặt phẳng \((P): 3x + 4y + 2z + 4 = 0\) bằng
+    \begin{tasks}(2)
+        \task \(\dfrac{5}{9}\).
+        \task \(\dfrac{5}{29}\).
+        \task \(\dfrac{5\sqrt{29}}{29}\).
+        \task \(\dfrac{\sqrt{5}}{3}\).
+    \end{tasks}
+
+    \item[\textbf{Câu 5.}] Khoảng cách từ điểm \(M(1;2;-3)\) đến mặt phẳng \((P) : x + 2y - 2z - 2 = 0\) bằng
+    \begin{tasks}(4)
+        \task 1.
+        \task 3.
+        \task \(\dfrac{\sqrt{13}}{3}\).
+        \task \(\dfrac{11}{3}\).
+    \end{tasks}
+    
+%--- Hết trang 1 ---
+
+    \item[\textbf{Ví dụ 5.}] Gọi H là hình chiếu của điểm \(A(2;-1;-1)\) lên mặt \((P) : 16x - 12y - 15z - 4 = 0\). Độ dài của đoạn \(AH\) bằng
+    \begin{tasks}(2)
+        \task \(55\).
+        \task \(\dfrac{11}{5}\).
+        \task \(\dfrac{11}{25}\).
+        \task \(\dfrac{22}{5}\).
+    \end{tasks}
+    
+    \item[\textbf{Câu 6.}] Gọi H là hình chiếu của điểm \(A(1;-2;-3)\) lên mặt phẳng \((P) : x + 2y - 2z + 3 = 0\). Độ dài đoạn thẳng \(AH\) bằng
+    \begin{tasks}(4)
+        \task \(1\).
+        \task \(2\).
+        \task \(2/3\).
+        \task \(1/3\).
+    \end{tasks}
+    
+    \item[\textbf{Câu 7.}] Gọi B là điểm đối xứng với \(A(1;-2;-1)\) qua mặt phẳng \((P) : 2x + 2y - z + 3 = 0\). Độ dài đoạn thẳng \(AB\) bằng
+    \begin{tasks}(4)
+        \task \(16/3\).
+        \task \(20/3\).
+        \task \(4/3\).
+        \task \(8/3\).
+    \end{tasks}
+    
+    \item[\textbf{Câu 8.}] Gọi B là điểm đối xứng với \(A(2;3;-1)\) qua mặt phẳng \((P) : 2x + 2y + z + 5 = 0\). Độ dài đoạn thẳng \(AB\) bằng
+    \begin{tasks}(4)
+        \task \(28/3\).
+        \task \(5\).
+        \task \(6\).
+        \task \(32/3\).
+    \end{tasks}
+
+    \item[\textbf{Ví dụ 6.}] Cho mặt phẳng \((P) : x + 2y - 2z + 3 = 0\) và mặt phẳng \((Q) : x + 2y - 2z - 1 = 0\). Khoảng cách giữa \((P)\) và \((Q)\) bằng
+    \begin{tasks}(4)
+        \task \(4/9\).
+        \task \(4/3\).
+        \task \(2/3\).
+        \task \(4\).
+    \end{tasks}
+    
+    \item[\textbf{Câu 9.}] Cho mặt phẳng \((P) : 2x + 2y + z - 3 = 0\) và mặt phẳng \((Q) : 2x + 2y + z + 5 = 0\). Khoảng cách giữa \((P)\) và \((Q)\) bằng
+    \begin{tasks}(4)
+        \task \(5/3\).
+        \task \(8/3\).
+        \task \(11/2\).
+        \task \(14/5\).
+    \end{tasks}
+    
+    \item[\textbf{Câu 10.}] Cho mặt phẳng \((P) : x + y - z + 5 = 0\) và mặt phẳng \((Q) : 2x + 2y - 2z + 3 = 0\). Khoảng cách giữa \((P)\) và \((Q)\) bằng
+    \begin{tasks}(2)
+        \task \(\dfrac{2}{\sqrt{3}}\).
+        \task \(2\).
+        \task \(\dfrac{7}{2\sqrt{3}}\).
+        \task \(\dfrac{7}{\sqrt{3}}\).
+    \end{tasks}
+    
+    \item[\textbf{Ví dụ 7.}] Cho \((P): x + 2y + 2z + m = 0\) và \(A(1;1;1)\). Có hai giá trị của \(m\) là \(m_1, m_2\) thỏa mãn \(d(A, (P)) = 1\). Giá trị \(m_1 m_2 |m_1 + m_2|\) bằng
+    \begin{tasks}(4)
+        \task \(160\).
+        \task \(-96\).
+        \task \(-6\).
+        \task \(264\).
+    \end{tasks}
+    
+    \item[\textbf{Câu 11.}] Cho điểm \(M(0;0;m) \in Oz\) và mặt phẳng \((P) : 2x - y - 2z - 2 = 0\) thỏa mãn \(d(M, (P)) = 2\). Tổng các giá trị \(m\) bằng
+    \begin{tasks}(4)
+        \task \(1\).
+        \task \(-2\).
+        \task \(0\).
+        \task \(2\).
+    \end{tasks}
+    
+    \item[\textbf{Câu 12.}] Cho \((P) : 2x + 3y + z - 17 = 0\). Tìm điểm \(M \in Oz\) thỏa khoảng cách từ \(M\) đến \((P)\) bằng khoảng cách từ \(M\) đến \(A(2;3;4)\).
+    \begin{tasks}(2)
+        \task \((0;0;1)\).
+        \task \((0;0;2)\).
+        \task \((0;0;3)\).
+        \task \((0;0;7)\).
+    \end{tasks}
+    
+    \item[\textbf{Ví dụ 8.}] Tính góc giữa mặt \((P) : x - 2y - z + 2 = 0\) và \((Q) : 2x - y + z + 1 = 0\).
+    \begin{tasks}(4)
+        \task \(60^\circ\).
+        \task \(90^\circ\).
+        \task \(30^\circ\).
+        \task \(120^\circ\).
+    \end{tasks}
+    
+%--- Hết trang 2 ---
+    
+    \item[\textbf{Câu 13.}] Tính góc giữa mặt \((P) : x + 2y - z + 1 = 0\) và \((Q) : x - y + 2z + 1 = 0\).
+    \begin{tasks}(4)
+        \task \(30^\circ\).
+        \task \(90^\circ\).
+        \task \(60^\circ\).
+        \task \(45^\circ\).
+    \end{tasks}
+    
+    \item[\textbf{Câu 14.}] Tính góc giữa mặt \((P) : x + z - 4 = 0\) và mặt phẳng \((Oxy)\).
+    \begin{tasks}(4)
+        \task \(30^\circ\).
+        \task \(90^\circ\).
+        \task \(60^\circ\).
+        \task \(45^\circ\).
+    \end{tasks}
+    
+    \item[\textbf{Ví dụ 9.}] Cho hai mặt phẳng \((P) : 2x + y + mz - 2 = 0\) và \((Q) : x + ny + 2z + 8 = 0\) song song nhau. Tính tổng \(m+n\).
+    \begin{tasks}(2)
+        \task \(m+n = 4,25\).
+        \task \(m+n = 4,5\).
+        \task \(m+n = 2,5\).
+        \task \(m+n = 2,25\).
+    \end{tasks}
+    
+    \item[\textbf{Câu 15.}] Cho hai mặt phẳng \((P) : x + 2y - z - 1 = 0\) và \((Q) : 2x + 4y - mz - 2 = 0\). Tìm \(m\) để \((P)\) song song với \((Q)\).
+    \begin{tasks}(2)
+        \task \(m = 1\).
+        \task \(m = 2\).
+        \task \(m = -2\).
+        \task Không tồn tại \(m\).
+    \end{tasks}
+
+    \item[\textbf{Câu 16.}] Tìm \(m\) để hai mặt phẳng \((P) : 2x + 2y - z = 0\) và \((Q) : x + y + mz + 1 = 0\) cắt nhau.
+    \begin{tasks}(2)
+        \task \(m \neq -\dfrac{1}{2}\).
+        \task \(m \neq \dfrac{1}{2}\).
+        \task \(m \neq -1\).
+        \task \(m = \dfrac{1}{2}\).
+    \end{tasks}
+    
+    \item[\textbf{Câu 17.}] Trong không gian \(Oxyz\), cho mặt phẳng \((\alpha): m^2x - y + (m^2 - 2)z + 2 = 0\) và mặt phẳng \((\beta): 2x + m^2y - 2z + 1 = 0\), với \(m\) là tham số thực. Tìm \(m\) để \((\alpha) \perp (\beta)\).
+    \begin{tasks}(4)
+        \task \(m=1\).
+        \task \(m = \sqrt{2}\).
+        \task \(m = \sqrt{3}\).
+        \task \(m = 2\).
+    \end{tasks}
+\end{enumerate}
+
+%--- Hết trang 3 ---
+
+\section*{B. Các bài toán về viết phương trình mặt phẳng}
+\begin{enumerate}[label=\textbf{\arabic*.}, wide=0pt, leftmargin=*]
+    \item[\textbf{Ví dụ 10.}] Phương trình mặt phẳng \((P)\) đi qua điểm \(A(1;0;-2)\) và có VTPT \(\vec{n}=(1;-1;2)\) là
+    \begin{tasks}(2)
+        \task \((P): x - y + 2z + 3 = 0\).
+        \task \((P): x + y + 2z + 3 = 0\).
+        \task \((P): x - y - 2z + 3 = 0\).
+        \task \((P): x - y + 2z - 3 = 0\).
+    \end{tasks}
+    
+    \item[\textbf{Câu 1.}] Phương trình mặt phẳng đi qua \(A(1;-1;2)\) và có véctơ pháp tuyến \(\vec{n}=(4;2;-6)\) là
+    \begin{tasks}(2)
+        \task \(4x + 2y - 6z + 5 = 0\).
+        \task \(2x + y - 3z + 5 = 0\).
+        \task \(2x + y - 3z + 2 = 0\).
+        \task \(2x + y - 3z - 5 = 0\).
+    \end{tasks}
+    
+    \item[\textbf{Câu 2.}] Phương trình mặt phẳng đi qua \(M(3;9;-1)\) và vuông góc với trục \(Ox\) là
+    \begin{tasks}(2)
+        \task \(x-3=0\).
+        \task \(y+z-8=0\).
+        \task \(x+y+z=11\).
+        \task \(x+3=0\).
+    \end{tasks}
+    
+    \item[\textbf{Ví dụ 11.}] Cho \(A(0;1;1)\) và \(B(1;2;3)\). Viết phương trình mặt phẳng \((P)\) đi qua A và vuông góc với đường thẳng \(AB\).
+    \begin{tasks}(2)
+        \task \((P): x+y+2z-3=0\).
+        \task \((P): x+y+2z-6=0\).
+        \task \((P): x+3y+4z-7=0\).
+        \task \((P): x+3y+4z-26=0\).
+    \end{tasks}
+
+    \item[\textbf{Câu 3.}] Cho \(A(2;-1;1)\), \(B(1;0;3)\), \(C(0;-2;-1)\). Viết phương trình mặt phẳng \((P)\) qua trọng tâm \(G\) của \(\triangle ABC\) và vuông góc với \(BC\).
+    \begin{tasks}(2)
+        \task \((P): x - y + z + 2 = 0\).
+        \task \((P): x + 2y + 4z + 2 = 0\).
+        \task \((P): x - y - z + 2 = 0\).
+        \task \((P): x + 2y + 4z - 3 = 0\).
+    \end{tasks}
+    
+%--- Hết trang 4 ---
+
+    \item[\textbf{Ví dụ 12.}] Viết phương trình mặt phẳng \((P)\) qua \(A(0;1;3)\) và \((P) \parallel (Q) : 2x - 3z + 1 = 0\).
+    \begin{tasks}(2)
+        \task \((P): 2x - 3z + 9 = 0\).
+        \task \((P): 2x - 3z - 9 = 0\).
+        \task \((P): 2x - 3z + 3 = 0\).
+        \task \((P): 2x - 3z + 3 = 0\).
+    \end{tasks}
+    
+    \item[\textbf{Câu 4.}] Phương trình mặt phẳng \((P)\) qua \(A(2;-1;2)\) và \((P) \parallel (Q) : 2x - y + 3z + 2 = 0\) là
+    \begin{tasks}(2)
+        \task \(2x - y + 3z - 9 = 0\).
+        \task \(2x - y + 3z + 11 = 0\).
+        \task \(2x - y - 3z + 11 = 0\).
+        \task \(2x - y + 3z - 11 = 0\).
+    \end{tasks}
+    
+    \item[\textbf{Câu 5.}] Viết phương trình mặt phẳng \((P)\) qua \(A(3;2;3)\) và \((P) \parallel (Oxy)\).
+    \begin{tasks}(2)
+        \task \((P): z - 3 = 0\).
+        \task \((P): x - 3 = 0\).
+        \task \((P): y - 2 = 0\).
+        \task \((P): x + y = 5\).
+    \end{tasks}
+    
+    \item[\textbf{Ví dụ 13.}] Viết phương trình mặt phẳng trung trực \((P)\) của đoạn \(AB\) với \(A(2;0;1)\), \(B(0;-2;3)\).
+    \begin{tasks}(2)
+        \task \((P): x - y - z + 2 = 0\).
+        \task \((P): x + y - z + 2 = 0\).
+        \task \((P): x + y + z - 2 = 0\).
+        \task \((P): x + y - z - 2 = 0\).
+    \end{tasks}
+
+    \item[\textbf{Câu 6.}] Phương trình mặt phẳng trung trực của đoạn \(AB\) với \(A(3;1;2)\), \(B(1;5;4)\) là
+    \begin{tasks}(2)
+        \task \(x - 2y - z + 7 = 0\).
+        \task \(x + y + z - 8 = 0\).
+        \task \(x + y - z - 2 = 0\).
+        \task \(2x + y - z - 3 = 0\).
+    \end{tasks}
+
+    \item[\textbf{Ví dụ 14.}] Viết phương trình mặt phẳng \((P)\) đi qua điểm \(M(1;2;-3)\) và có cặp véctơ chỉ phương là \(\vec{a}=(2;1;2), \vec{b}=(3;2;-1)\).
+    \begin{tasks}(2)
+        \task \((P): 5x - 8y - z + 8 = 0\).
+        \task \((P): 5x - 8y - z - 8 = 0\).
+        \task \((P): 5x + 8y - z + 8 = 0\).
+        \task \((P): 5x + 8y - z - 8 = 0\).
+    \end{tasks}
+    
+    \item[\textbf{Câu 7.}] Viết phương trình mặt phẳng \((P)\) đi qua điểm \(M(1;2;-3)\) và có cặp véctơ chỉ phương là \(\vec{a}=(2;1;2), \vec{b}=(3;2;-1)\).
+    \begin{tasks}(2)
+        \task \(5x + 8y - z + 8 = 0\).
+        \task \(5x - 8y - z + 8 = 0\).
+        \task \(5x - 8y + z - 8 = 0\).
+        \task \(5x + 8y + z - 8 = 0\).
+    \end{tasks}
+    
+    \item[\textbf{Ví dụ 15.}] Phương trình mặt phẳng đi qua ba điểm \(A(1;0;2)\), \(B(1;1;1)\), \(C(2;3;0)\) là
+    \begin{tasks}(2)
+        \task \(x+y-z+1=0\).
+        \task \(x-y-z+1=0\).
+        \task \(x+y+z-3=0\).
+        \task \(x+y-2z-3=0\).
+    \end{tasks}
+
+    \item[\textbf{Câu 8.}] Phương trình mặt phẳng đi qua ba điểm \(M(3;-1;2)\), \(N(4;-1;-1)\), \(P(2;0;2)\) là
+    \begin{tasks}(2)
+        \task \(3x + 3y - z + 8 = 0\).
+        \task \(3x - 2y + z - 8 = 0\).
+        \task \(3x + 3y + z - 8 = 0\).
+        \task \(3x + 3y - z - 8 = 0\).
+    \end{tasks}
+
+%--- Hết trang 5 ---
+    
+    \item[\textbf{Ví dụ 16.}] Phương trình mặt phẳng \((P)\) đi qua điểm \(M(2;-2;3)\) và chứa trục \(Ox\) có dạng
+    \begin{tasks}(2)
+        \task \(3y+2z-1=0\).
+        \task \(3y-2z=0\).
+        \task \(3y+2z=0\).
+        \task \(3y-2z-1=0\).
+    \end{tasks}
+    
+    \item[\textbf{Câu 9.}] Phương trình mặt phẳng \((P)\) đi qua điểm \(M(2;2;-3)\) và chứa trục \(Oy\) có dạng
+    \begin{tasks}(2)
+        \task \((P): 3x-2z=0\).
+        \task \((P): 3x+2z=0\).
+        \task \((P): 3x+2z+2=0\).
+        \task \((P): 3x-2z+2=0\).
+    \end{tasks}
+    
+    \item[\textbf{Ví dụ 17.}] Viết phương trình mặt phẳng \((P)\) đi qua hai điểm \(A(1;0;1)\) và \(B(-1;2;2)\), đồng thời song song với trục \(Ox\).
+    \begin{tasks}(2)
+        \task \((P): x+y-z=0\).
+        \task \((P): 2y-z+1=0\).
+        \task \((P): y-2z+2=0\).
+        \task \((P): x+2z-3=0\).
+    \end{tasks}
+    
+    \item[\textbf{Câu 10.}] Viết phương trình mặt phẳng \((P)\) chứa đường thẳng \(AB\), đồng thời song song với trục tung, với \(A(-1;0;0)\) và \(B(0;0;1)\).
+    \begin{tasks}(2)
+        \task \((P): x-z+1=0\).
+        \task \((P): x-y-2z=0\).
+        \task \((P): x-2z+1=0\).
+        \task \((P): x-2y+2=0\).
+    \end{tasks}
+    
+    \item[\textbf{Ví dụ 18.}] Cho \(A(1;1;0)\), \(B(0;2;1)\), \(C(1;0;2)\), \(D(1;1;1)\). Viết phương trình mặt phẳng \((P)\) đi qua A, B và \((P)\) song song với đường \(CD\).
+    \begin{tasks}(2)
+        \task \((P): x+y+z-3=0\).
+        \task \((P): 2x-y+z-2=0\).
+        \task \((P): 2x+y+z-3=0\).
+        \task \((P): x+y-2=0\).
+    \end{tasks}
+    
+    \item[\textbf{Câu 11.}] Cho \(A(-1;1;-2)\), \(B(1;2;-1)\), \(C(1;1;2)\) và \(D(-1;-1;2)\). Viết phương trình mặt phẳng \((P)\) chứa đường \(AB\) và song song \(CD\).
+    \begin{tasks}(2)
+        \task \((P): x-y-z=0\).
+        \task \((P): x-y-z+2=0\).
+        \task \((P): 2x+y+z+3=0\).
+        \task \((P): x-2y-2z-1=0\).
+    \end{tasks}
+    
+    \item[\textbf{Ví dụ 19.}] Viết phương trình mặt phẳng \((P)\) đi qua hai điểm \(A(1;2;-2)\), \(B(2;-1;4)\) và vuông góc với mặt phẳng \((Q): x-2y-z+1=0\).
+    \begin{tasks}(2)
+        \task \(15x+7y+z-27=0\).
+        \task \(15x+7y+z+27=0\).
+        \task \(15x-7y+z-27=0\).
+        \task \(15x-7y+z+27=0\).
+    \end{tasks}
+    
+    \item[\textbf{Câu 12.}] Viết phương trình mặt phẳng \((P)\) đi qua hai điểm \(A(-1;2;3)\), \(B(1;4;2)\) và vuông góc với mặt phẳng \((Q): x-y+2z+1=0\).
+    \begin{tasks}(2)
+        \task \(3x-y-2z+11=0\).
+        \task \(5x-3y-4z+23=0\).
+        \task \(3x+5y+z-10=0\).
+        \task \(3x-5y-4z+25=0\).
+    \end{tasks}
+    
+    \item[\textbf{Câu 13.}] Trong không gian \(Oxyz\), viết phương trình mặt phẳng \((P)\) chứa trục \(Ox\) và vuông góc với mặt phẳng \((Q): x-2y-z+7=0\).
+    \begin{tasks}(2)
+        \task \((P): y+2z=0\).
+        \task \((P): y-2z=0\).
+        \task \((P): x-2y-z=0\).
+        \task \((P): y-z=0\).
+    \end{tasks}
+    
+%--- Hết trang 6 ---
+    
+    \item[\textbf{Ví dụ 20.}] Cho các mặt \((P_1): x+2y+3z+4=0\) và \((P_2): 3x+2y-z+1=0\). Viết phương trình mặt phẳng \((P)\) đi qua điểm \(A(1;1;1)\), vuông góc hai mặt phẳng \((P_1)\) và \((P_2)\).
+    \begin{tasks}(2)
+        \task \((P): 4x-5y+2z-1=0\).
+        \task \((P): 4x+5y-2z-1=0\).
+        \task \((P): 4x-5y-2z+1=0\).
+        \task \((P): 4x+5y+2z+1=0\).
+    \end{tasks}
+    
+    \item[\textbf{Câu 14.}] Cho các mặt \((P_1): 2x+y-3z-4=0\) và \((P_2): x+y-z-1=0\). Viết phương trình mặt phẳng \((P)\) đi qua điểm \(M(1;-5;3)\), vuông góc hai mặt phẳng \((P_1)\) và \((P_2)\).
+    \begin{tasks}(2)
+        \task \((P): 2x+y+z=0\).
+        \task \((P): 2x+y+z-1=0\).
+        \task \((P): 2x-y+z+10=0\).
+        \task \((P): 2x-y+z-10=0\).
+    \end{tasks}
+    
+    \item[\textbf{Ví dụ 21.}] Viết phương trình mặt phẳng đi qua ba điểm \(A(1;0;0)\), \(B(0;-2;0)\), \(C(0;0;3)\).
+    \begin{tasks}(2)
+        \task \(2x-3y+6z-6=0\).
+        \task \(3x-6y-2z+6=0\).
+        \task \(6x-3y+2z-6=0\).
+        \task \(2x+6y-3z-6=0\).
+    \end{tasks}
+    
+    \item[\textbf{Câu 15.}] Viết phương trình mặt phẳng đi qua ba điểm \(A(2;0;0)\), \(B(0;-3;0)\), \(C(0;0;5)\).
+    \begin{tasks}(2)
+        \task \(15x-10y+6z=0\).
+        \task \(15x-10y+6z-30=0\).
+        \task \(2x-3y+5z=1\).
+        \task \(2x-3y+5z=0\).
+    \end{tasks}
+    
+    \item[\textbf{Câu 16.}] Cho điểm \(M(1;2;3)\). Gọi A, B, C lần lượt là hình chiếu của M trên các trục \(Ox, Oy, Oz\). Viết phương trình mặt phẳng \((ABC)\).
+    \begin{tasks}(2)
+        \task \(3x+2y+z-6=0\).
+        \task \(2x+y+3z-6=0\).
+        \task \(6x+3y+2z-6=0\).
+        \task \(x+2y+3z-6=0\).
+    \end{tasks}
+    
+    \item[\textbf{Ví dụ 22.}] Cho điểm \(M(-3;2;4)\). Gọi A, B, C lần lượt là hình chiếu của M trên các trục \(Ox, Oy, Oz\). Tìm mặt phẳng song song với \((ABC)\).
+    \begin{tasks}(2)
+        \task \(4x-6y-3z+12=0\).
+        \task \(3x-6y-4z+12=0\).
+        \task \(4x-6y-3z-12=0\).
+        \task \(6x-4y-3z-12=0\).
+    \end{tasks}
+    
+    \item[\textbf{Câu 17.}] Cho điểm \(M(1;2;5)\). Mặt phẳng \((P)\) đi qua điểm M và cắt trục tọa độ \(Ox, Oy, Oz\) tại A, B, C sao cho M là trực tâm tam giác ABC. Khi đó \((P)\) có phương trình là
+    \begin{tasks}(2)
+        \task \(2x+5y+10z=0\).
+        \task \(x+5y+10z-10=0\).
+        \task \(x+2y+5z-30=0\).
+        \task \(x+y+z-8=0\).
+    \end{tasks}
+    
+    \item[\textbf{Câu 18.}] Phương trình mặt phẳng \((P)\) đi qua \(M(3;2;1)\) và cắt các trục tọa độ \(Ox, Oy, Oz\) lần lượt tại A, B, C sao cho M là trực tâm của tam giác ABC là
+    \begin{tasks}(2)
+        \task \((P): 3x+2y+z-14=0\).
+        \task \((P): x+y+z-6=0\).
+        \task \((P): 2x+3y+6z-6=0\).
+        \task \((P): 2x+3y+6z=0\).
+    \end{tasks}
+    
+    \item[\textbf{Câu 19.}] Mặt phẳng \((P)\) đi qua điểm \(G(2;-1;3)\) và cắt các trục tọa độ tại các điểm A, B, C (khác gốc tọa độ) sao cho G là trọng tâm của \(\triangle ABC\). Tìm phương trình \((P)\).
+    \begin{tasks}(2)
+        \task \(3x-6y+2z-18=0\).
+        \task \(2x+y-3z-14=0\).
+        \task \(x+y+z=0\).
+        \task \(3x+6y-2z-6=0\).
+    \end{tasks}
+    
+%--- Hết trang 7 ---
+    
+    \item[\textbf{Ví dụ 23.}] Mặt phẳng qua \(M(1;2;3)\) cắt các trục tọa độ tại A, B, C sao cho M là trọng tâm \(\triangle ABC\) có phương trình là \(6x+3y+2z-18=0\).
+    \begin{tasks}(4)
+        \task \(-36\).
+        \task \(36\).
+        \task \(72\).
+        \task \(-72\).
+    \end{tasks}
+    
+    \item[\textbf{Câu 20.}] Trong không gian với hệ tọa độ \(Oxyz\), viết phương trình mặt phẳng \((P)\) đi qua điểm \(A(1;1;1)\) và \(B(0;2;2)\) đồng thời cắt các tia \(Ox, Oy\) lần lượt tại hai điểm M, N (không trùng với gốc tọa độ O) sao cho \(OM=2ON\).
+    \begin{tasks}(2)
+        \task \((P): 2x+3y-z-4=0\).
+        \task \((P): x+2y-z-2=0\).
+        \task \((P): 2x+y+z-4=0\).
+        \task \((P): 3x+y+2z-6=0\).
+    \end{tasks}
+    
+    \item[\textbf{Ví dụ 24.}] Trong không gian \(Oxyz\), mặt phẳng \((P)\) qua \(M(1;3;-2)\), đồng thời cắt các tia \(Ox, Oy, Oz\) lần lượt tại A, B, C sao cho \(4OA=2OB=OC\). Hỏi \((P)\) là phương trình nào?
+    \begin{tasks}(2)
+        \task \(2x-y-z-1=0\).
+        \task \(x+2y+4z+1=0\).
+        \task \(4x+2y+z-8=0\).
+        \task \(4x+2y+z+1=0\).
+    \end{tasks}
+    
+    \item[\textbf{Câu 21.}] Cho hai điểm \(C(0;0;3)\) và \(M(-1;3;2)\). Mặt phẳng \((P)\) qua C, M, đồng thời chắn trên các nửa trục dương \(Ox, Oy\) các đoạn thẳng bằng nhau. Phương trình \((P)\) là
+    \begin{tasks}(2)
+        \task \(x+y+2z-1=0\).
+        \task \(x+y+2z-6=0\).
+        \task \(x+y+z-6=0\).
+        \task \(x+y+z-3=0\).
+    \end{tasks}
+    
+    \item[\textbf{Ví dụ 25.}] Viết phương trình mặt phẳng \((P)\) đi qua điểm \(M(1;2;3)\) và cắt ba tia \(Ox, Oy, Oz\) lần lượt tại A, B, C sao cho thể tích tứ diện \(OABC\) nhỏ nhất.
+    \begin{tasks}(2)
+        \task \(6x+3y+2z+18=0\).
+        \task \(6x+3y+3z-21=0\).
+        \task \(6x+3y+3z+21=0\).
+        \task \(6x+3y+2z-18=0\).
+    \end{tasks}
+    
+    \item[\textbf{Câu 22.}] Mặt phẳng \((P)\) đi qua \(M(2;1;1)\) đồng thời cắt các tia \(Ox, Oy, Oz\) lần lượt tại A, B, C sao cho tứ diện \(OABC\) có thể tích nhỏ nhất. Viết phương trình \((P)\).
+    \begin{tasks}(2)
+        \task \((P): 2x+y+z-7=0\).
+        \task \((P): x+2y+2z-6=0\).
+        \task \((P): x+2y+z-1=0\).
+        \task \((P): 2x+y-2z-1=0\).
+    \end{tasks}
+    
+    \item[\textbf{Câu 23.}] Mặt phẳng \((P)\) đi qua \(M(1;1;4)\), đồng thời cắt các tia \(Ox, Oy, Oz\) lần lượt tại A, B, C sao cho tứ diện \(OABC\) có thể tích nhỏ nhất. Tính thể tích nhỏ nhất đó?
+    \begin{tasks}(4)
+        \task \(72\).
+        \task \(108\).
+        \task \(18\).
+        \task \(36\).
+    \end{tasks}
+
+    \item[\textbf{Câu 24.}] Mặt phẳng \((P)\) đi qua \(M(1;2;3)\) và cắt các tia \(Ox, Oy, Oz\) lần lượt tại A, B, C sao cho \(T = \dfrac{1}{OA^2} + \dfrac{1}{OB^2} + \dfrac{1}{OC^2}\) đạt giá trị nhỏ nhất dạng \(x+ay+bz+c=0\). Tìm \(a+b+c\).
+    \begin{tasks}(4)
+        \task \(19\).
+        \task \(6\).
+        \task \(-9\).
+        \task \(-5\).
+    \end{tasks}
+    
+    \item[\textbf{Ví dụ 26.}] Viết phương trình mặt phẳng \((P)\), biết \((P) \parallel (Q): x+2y-2z+1=0\) và \((P)\) cách điểm \(M(1;-2;1)\) một khoảng bằng 3.
+    \begin{tasks}(2)
+        \task \((P): x+2y-2z-4=0\) và \((P): x+2y-2z+14=0\).
+        \task \((P): x+2y-2z-2=0\) và \((P): x+2y-2z+11=0\).
+        \task \((P): x+2y-2z-4=0\) và \((P): x+2y+2z+14=0\).
+        \task \((P): x+2y+2z-2=0\) và \((P): x+2y-2z+11=0\).
+    \end{tasks}
+    
+%--- Hết trang 8 ---
+
+    \item[\textbf{Câu 25.}] Cho điểm \(M(1;0;3)\) và mặt phẳng \((P) : x+2y+z-10=0\). Viết phương trình mặt phẳng \((Q)\) song song với \((P)\) và \((Q)\) cách M một khoảng bằng \(\sqrt{6}\).
+    \begin{tasks}[label-width=1em](1)
+        \task \((Q): x+2y+z-10=0\) và \((Q): x+2y+z+2=0\).
+        \task \((Q): x+2y+z+10=0\).
+        \task \((Q): x+2y+z+2=0\).
+        \task \((Q): x+2y+z-2=0\) và \((Q): x+2y+z+10=0\).
+    \end{tasks}
+    
+    \item[\textbf{Ví dụ 27.}] Viết phương trình mặt phẳng \((P)\), biết \((P)\parallel(Q) : x-2y-2z-3=0\) và \(d((P),(Q))=3\).
+    \begin{tasks}(2)
+        \task \((P): x-2y-2z-3=0\) và \((P): x-2y-2z-12=0\).
+        \task \((P): x-2y-2z+6=0\).
+        \task \((P): x-2y-2z-12=0\).
+        \task \((P): x-2y-2z+6=0\) và \((P): x-2y-2z-12=0\).
+    \end{tasks}
+    
+    \item[\textbf{Câu 26.}] Cho mặt phẳng \((P) : x-y-z-1=0\). Hãy viết phương trình mặt phẳng \((Q)\) song song \((P)\) và cách \((Q)\) một khoảng \(\dfrac{11\sqrt{3}}{3}\).
+    \begin{tasks}(2)
+        \task \((Q): x-y-z+10=0\) và \((Q): x-y-z-12=0\).
+        \task \((Q): x-y-z+10=0\).
+        \task \((Q): x-y-z-12=0\).
+        \task \((Q): x-y-z-10=0\) và \((Q): x-y-z+12=0\).
+    \end{tasks}
+
+    \item[\textbf{Câu 27.}] Cho mặt phẳng \((P): x-2y-2z-3=0\). Hãy viết phương trình mặt phẳng \((Q)\) song song \((P)\) và cách \((Q)\) một khoảng 3.
+    \begin{tasks}(2)
+        \task \((Q): x-2y-2z+6=0\) và \((Q): x-2y-2z-12=0\).
+        \task \((Q): x-2y-2z+6=0\).
+        \task \((Q): x-2y-2z-12=0\).
+        \task \((Q): x-2y-2z-6=0\) và \((Q): x-2y-2z+12=0\).
+    \end{tasks}
+    
+    \item[\textbf{Ví dụ 28.}] Viết phương trình mặt phẳng \((P)\) vuông góc với \((\alpha): x+y+z-3=0\), \((\beta): x-y+z-1=0\) và đồng thời \((P)\) cách gốc tọa độ O một khoảng bằng \(\sqrt{2}\).
+    \begin{tasks}(2)
+        \task \((P): x-z \pm 2 = 0\).
+        \task \((P): x-z \pm 3 = 0\).
+        \task \((P): x-y \pm 3 = 0\).
+        \task \((P): y-z \pm 2 = 0\).
+    \end{tasks}
+    
+    \item[\textbf{Câu 28.}] Viết phương trình mặt phẳng \((P)\) vuông góc với \((\alpha): x-2y-3z+2=0\), \((\beta): x+y-2z=0\), đồng thời \((P)\) cách \(M(0;1;0)\) một khoảng bằng \(\sqrt{59}\).
+    \begin{tasks}[label-width=1em](1)
+        \task \(7x-y+3z-60=0\) và \(7x-y+3z+58=0\).
+        \task \(7x-y+3z+60=0\).
+        \task \(7x-y-3z-58=0\).
+        \task \(7x-y+3z+60=0\) và \(7x-y+3z-58=0\).
+    \end{tasks}
+    
+%--- Hết trang 9 ---
+    
+    \item[\textbf{Câu 29.}] Viết phương trình mặt \((P)\) vuông góc với \((\alpha): x+2y-z=1\), \((\beta): x+y-z-1=0\), đồng thời \((P)\) cách \(M(-1;1;-2)\) một khoảng bằng \(\sqrt{2}\).
+    \begin{tasks}(2)
+        \task \((P): x+z-5=0\).
+        \task \((P): x+z+5=0\) và \((P): x+z+1=0\).
+        \task \((P): x+z-1=0\).
+        \task \((P): x+z-5=0\) và \((P): x+z-1=0\).
+    \end{tasks}
+
+    \item[\textbf{Ví dụ 29.}] Viết phương trình mặt phẳng \((P)\) qua M và qua giao tuyến hai mặt phẳng \((\alpha), (\beta)\).
+    \begin{enumerate}[label=\alph*)]
+        \item \(M(2;1;-1)\), \((\alpha): x-y+z-4=0\), \((\beta): 3x-y+z-1=0\).
+        \item \(M(0;0;1)\), \((\alpha): 5x-3y+2z-5=0\), \((\beta): 2x-y-z-1=0\).
+        \item \(M(1;2;-3)\), \((\alpha): 2x-3y+z-5=0\), \((\beta): 3x-2y+5z-1=0\).
+    \end{enumerate}
+
+    \item[\textbf{Câu 30.}] Viết phương trình mặt phẳng \((P)\) qua giao tuyến của hai mặt phẳng \((\alpha)\) và \((\beta)\), đồng thời \((P)\) song song với mặt phẳng \((\gamma)\).
+    \begin{enumerate}[label=\alph*)]
+        \item \((\alpha): x-4y+2z-5=0, \quad (\beta): y+4z-5=0, \quad (\gamma): 2x-y+19=0\).
+        \item \((\alpha): 3x-y+z-2=0, \quad (\beta): x+4y-5=0, \quad (\gamma): 2x-z+7=0\).
+    \end{enumerate}
+
+    \item[\textbf{Câu 31.}] Viết phương trình mặt phẳng \((P)\) qua giao tuyến của hai mặt phẳng \((\alpha)\) và \((\beta)\), đồng thời \((P)\) vuông góc với mặt phẳng \((\gamma)\).\\
+    \((\alpha): y+2z-4=0, \quad (\beta): x+y-z+3=0, \quad (\gamma): x+y+z-2=0\)
+\end{enumerate}
+
+%--- Hết trang 10 ---
+
+\section*{C. Tương giao mặt phẳng và mặt cầu}
+\begin{enumerate}[label=\textbf{\arabic*.}, wide=0pt, leftmargin=*]
+    \item[\textbf{Ví dụ 30.}] Cho mặt cầu \((S): (x-1)^2 + (y+1)^2 + (z-3)^2 = 9\) và điểm \(M(2;1;1)\) thuộc mặt cầu. Lập phương trình mặt phẳng \((P)\) tiếp xúc với mặt cầu \((S)\) tại M.
+    \begin{tasks}(2)
+        \task \((P): x+2y+z-5=0\).
+        \task \((P): x+2y-2z-2=0\).
+        \task \((P): x+2y-2z-8=0\).
+        \task \((P): x+2y+2z-6=0\).
+    \end{tasks}
+    
+    \item[\textbf{Câu 1.}] Viết phương trình mặt phẳng \((P)\) tiếp xúc với \((S): x^2+y^2+z^2-6x-2y+4z+5=0\) tại điểm \(M(4;3;0)\).
+    \begin{tasks}(2)
+        \task \((P): x+2y+2z-10=0\).
+        \task \((P): x+2y-2z-8=0\).
+        \task \((P): x+2y+2z+10=0\).
+        \task \((P): x+2y-2z+8=0\).
+    \end{tasks}
+    
+    \item[\textbf{Ví dụ 31.}] Trong không gian \(Oxyz\), cho mặt cầu \((S): x^2+y^2+z^2-2x-4y-6z-11=0\) và mặt phẳng \((P): 2x+2y-z-18=0\). Tìm phương trình mặt phẳng \((Q)\) song song với mặt phẳng \((P)\) đồng thời \((Q)\) tiếp xúc với mặt cầu \((S)\).
+    \begin{tasks}(2)
+        \task \((Q): 2x+2y-z+22=0\).
+        \task \((Q): 2x+2y-z-28=0\).
+        \task \((Q): 2x+2y-z-18=0\).
+        \task \((Q): 2x+2y-z+12=0\).
+    \end{tasks}
+    
+%--- Hết trang 11 ---
+    
+    \item[\textbf{Câu 2.}] Cho \((S): (x-1)^2+(y-2)^2+(z-3)^2 = 16\) và mặt phẳng \((P): 4x+3y-12z-26=0\). Tìm \((Q)\parallel(P)\), đồng thời \((Q)\) tiếp xúc với \((S)\).
+    \begin{tasks}(2)
+        \task \(4x+3y-12z+78=0\).
+        \task \(4x+3y-12z-26=0\).
+        \task \(4x+3y-12z-78=0\).
+        \task \(4x+3y-12z+26=0\).
+    \end{tasks}
+    
+    \item[\textbf{Câu 3.}] Cho \((S): (x-1)^2+(y-2)^2+(z-3)^2 = 25\) và mặt phẳng \((P): 2x+2y-z-18=0\). Tìm \((Q)\parallel(P)\), đồng thời \((Q)\) tiếp xúc với \((S)\).
+    \begin{tasks}(2)
+        \task \((P): 2x-2y-z-18=0\).
+        \task \((P): 2x+2y-z-18=0\).
+        \task \((Q): 2x+2y-z+12=0\).
+        \task \((Q): 2x-2y-z+12=0\).
+    \end{tasks}
+    
+    \item[\textbf{Ví dụ 32.}] Cho hai mặt phẳng \((\alpha): 3x-y+4z+2=0\) và \((\beta): 3x-y+4z+8=0\). Phương trình mặt phẳng \((P)\) song song và cách đều hai mặt phẳng \((\alpha)\) và \((\beta)\) là
+    \begin{tasks}(2)
+        \task \((P): 3x-y+4z+10=0\).
+        \task \((P): 3x-y+4z+5=0\).
+        \task \((P): 3x-y+4z-10=0\).
+        \task \((P): 3x-y+4z-5=0\).
+    \end{tasks}
+    
+    \item[\textbf{Câu 4.}] Viết phương trình mặt phẳng \((P)\), biết \((P)\) song song với mặt \((Q): 2x+2y-z+17=0\) và \((P)\) cắt mặt cầu \((S): (x-1)^2+(y+2)^2+(z-3)^2=25\) theo giao tuyến là một đường tròn có chu vi bằng \(6\pi\).
+    \begin{tasks}(2)
+        \task \((P): 2x+2y-z-7=0\).
+        \task \((P): 2x+2y+z-7=0\).
+        \task \((P): 2x+2y-z+17=0\).
+        \task \((P): 2x+y+z+17=0\).
+    \end{tasks}
+    
+    \item[\textbf{Câu 5.}] Viết phương trình mặt phẳng \((P)\) đi qua hai điểm \(O(0;0;0)\), \(A(1;2;0)\), đồng thời khoảng cách từ \(B(0;4;0)\) đến \((P)\) bằng khoảng cách từ \(C(0;0;3)\) đến \((P)\).
+    \begin{tasks}(2)
+        \task \(6x+3y-4z=0\) và \(6x-3y+4z=0\).
+        \task \(6x-3y-4z=0\).
+        \task \(6x-3y+4z=0\).
+        \task \(6x-3y-4z=0\) và \(6x-3y+4z=0\).
+    \end{tasks}
+
+    \item[\textbf{Ví dụ 33.}] Cho mặt cầu \((S)\) có tâm \(I(4;2;-2)\) và tiếp xúc với mặt phẳng \((P): 12x-5z-19=0\). Bán kính \(R\) của mặt cầu \((S)\) bằng
+    \begin{tasks}(4)
+        \task \(\dfrac{39}{2}\).
+        \task \(\dfrac{\sqrt{39}}{5}\).
+        \task \(13\).
+        \task \(3\).
+    \end{tasks}
+    
+    \item[\textbf{Câu 6.}] Cho mặt phẳng \((P): 4x+3y-2z+1=0\) và điểm \(I(0;-2;1)\). Bán kính \(R\) của hình cầu tâm I tiếp xúc với \((P)\) bằng
+    \begin{tasks}(2)
+        \task \(3\).
+        \task \(\dfrac{5\sqrt{29}}{29}\).
+        \task \(\dfrac{3\sqrt{29}}{29}\).
+        \task \(\dfrac{7\sqrt{29}}{29}\).
+    \end{tasks}
+    
+    \item[\textbf{Ví dụ 34.}] Cho mặt cầu \((S): (x+1)^2+(y-2)^2+(z-3)^2=25\) và \((P): 2x+y-2z+m=0\), với \(m\) là tham số thực. Tìm các giá trị của \(m\) để \((P)\) và \((S)\) không có điểm chung.
+    \begin{tasks}(2)
+        \task \(m < -9\) hoặc \(m > 21\).
+        \task \(-9 < m < 21\).
+        \task \(-9 \le m \le 21\).
+        \task \(m \le -9\) hoặc \(m \ge 21\).
+    \end{tasks}
+    
+%--- Hết trang 12 ---
+    
+    \item[\textbf{Câu 7.}] Trong không gian \(Oxyz\), cho mặt cầu \((S): x^2+y^2+z^2+2x-4y-6z+m-3=0\) và mặt phẳng \((P): 2x+2y+z+5=0\). Tìm tham số \(m\) để \((P)\) tiếp xúc với \((S)\).
+    \begin{tasks}(2)
+        \task \(m = -\dfrac{53}{9}\).
+        \task \(m = -\dfrac{12}{5}\).
+        \task \(m = -\dfrac{13}{3}\).
+        \task \(m = -\dfrac{11}{3}\).
+    \end{tasks}
+
+    \item[\textbf{Câu 8.}] Trong không gian \(Oxyz\), cho mặt cầu \((S): x^2+y^2+z^2-2x-2z-7=0\) và mặt phẳng \((P): 4x+3y+m=0\). Tìm \(m\) để \((P)\) cắt \((S)\) theo giao tuyến là một đường tròn?
+    \begin{tasks}(2)
+        \task \(m<-19\) hoặc \(m>11\).
+        \task \(-19<m<11\).
+        \task \(-12<m<4\).
+        \task \(m<-12\) hoặc \(m>4\).
+    \end{tasks}
+    
+    \item[\textbf{Câu 9.}] Cho mặt cầu \((S): x^2+y^2+z^2+2x-4y+6z+m=0\). Tìm tham số \(m\) để \((S)\) cắt mặt \((P): 2x-y-2z+1=0\) theo giao tuyến là đường tròn có diện tích bằng \(4\pi\).
+    \begin{tasks}(4)
+        \task \(m=9\).
+        \task \(m=10\).
+        \task \(m=3\).
+        \task \(m=-3\).
+    \end{tasks}
+    
+    \item[\textbf{Câu 10.}] Trong không gian \(Oxyz\), viết phương trình mặt cầu \((S)\) có tâm \(I(1;1;1)\) và cắt mặt phẳng \((P)\) có phương trình \(2x+y+2z+4=0\) theo một đường tròn có bán kính bằng \(r=4\).
+    \begin{tasks}(2)
+        \task \((S): (x-1)^2+(y-1)^2+(z-1)^2 = 16\).
+        \task \((S): (x-1)^2+(y-1)^2+(z-1)^2 = 9\).
+        \task \((S): (x-1)^2+(y-1)^2+(z-1)^2 = 5\).
+        \task \((S): (x-1)^2+(y-1)^2+(z-1)^2 = 25\).
+    \end{tasks}
+    
+\end{enumerate}
+
+\end{document}
