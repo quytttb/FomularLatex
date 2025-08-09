@@ -4,43 +4,20 @@ Dạng bài toán: Tìm khoảng đồng biến, nghịch biến của hàm số
 
 import random
 import sys
-import logging
+import logging  
 import re
 from abc import ABC, abstractmethod
 from fractions import Fraction
 from typing import List, Dict, Any, Union
 from math import gcd as math_gcd, sqrt, floor, log10
 
-# Cấu hình logging
-logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
-
 # Constants
-DEFAULT_COEFF_RANGE = (-5, 5)
 DEFAULT_DOMAIN_MIN = -5
 DEFAULT_DOMAIN_MAX = 5
 MAX_ATTEMPTS = 200
-NICE_FRACTIONS = [Fraction(1, 2), Fraction(1, 3), Fraction(2, 3), Fraction(1, 4), Fraction(3, 4),
-                  Fraction(-1, 2), Fraction(-1, 3), Fraction(-2, 3), Fraction(-1, 4), Fraction(-3, 4)]
 
 # Context configurations for different problem types
 CONTEXTS_CONFIG = [
-    {
-        "name": "velocity",
-        "function_type": "rational",  # phân thức
-        "subject": "vận tốc của xe",
-        "unit": "m/s",
-        "time_unit": "giây",
-        "question_type": "velocity_change",
-        "description": "Một chiếc xe chuyển động với vận tốc được mô tả bởi hàm số",
-        "constraints": {
-            "domain_min": 0,  # Thời gian không âm
-            "domain_max": 20,  # Giảm từ 100 xuống 20 giây
-            "value_min": 0,  # Vận tốc không âm
-            "value_max": 100,  # Tăng từ 50 lên 100 m/s
-            "must_be_positive": False,  # Tạm thời không yêu cầu dương
-            "physical_meaning": "Thời gian t \\(\\geq\\) 0"
-        }
-    },
     {
         "name": "bacteria",
         "function_type": "polynomial_3",  # bậc 3
@@ -54,23 +31,6 @@ CONTEXTS_CONFIG = [
             "domain_max": 10,  # Giảm từ 48 xuống 10 giờ
             "value_min": -100,  # Cho phép giá trị âm
             "value_max": 1000,  # Tốc độ tối đa hợp lý
-            "must_be_positive": False,  # Tạm thời không yêu cầu dương
-            "physical_meaning": "Thời gian t \\(\\geq\\) 0"
-        }
-    },
-    {
-        "name": "distance",
-        "function_type": "polynomial_4",  # bậc 4
-        "subject": "quãng đường",
-        "unit": "mét",
-        "time_unit": "giây",
-        "question_type": "velocity_from_distance",
-        "description": "Quãng đường di chuyển của một vật được cho bởi hàm số",
-        "constraints": {
-            "domain_min": 0,  # Thời gian không âm
-            "domain_max": 10,  # Giảm từ 60 xuống 10 giây
-            "value_min": -100,  # Cho phép giá trị âm
-            "value_max": 1000,  # Quãng đường tối đa hợp lý
             "must_be_positive": False,  # Tạm thời không yêu cầu dương
             "physical_meaning": "Thời gian t \\(\\geq\\) 0"
         }
@@ -93,18 +53,52 @@ CONTEXTS_CONFIG = [
         }
     },
     {
+        "name": "velocity",
+        "function_type": "polynomial_3",  # bậc 3
+        "subject": "vận tốc của vật thể",
+        "unit": "m/s",
+        "time_unit": "giây",
+        "question_type": "velocity_analysis",
+        "description": "Vận tốc của một vật thể chuyển động được mô tả bởi hàm số",
+        "constraints": {
+            "domain_min": 0,  # Thời gian không âm
+            "domain_max": 20,  # Trong 20 giây đầu
+            "value_min": -50,  # Cho phép vận tốc âm (chuyển động ngược)
+            "value_max": 100,  # Vận tốc tối đa hợp lý
+            "must_be_positive": False,  # Vận tốc có thể âm
+            "physical_meaning": "Thời gian t \\(\\geq\\) 0"
+        }
+    },
+    {
+        "name": "distance",
+        "function_type": "polynomial_3",  # bậc 3
+        "subject": "tốc độ thay đổi quãng đường",
+        "unit": "km/h",
+        "time_unit": "giờ",
+        "question_type": "distance_rate",
+        "description": "Tốc độ thay đổi quãng đường của một xe được mô tả bởi hàm số",
+        "constraints": {
+            "domain_min": 0,  # Thời gian không âm
+            "domain_max": 12,  # Trong 12 giờ đầu
+            "value_min": -20,  # Cho phép giảm tốc
+            "value_max": 80,  # Tốc độ tối đa hợp lý
+            "must_be_positive": False,  # Tốc độ có thể giảm
+            "physical_meaning": "Thời gian t \\(\\geq\\) 0"
+        }
+    },
+    {
         "name": "economy",
-        "function_type": "rational",  # phân thức
+        "function_type": "polynomial_3",  # bậc 3
         "subject": "tốc độ tăng trưởng kinh tế",
         "unit": "%/năm",
         "time_unit": "năm",
         "question_type": "economic_growth",
         "description": "Tốc độ tăng trưởng kinh tế của một quốc gia được mô tả bởi hàm số",
         "constraints": {
-            "domain_min": 0,  # Thời gian không âm
-            "domain_max": 10,  # Giảm từ 30 xuống 10 năm
-            "value_min": -20,  # Cho phép suy thoái (-20%)
-            "value_max": 20,  # Tăng trưởng tối đa hợp lý (20%)
+            "domain_min": 0,  # Năm 0 là mốc
+            "domain_max": 15,  # Trong 15 năm đầu
+            "value_min": -10,  # Cho phép suy thoái
+            "value_max": 20,  # Tăng trưởng tối đa hợp lý
             "must_be_positive": False,  # Kinh tế có thể suy thoái
             "physical_meaning": "Thời gian t \\(\\geq\\) 0"
         }
@@ -113,29 +107,29 @@ CONTEXTS_CONFIG = [
 
 # Context helper mappings for solution generation
 CONTEXT_DESCRIPTIONS = {
-    'velocity': 'vận tốc của xe',
     'bacteria': 'tốc độ phát triển của quần thể vi khuẩn',
-    'distance': 'quãng đường di chuyển của vật',
     'population': 'tốc độ tăng dân số của thành phố',
+    'velocity': 'vận tốc của vật thể',
+    'distance': 'tốc độ thay đổi quãng đường của xe',
     'economy': 'tốc độ tăng trưởng kinh tế của quốc gia'
 }
 
 PHYSICAL_INTERPRETATIONS = {
-    'velocity': {
-        'tăng': 'Khi đạo hàm f\'(t) > 0, gia tốc dương có nghĩa là xe tăng tốc.',
-        'giảm': 'Khi đạo hàm f\'(t) < 0, gia tốc âm có nghĩa là xe giảm tốc.'
-    },
     'bacteria': {
         'tăng': 'Khi đạo hàm f\'(t) > 0, tốc độ phát triển tăng có nghĩa là quần thể phát triển nhanh hơn.',
         'giảm': 'Khi đạo hàm f\'(t) < 0, tốc độ phát triển giảm có nghĩa là quần thể phát triển chậm lại.'
     },
-    'distance': {
-        'tăng': 'Khi đạo hàm v\'(t) > 0, gia tốc dương có nghĩa là vật tăng tốc.',
-        'giảm': 'Khi đạo hàm v\'(t) < 0, gia tốc âm có nghĩa là vật giảm tốc.'
-    },
     'population': {
         'tăng': 'Khi đạo hàm f\'(t) > 0, tốc độ tăng dân số tăng có nghĩa là dân số gia tăng nhanh hơn.',
         'giảm': 'Khi đạo hàm f\'(t) < 0, tốc độ tăng dân số giảm có nghĩa là dân số gia tăng chậm lại.'
+    },
+    'velocity': {
+        'tăng': 'Khi đạo hàm f\'(t) > 0, vận tốc tăng có nghĩa là vật thể chuyển động nhanh dần.',
+        'giảm': 'Khi đạo hàm f\'(t) < 0, vận tốc giảm có nghĩa là vật thể chuyển động chậm dần.'
+    },
+    'distance': {
+        'tăng': 'Khi đạo hàm f\'(t) > 0, tốc độ thay đổi quãng đường tăng có nghĩa là xe chạy nhanh dần.',
+        'giảm': 'Khi đạo hàm f\'(t) < 0, tốc độ thay đổi quãng đường giảm có nghĩa là xe chạy chậm dần.'
     },
     'economy': {
         'tăng': 'Khi đạo hàm f\'(t) > 0, tốc độ tăng trưởng kinh tế tăng có nghĩa là nền kinh tế phát triển nhanh hơn.',
@@ -375,18 +369,36 @@ def clean_sign_expression(expr: str) -> str:
 
 def format_coefficient(coeff, is_first=False, var='x', power=1):
     """Format hệ số với dấu và biến (TỐI ƯU - tái sử dụng simplify_fraction)"""
-    if coeff == 0:
+    if abs(coeff) < 1e-10:  # Use tolerance instead of exact zero
         return ""
 
     # Tái sử dụng simplify_fraction cho Fraction coefficients
     if isinstance(coeff, Fraction):
         num, denom = simplify_fraction(coeff.numerator, coeff.denominator)
     else:
-        num, denom = int(coeff), 1
+        # For float coefficients, round to reasonable precision and convert to fraction if needed
+        rounded_coeff = round(coeff, 6)  # Keep 6 decimal places
+        if abs(rounded_coeff) < 1e-10:  # Use tolerance for zero check
+            return ""
+        
+        # Convert to fraction if it's a simple fraction
+        frac = Fraction(rounded_coeff).limit_denominator(1000)
+        if frac.denominator <= 10:  # Use fraction for simple denominators
+            num, denom = frac.numerator, frac.denominator
+        else:
+            # Use decimal format for complex fractions
+            num, denom = rounded_coeff, 1
+
+    # Additional safety check: if coefficient is 0, skip it
+    if (isinstance(num, (int, float)) and abs(num) < 1e-10) or num == 0:
+        return ""
 
     # Format the coefficient part
     if denom == 1:
-        coeff_str = str(abs(num)) if abs(num) != 1 or power == 0 else ""
+        if isinstance(num, float):
+            coeff_str = str(abs(num)) if abs(num) != 1 or power == 0 else ""
+        else:
+            coeff_str = str(abs(num)) if abs(num) != 1 or power == 0 else ""
     else:
         coeff_str = f"\\frac{{{abs(num)}}}{{{denom}}}"
 
@@ -409,14 +421,14 @@ def format_coefficient(coeff, is_first=False, var='x', power=1):
 
 def format_polynomial(coeffs, var='x'):
     """Format đa thức thành LaTeX - từ thuc_te_hinh_hoc.py"""
-    if not coeffs or all(c == 0 for c in coeffs):
+    if not coeffs or all(abs(c) < 1e-10 for c in coeffs):
         return "0"
 
     terms = []
     degree = len(coeffs) - 1
 
     for i, coeff in enumerate(coeffs):
-        if coeff == 0:
+        if abs(coeff) < 1e-10:  # Use tolerance instead of exact zero comparison
             continue
 
         power = degree - i
@@ -429,49 +441,6 @@ def format_polynomial(coeffs, var='x'):
 
     result = "".join(terms)
     return clean_sign_expression(result)
-
-
-def format_rational_for_latex(a, b, c, d, e, var='x'):
-    """Format hàm số y = (ax^2 + bx + c)/(dx + e) cho LaTeX với phân số sạch."""
-    # Tử số: ax^2 + bx + c
-    num_terms = []
-    if a != 0:
-        if a == 1:
-            num_terms.append(f"{var}^2")
-        elif a == -1:
-            num_terms.append(f"-{var}^2")
-        else:
-            num_terms.append(f"{a}{var}^2")
-    if b != 0:
-        if b == 1:
-            num_terms.append(f"+{var}")
-        elif b == -1:
-            num_terms.append(f"-{var}")
-        else:
-            num_terms.append(f"+{b}{var}" if b > 0 else f"{b}{var}")
-    if c != 0:
-        num_terms.append(f"+{c}" if c > 0 else f"{c}")
-    numerator = "".join(num_terms)
-    if numerator.startswith("+"):
-        numerator = numerator[1:]
-    numerator = numerator or "0"
-
-    # Mẫu số: dx + e
-    denom_terms = []
-    if d != 0:
-        if d == 1:
-            denom_terms.append(f"{var}")
-        elif d == -1:
-            denom_terms.append(f"-{var}")
-        else:
-            denom_terms.append(f"{d}{var}")
-    if e != 0:
-        denom_terms.append(f"+{e}" if e > 0 else f"{e}")
-    denominator = "".join(denom_terms)
-    if denominator.startswith("+"):
-        denominator = denominator[1:]
-
-    return f"\\frac{{{clean_sign_expression(numerator)}}}{{{clean_sign_expression(denominator)}}}"
 
 
 # HÀM TIỆN ÍCH XỬ LÝ CHUỖI
@@ -564,8 +533,6 @@ class BaseOptimizationQuestion(ABC):
         Returns:
             Chuỗi chứa câu hỏi hoàn chỉnh với đáp án và lời giải
         """
-        logging.info(f"Đang tạo câu hỏi {question_number}")
-
         # Bước 1: Sinh tham số và tính toán
         self.parameters = self.generate_parameters()
         self.correct_answer = self.calculate_answer()
@@ -594,8 +561,6 @@ class BaseOptimizationQuestion(ABC):
 
     def generate_question_only(self, question_number: int = 1) -> tuple:
         """Tạo câu hỏi chỉ có đề bài và lời giải"""
-        logging.info(f"Đang tạo câu hỏi {question_number}")
-
         self.parameters = self.generate_parameters()
         self.correct_answer = self.calculate_answer()
 
@@ -677,93 +642,22 @@ class BaseOptimizationQuestion(ABC):
 
 # PHẦN 4: DẠNG TOÁN
 
-# DẠNG TOÁN: Đồng/nghịch biến hàm số
+# DẠNG TOÁN: Đồng/nghịch biến hàm số (Chỉ đa thức bậc 3)
 
-class RationalQuadraticMonotonicity(BaseOptimizationQuestion):
-    def get_nice_numbers(self, domain_min=-5, domain_max=5):
-        """Tạo tập số đẹp cho domain cho trước - tối ưu với cache."""
-        # Base nice numbers
-        if domain_min >= 0:
-            nice_numbers = [
-                0, Fraction(1, 4), Fraction(1, 2), Fraction(3, 4), 1,
-                Fraction(5, 4), Fraction(3, 2), Fraction(7, 4), 2, 3, 4, 5, 6, 7, 8, 9, 10
-            ]
-        else:
-            nice_numbers = [
-                -5, -4, -3, -2, -1, Fraction(-3, 4), Fraction(-1, 2), Fraction(-1, 4),
-                0, Fraction(1, 4), Fraction(1, 2), Fraction(3, 4), 1, 2, 3, 4, 5
-            ]
-
-        # Add common fractions
-        nice_numbers.extend(NICE_FRACTIONS)
-
-        # Add integer points in domain
-        for i in range(max(0, int(domain_min)), int(domain_max) + 1):
-            nice_numbers.append(Fraction(i))
-
-        # Filter by domain and remove duplicates
-        nice_numbers = [n for n in set(nice_numbers) if domain_min <= n <= domain_max]
-        nice_numbers.sort()
-
-        return nice_numbers
-
-    def get_valid_coefficients_unified(self, function_type, nice_numbers=None, coeff_range=None, domain_min=-5, domain_max=5):
-        """Unified method for generating valid coefficients for different function types.
-
-        Args:
-            function_type: 'rational', 'polynomial_3', or 'polynomial_4'
-            nice_numbers: List of nice numbers for critical points
-            coeff_range: Range for coefficient values
-            domain_min, domain_max: Domain constraints
-
-        Returns:
-            List of valid coefficient tuples
-        """
-        if nice_numbers is None:
-            nice_numbers = self.get_nice_numbers(domain_min, domain_max)
-
-        if function_type == 'rational':
-            return self._get_rational_coefficients(nice_numbers, coeff_range, domain_min)
-        elif function_type == 'polynomial_3':
-            return self._get_poly3_coefficients(nice_numbers, coeff_range, domain_min, domain_max)
-        elif function_type == 'polynomial_4':
-            return self._get_poly4_coefficients(nice_numbers, coeff_range, domain_min, domain_max)
-        else:
-            raise ValueError(f"Unsupported function_type: {function_type}")
-
-    def _get_rational_coefficients(self, nice_numbers, coeff_range, domain_min):
-        """Generate coefficients for rational functions."""
-        if coeff_range is None:
-            coeff_range = DEFAULT_COEFF_RANGE
-
-        valid_configs = []
-        a_choices = [a for a in range(coeff_range[0], coeff_range[1] + 1) if a != 0]
-        d_choices = [d for d in range(coeff_range[0], coeff_range[1] + 1) if d != 0]
-
-        for a in a_choices:
-            for b in range(coeff_range[0], coeff_range[1] + 1):
-                for c in range(coeff_range[0], coeff_range[1] + 1):
-                    for d in d_choices:
-                        for e in range(coeff_range[0], coeff_range[1] + 1):
-                            critical_points, x_p = self.get_critical_points(a, b, c, d, e)
-                            if not critical_points:
-                                continue
-                            if all((x in nice_numbers) for x in critical_points):
-                                valid_configs.append((a, b, c, d, e))
-        return valid_configs
-
+class PolynomialCubicMonotonicity(BaseOptimizationQuestion):
     def _get_poly3_coefficients(self, nice_numbers, coeff_range, domain_min, domain_max):
         """Generate coefficients for polynomial degree 3 using new form: k*x³/3 + k(b-a)*x²/2 - kabx + C.
         
         Derivative: f'(x) = k(x-a)(x+b) with critical points at x=a and x=-b.
+        Ensure all terms (cubic, quadratic, linear) are present and C ≠ 0.
         """
         valid_configs = []
         
-        # Smaller random ranges for better performance: -5 to 5 (excluding 0)
+        # Parameter ranges from -5 to 5 (excluding 0 for k, a, b; C must be non-zero)
         k_choices = [k for k in range(-5, 6) if k != 0]
         a_choices = [a for a in range(-5, 6) if a != 0]  
         b_choices = [b for b in range(-5, 6) if b != 0]
-        C_choices = list(range(-5, 6))  # C can be 0
+        C_choices = [C for C in range(-5, 6) if C != 0]  # C must be non-zero
 
         for k in k_choices:
             for a in a_choices:
@@ -774,153 +668,22 @@ class RationalQuadraticMonotonicity(BaseOptimizationQuestion):
                     # Check that critical points a and -b are within domain
                     if not (domain_min <= a <= domain_max and domain_min <= -b <= domain_max):
                         continue
+                    
+                    # Calculate standard form coefficients to ensure all terms present
+                    # From: k*x³/3 + k(b-a)*x²/2 - kabx + C
+                    coeff_cubic = k / 3      # Must be non-zero (k ≠ 0)
+                    coeff_quad = k * (b - a) / 2  # Will be non-zero if b ≠ a
+                    coeff_linear = -k * a * b     # Will be non-zero (k,a,b all ≠ 0)
+                    
+                    # Ensure quadratic term is non-zero (b ≠ a already checked via a ≠ -b)
+                    if coeff_quad == 0:
+                        continue
                         
                     for C in C_choices:
+                        coeff_const = C  # Already ensured C ≠ 0
                         valid_configs.append((k, a, b, C))
                         
         return valid_configs
-                        
-        return valid_configs
-
-    def _get_poly4_coefficients(self, nice_numbers, coeff_range, domain_min, domain_max):
-        """Generate coefficients for polynomial degree 4."""
-        if coeff_range is None:
-            coeff_range = (-3, 3)
-
-        valid_configs = []
-        a_choices = [a for a in range(coeff_range[0], coeff_range[1] + 1) if a != 0]
-
-        for a in a_choices:
-            for b in range(coeff_range[0], coeff_range[1] + 1):
-                for c in range(coeff_range[0], coeff_range[1] + 1):
-                    # y' = 4a x^3 + 2b x = 2x(2a x^2 + b)
-                    # roots: x = 0, x^2 = -b/(2a) if -b/(2a) > 0
-                    critical_points = [Fraction(0)]
-                    if -b / (2 * a) > 0:
-                        sqrt_val = (-b / (2 * a)) ** 0.5
-                        if is_perfect_square(-b / (2 * a)):
-                            sqrt_frac = Fraction(int(sqrt_val))
-                            critical_points.extend([sqrt_frac, -sqrt_frac])
-
-                    # Check if all roots (except 0) are in nice_numbers
-                    if all((x in nice_numbers) for x in critical_points):
-                        # Domain check
-                        if all(domain_min <= x <= domain_max for x in critical_points):
-                            valid_configs.append((a, b, c))
-        return valid_configs
-
-    # Wrapper methods for backward compatibility
-    def get_valid_coefficients(self, nice_numbers=None, coeff_range=None, domain_min=-5):
-        return self.get_valid_coefficients_unified('rational', nice_numbers, coeff_range, domain_min, domain_min + 10)
-
-    def get_valid_coefficients_poly3(self, nice_numbers=None, coeff_range=None, domain_min=-5, domain_max=5):
-        return self.get_valid_coefficients_unified('polynomial_3', nice_numbers, coeff_range, domain_min, domain_max)
-
-    def get_valid_coefficients_poly4(self, nice_numbers=None, coeff_range=None, domain_min=-5, domain_max=5):
-        return self.get_valid_coefficients_unified('polynomial_4', nice_numbers, coeff_range, domain_min, domain_max)
-
-    r"""
-    Dạng toán đa dạng về đồng biến, nghịch biến của hàm số với các ngữ cảnh thực tế.
-    
-    Bao gồm:
-    - Hàm phân thức bậc hai/bậc nhất: y = (ax² + bx + c)/(dx + e)
-    - Hàm đa thức bậc ba: y = ax³ + bx² + cx + d
-    - Hàm đa thức bậc bốn: y = ax⁴ + bx³ + cx² + dx + e
-    
-    Ngữ cảnh thực tế: vận tốc, quãng đường, vi khuẩn, dân số, kinh tế, etc.
-    """
-
-    def get_critical_points(self, a, b, c, d, e):
-        """Tính điểm tới hạn và điểm gián đoạn cho f(x) = (ax^2 + bx + c)/(dx + e)."""
-        x_p = Fraction(-e, d)
-
-        A = a * d
-        B = 2 * a * e
-        C = b * e - c * d
-
-        discriminant = B * B - 4 * A * C
-        if discriminant < 0 or not is_perfect_square(discriminant):
-            return [], x_p
-
-        sqrt_disc = int(discriminant ** 0.5)
-        x1 = Fraction(-B - sqrt_disc, 2 * A)
-        x2 = Fraction(-B + sqrt_disc, 2 * A)
-        critical_points = [x1, x2]
-        critical_points.sort()
-
-        return critical_points, x_p
-
-    def get_monotonicity_intervals(self, a, d, critical_points, x_p):
-        """
-        Xác định khoảng tăng và khoảng giảm bằng cách kiểm tra dấu đạo hàm thực tế.
-        """
-        if not critical_points:
-            # Không có điểm tới hạn, kiểm tra dấu đạo hàm
-            test_point1 = x_p - 1 if x_p > 0 else -1
-            test_point2 = x_p + 1
-            
-            # Giả sử đạo hàm có dạng (const) / (dx + e)^2
-            # Dấu chỉ phụ thuộc vào tử số
-            sign1 = 1 if a * d > 0 else -1
-            sign2 = sign1  # Cùng dấu khi không có nghiệm
-            
-            if sign1 > 0:
-                return [(float('-inf'), x_p), (x_p, float('inf'))], []
-            else:
-                return [], [(float('-inf'), x_p), (x_p, float('inf'))]
-
-        x1, x2 = sorted(critical_points)
-        
-        # Tạo danh sách tất cả điểm quan trọng và sort
-        important_points = sorted([x1, x2, x_p])
-        
-        # Tạo các khoảng test
-        test_intervals = []
-        all_points = [float('-inf')] + important_points + [float('inf')]
-        
-        for i in range(len(all_points) - 1):
-            start = all_points[i]
-            end = all_points[i + 1]
-            
-            # Tìm điểm test trong khoảng (start, end)
-            if start == float('-inf'):
-                test_point = end - 1
-            elif end == float('inf'):
-                test_point = start + 1
-            else:
-                test_point = (start + end) / 2
-            
-            # Kiểm tra xem có gần điểm gián đoạn không
-            if abs(test_point - x_p) < 1e-6:
-                continue  # Skip nếu quá gần điểm gián đoạn
-                
-            # Tính dấu đạo hàm tại test_point
-            # f'(x) = (ax^2 + bx + c) / (dx + e)^2
-            # Dấu chỉ phụ thuộc tử số: a(x - x1)(x - x2)
-            numerator_sign = a * (test_point - x1) * (test_point - x2)
-            
-            interval_info = {
-                'interval': (start, end),
-                'test_point': test_point,
-                'sign': 'positive' if numerator_sign > 0 else 'negative'
-            }
-            test_intervals.append(interval_info)
-        
-        # Phân loại khoảng tăng và giảm
-        increasing = []
-        decreasing = []
-        
-        for info in test_intervals:
-            if info['sign'] == 'positive':
-                increasing.append(info['interval'])
-            else:
-                decreasing.append(info['interval'])
-        
-        # Lọc các khoảng hợp lệ
-        increasing = [(s, e) for s, e in increasing if s < e]
-        decreasing = [(s, e) for s, e in decreasing if s < e]
-
-        return increasing, decreasing
 
     def generate_parameters(self) -> Dict[str, Any]:
         """Sinh tham số cho bài toán với ngữ cảnh thực tế đa dạng và ràng buộc hợp lý."""
@@ -933,87 +696,30 @@ class RationalQuadraticMonotonicity(BaseOptimizationQuestion):
 
         # Random biến cho hàm số (nhất quán trong toàn bộ câu hỏi)
         # Với ràng buộc vật lý, thường dùng 't' cho thời gian
-        if context["name"] in ["velocity", "bacteria", "distance", "population", "economy"]:
+        if context["name"] in ["bacteria", "population", "velocity", "distance", "economy"]:
             context['variable'] = 't'  # Thời gian
         else:
             variables = ['x', 't', 'u', 'v', 'z']
             context['variable'] = random.choice(variables)
 
         # Sinh hàm số dựa trên loại với ràng buộc
-        if context["function_type"] == "rational":
-            return self._generate_rational_function(context)
-        elif context["function_type"] == "polynomial_3":
+        if context["function_type"] == "polynomial_3":
             return self._generate_polynomial_3(context)
-        elif context["function_type"] == "polynomial_4":
-            return self._generate_polynomial_4(context)
         else:
-            return self._generate_rational_function(context)
-
-    def _generate_rational_function(self, context):
-        """Sinh hàm phân thức bậc hai/bậc nhất với ràng buộc theo ngữ cảnh"""
-        max_attempts = MAX_ATTEMPTS
-        constraints = context.get("constraints", {})
-        domain_min = constraints.get("domain_min", DEFAULT_DOMAIN_MIN)
-        domain_max = constraints.get("domain_max", DEFAULT_DOMAIN_MAX)
-
-        # Build nice numbers once
-        nice_numbers = self.get_nice_numbers(domain_min, domain_max)
-
-        coeff_range = DEFAULT_COEFF_RANGE
-        valid_configs = self.get_valid_coefficients(nice_numbers, coeff_range, domain_min)
-        if not valid_configs:
-            coeff_range = (-10, 10)
-            valid_configs = self.get_valid_coefficients(nice_numbers, coeff_range, domain_min)
-            if not valid_configs:
-                raise RuntimeError("Không tìm thấy bộ hệ số hợp lệ.")
-        for attempt in range(max_attempts):
-            a, b, c, d, e = random.choice(valid_configs)
-            critical_points, x_p = self.get_critical_points(a, b, c, d, e)
-            if not critical_points:
-                continue
-            x1, x2 = critical_points
-            # For time context, skip if any root is out of domain
-            if domain_min >= 0:
-                if x1 < domain_min or x2 < domain_min:
-                    continue
-                if x_p < domain_min or abs(x_p - domain_min) < 0.1:
-                    continue
-            else:
-                if not (domain_min <= x1 <= domain_max or domain_min <= x2 <= domain_max):
-                    continue
-                if abs(x_p - domain_min) < 0.1 or abs(x_p - domain_max) < 0.1:
-                    continue
-            increasing_intervals, decreasing_intervals = self.get_monotonicity_intervals(a, d, critical_points, x_p)
-            increasing_intervals = self._filter_intervals_by_domain(increasing_intervals, domain_min, domain_max)
-            decreasing_intervals = self._filter_intervals_by_domain(decreasing_intervals, domain_min, domain_max)
-            monotonicity = context["ask_format"]
-            if monotonicity == "tăng" and not increasing_intervals:
-                continue
-            if monotonicity == "giảm" and not decreasing_intervals:
-                continue
-            return {
-                'context': context,
-                'function_type': 'rational',
-                'a': a, 'b': b, 'c': c, 'd': d, 'e': e,
-                'critical_points': critical_points,
-                'x_p': x_p,
-                'increasing_intervals': increasing_intervals,
-                'decreasing_intervals': decreasing_intervals,
-                'monotonicity': monotonicity
-            }
-        raise RuntimeError("Không thể sinh câu hỏi hợp lệ sau số lần thử tối đa.")
+            raise ValueError(f"Unsupported function_type: {context['function_type']}")
 
     def _generate_polynomial_3(self, context):
         """Sinh hàm bậc 3 với dạng mới: k*x³/3 + k(b-a)*x²/2 - kabx + C.
         
         Đạo hàm: f'(x) = k(x-a)(x+b) với nghiệm tại x=a và x=-b.
+        Đảm bảo có đủ 3 biến bậc 3, 2, 1 và C ≠ 0.
         """
         max_attempts = 100
         constraints = context.get("constraints", {})
         domain_min = constraints.get("domain_min", DEFAULT_DOMAIN_MIN)
         domain_max = constraints.get("domain_max", DEFAULT_DOMAIN_MAX)
 
-        # Simplified: direct parameter generation without nice_numbers dependency
+        # Simplified: direct parameter generation 
         valid_configs = self._get_poly3_coefficients(None, None, domain_min, domain_max)
         if not valid_configs:
             raise RuntimeError("Không tìm thấy bộ hệ số bậc 3 nghiệm đẹp.")
@@ -1062,11 +768,26 @@ class RationalQuadraticMonotonicity(BaseOptimizationQuestion):
 
             # Convert to standard polynomial form for compatibility
             # From: k*x³/3 + k(b-a)*x²/2 - kabx + C
-            # To: ax³ + bx² + cx + d
-            a_std = k / 3
-            b_std = k * (param_b - param_a) / 2
-            c_std = -k * param_a * param_b
-            d_std = C
+            # To: ax³ + bx² + cx + d (ensuring all terms are non-zero)
+            a_std = k / 3                    # Cubic coefficient (≠ 0)
+            b_std = k * (param_b - param_a) / 2  # Quadratic coefficient (≠ 0)
+            c_std = -k * param_a * param_b   # Linear coefficient (≠ 0)
+            d_std = C                        # Constant term (≠ 0)
+
+            # DEBUG: Print original form vs standard form
+            # print(f"DEBUG: k={k}, a={param_a}, b={param_b}, C={C}")
+            # print(f"Original: {k}*x³/3 + {k*(param_b-param_a)}*x²/2 + {-k*param_a*param_b}*x + {C}")
+            # print(f"Standard: {a_std}*x³ + {b_std}*x² + {c_std}*x + {d_std}")
+
+            # STRICT validation: ensure this is truly a cubic polynomial
+            if abs(a_std) < 1e-10:
+                continue  # Skip - not a valid cubic polynomial
+            if abs(b_std) < 1e-10:
+                continue  # Skip - missing quadratic term
+            if abs(c_std) < 1e-10:
+                continue  # Skip - missing linear term  
+            if abs(d_std) < 1e-10:
+                continue  # Skip - missing constant term
 
             # Kiểm tra ràng buộc nếu cần
             if constraints.get("must_be_positive", False):
@@ -1088,125 +809,6 @@ class RationalQuadraticMonotonicity(BaseOptimizationQuestion):
             }
 
         raise RuntimeError("Không thể sinh hàm bậc 3 nghiệm đẹp.")
-
-    def _generate_polynomial_4(self, context):
-        """Sinh hàm bậc 4 với nghiệm đạo hàm đẹp."""
-        max_attempts = 100
-        constraints = context.get("constraints", {})
-        domain_min = constraints.get("domain_min", DEFAULT_DOMAIN_MIN)
-        domain_max = constraints.get("domain_max", DEFAULT_DOMAIN_MAX)
-
-        # Build nice numbers once
-        nice_numbers = self.get_nice_numbers(domain_min, domain_max)
-
-        valid_configs = self.get_valid_coefficients_poly4(nice_numbers, (-3, 3), domain_min, domain_max)
-        if not valid_configs:
-            raise RuntimeError("Không tìm thấy bộ hệ số bậc 4 nghiệm đẹp.")
-        for attempt in range(max_attempts):
-            a, b, c = random.choice(valid_configs)
-            # Với hàm s(t) = at^4 + bt^2 + c
-            # v(t) = s'(t) = 4at^3 + 2bt  
-            # v'(t) = 12at^2 + 2b
-            
-            # Tìm nghiệm của v'(t) = 0: 12at^2 + 2b = 0
-            # => t^2 = -b/(6a)
-            # Chỉ có nghiệm thực khi -b/(6a) >= 0
-            
-            critical_points = []
-            if a != 0:
-                discriminant = -b / (6 * a)
-                if discriminant >= 0:
-                    if discriminant == 0:
-                        critical_points = [Fraction(0)]
-                    else:
-                        sqrt_val = discriminant ** 0.5
-                        if abs(sqrt_val - round(sqrt_val)) < 1e-10:  # Số nguyên
-                            sqrt_val = int(round(sqrt_val))
-                            critical_points = [Fraction(-sqrt_val), Fraction(sqrt_val)]
-                        else:
-                            continue  # Không phải nghiệm đẹp
-                else:
-                    # Không có nghiệm thực => đạo hàm cùng dấu trên toàn domain
-                    pass
-            # Áp dụng ràng buộc domain
-            critical_points = [x for x in critical_points if domain_min <= x <= domain_max]
-            critical_points = sorted(list(set(critical_points)))
-            
-            # Xác định khoảng đồng biến, nghịch biến
-            if not critical_points:
-                # Không có điểm tới hạn trong domain => đạo hàm cùng dấu
-                if a > 0:  # v'(t) = 12at^2 + 2b
-                    # Kiểm tra dấu tại một điểm test
-                    test_val = (domain_min + domain_max) / 2
-                    v_prime_test = 12 * a * test_val**2 + 2 * b
-                    if v_prime_test > 0:
-                        increasing_intervals = [(domain_min, domain_max)]
-                        decreasing_intervals = []
-                    else:
-                        increasing_intervals = []
-                        decreasing_intervals = [(domain_min, domain_max)]
-                else:
-                    # a < 0
-                    test_val = (domain_min + domain_max) / 2
-                    v_prime_test = 12 * a * test_val**2 + 2 * b
-                    if v_prime_test > 0:
-                        increasing_intervals = [(domain_min, domain_max)]
-                        decreasing_intervals = []
-                    else:
-                        increasing_intervals = []
-                        decreasing_intervals = [(domain_min, domain_max)]
-            elif len(critical_points) == 1:
-                # Một điểm tới hạn (thường là t=0)
-                x0 = critical_points[0]
-                if a > 0:  # Parabol hướng lên
-                    # v'(t) = 12at^2 + 2b, với a > 0
-                    # Tại điểm cực trị, dấu thay đổi từ - sang + (nếu b < 0) hoặc + sang - (nếu b > 0)
-                    if b < 0:  # Có cực tiểu tại x0
-                        increasing_intervals = [(x0, domain_max)]
-                        decreasing_intervals = [(domain_min, x0)]
-                    else:  # b >= 0, v'(t) >= 0 luôn
-                        increasing_intervals = [(domain_min, domain_max)]
-                        decreasing_intervals = []
-                else:  # a < 0
-                    if b > 0:  # Có cực đại tại x0
-                        increasing_intervals = [(domain_min, x0)]
-                        decreasing_intervals = [(x0, domain_max)]
-                    else:  # b <= 0, v'(t) <= 0 luôn
-                        increasing_intervals = []
-                        decreasing_intervals = [(domain_min, domain_max)]
-            elif len(critical_points) == 2:
-                x1, x2 = sorted(critical_points)
-                if a > 0:  # Parabol hướng lên
-                    # v'(t) < 0 giữa hai nghiệm, v'(t) > 0 ngoài hai nghiệm
-                    increasing_intervals = [(domain_min, x1), (x2, domain_max)]
-                    decreasing_intervals = [(x1, x2)]
-                else:  # a < 0, parabol hướng xuống
-                    # v'(t) > 0 giữa hai nghiệm, v'(t) < 0 ngoài hai nghiệm
-                    increasing_intervals = [(x1, x2)]
-                    decreasing_intervals = [(domain_min, x1), (x2, domain_max)]
-            else:
-                continue
-            increasing_intervals = self._filter_intervals_by_domain(increasing_intervals, domain_min, domain_max)
-            decreasing_intervals = self._filter_intervals_by_domain(decreasing_intervals, domain_min, domain_max)
-            monotonicity = context["ask_format"]
-            if monotonicity == "tăng" and not increasing_intervals:
-                continue
-            if monotonicity == "giảm" and not decreasing_intervals:
-                continue
-            if constraints.get("must_be_positive", False):
-                coeffs = [c, 0, b, 0, a]
-                if not self._check_polynomial_constraints(coeffs, domain_min, domain_max, constraints):
-                    continue
-            return {
-                'context': context,
-                'function_type': 'polynomial_4',
-                'a': a, 'b': b, 'c': c,
-                'critical_points': critical_points,
-                'increasing_intervals': increasing_intervals,
-                'decreasing_intervals': decreasing_intervals,
-                'monotonicity': monotonicity
-            }
-        raise RuntimeError("Không thể sinh hàm bậc 4 nghiệm đẹp.")
 
     def calculate_answer(self) -> str:
         """Tính đáp án đúng và chuẩn bị toàn bộ dữ liệu cho lời giải."""
@@ -1301,7 +903,7 @@ class RationalQuadraticMonotonicity(BaseOptimizationQuestion):
         # Domain constraint text
         physical_meaning = constraints.get('physical_meaning', '')
         if physical_meaning:
-            if context['name'] in ['velocity', 'bacteria', 'distance', 'population', 'economy']:
+            if context['name'] in ['bacteria', 'population']:
                 domain_constraint_text = f"Với điều kiện {physical_meaning} (theo ngữ cảnh thực tế)."
             else:
                 domain_constraint_text = f"Với điều kiện {physical_meaning}."
@@ -1385,129 +987,18 @@ class RationalQuadraticMonotonicity(BaseOptimizationQuestion):
     def _get_unified_function_info(self, function_type, var, context) -> dict:
         """Thống nhất cách tính function và derivative info cho tất cả loại hàm."""
 
-        if function_type == 'rational':
-            return self._calculate_rational_function_info(var, context)
-        elif function_type == 'polynomial_3':
+        if function_type == 'polynomial_3':
             return self._calculate_polynomial_3_info(var, context)
-        elif function_type == 'polynomial_4':
-            return self._calculate_polynomial_4_info(var, context)
         else:
             raise ValueError(f"Unsupported function type: {function_type}")
 
-    def _calculate_rational_function_info(self, var, context) -> dict:
-        """Tính toán thông tin cho hàm phân thức - thống nhất với generate_parameters."""
-        a, b, c, d, e = self.parameters['a'], self.parameters['b'], self.parameters['c'], self.parameters['d'], self.parameters['e']
-        function_latex = format_rational_for_latex(a, b, c, d, e, var)
-        x_p = self.parameters['x_p']
-        x1, x2 = self.parameters['critical_points']
-
-        # Tính đạo hàm - sử dụng cùng logic với get_monotonicity_intervals
-        A_prime = a * d
-        B_prime = 2 * a * e
-        C_prime = b * e - c * d
-
-        # Format tử số của đạo hàm
-        derivative_num_terms = []
-        if A_prime != 0:
-            if A_prime == 1:
-                derivative_num_terms.append(f"{var}^2")
-            elif A_prime == -1:
-                derivative_num_terms.append(f"-{var}^2")
-            else:
-                derivative_num_terms.append(f"{A_prime}{var}^2")
-
-        if B_prime != 0:
-            if B_prime == 1:
-                derivative_num_terms.append(f"+{var}")
-            elif B_prime == -1:
-                derivative_num_terms.append(f"-{var}")
-            else:
-                derivative_num_terms.append(f"+{B_prime}{var}" if B_prime > 0 else f"{B_prime}{var}")
-
-        if C_prime != 0:
-            derivative_num_terms.append(f"+{C_prime}" if C_prime > 0 else f"{C_prime}")
-
-        derivative_numerator = "".join(derivative_num_terms)
-        if derivative_numerator.startswith("+"):
-            derivative_numerator = derivative_numerator[1:]
-        derivative_numerator = derivative_numerator or "0"
-
-        # Format mẫu số của đạo hàm
-        denom_terms = []
-        if d != 0:
-            if d == 1:
-                denom_terms.append(f"{var}")
-            elif d == -1:
-                denom_terms.append(f"-{var}")
-            else:
-                denom_terms.append(f"{d}{var}")
-        if e != 0:
-            denom_terms.append(f"+{e}" if e > 0 else f"{e}")
-        derivative_denominator = "".join(denom_terms)
-        if derivative_denominator.startswith("+"):
-            derivative_denominator = derivative_denominator[1:]
-
-        derivative_latex = f"\\frac{{{clean_sign_expression(derivative_numerator)}}}{{\\left({clean_sign_expression(derivative_denominator)}\\right)^2}}"
-        
-        # Kiểm tra các trường hợp đặc biệt để rút gọn
-        if x1 == x2:  # Nghiệm kép
-            factor = f"({var} - {format_coord_solution(x1)})"
-            if A_prime < 0:
-                derivative_latex = f"\\frac{{-{abs(A_prime)}({var} - {format_coord_solution(x1)})^2}}{{\\left({clean_sign_expression(derivative_denominator)}\\right)^2}}"
-            elif A_prime > 0:
-                derivative_latex = f"\\frac{{{A_prime}({var} - {format_coord_solution(x1)})^2}}{{\\left({clean_sign_expression(derivative_denominator)}\\right)^2}}"
-
-        return {
-            'function_intro': CONTEXT_DESCRIPTIONS.get(context['name']) or context.get('subject') or 'hàm số',
-            'function_symbol': 'f',
-            'function_latex': function_latex,
-            'domain_info': f"Tập xác định: \\(D = \\mathbb{{R}} \\setminus \\{{{x_p}\\}}\\)",
-            'derivative_section': f"\\[\nf'({var}) = \\frac{{d}}{{d{var}}}\\left({function_latex}\\right) = {derivative_latex}\n\\]",
-            'critical_points_section': f"\\[\nf'({var}) = 0 \\Leftrightarrow {clean_sign_expression(derivative_numerator)} = 0\n\\]\n\\[\n\\Leftrightarrow {var} = {x1}; \\quad {var} = {x2}\n\\]",
-            'discontinuity_section': f"Điểm gián đoạn: \\({var} = {x_p}\\)",
-            'derivative_symbol': 'f'
-        }
-
     def _calculate_polynomial_3_info(self, var, context) -> dict:
-        """Tính toán thông tin cho hàm bậc 3 - sử dụng dạng mới k*x³/3 + k(b-a)*x²/2 - kabx + C."""
-        
-        # Check if we have new form parameters
-        if 'k' in self.parameters and 'param_a' in self.parameters:
-            # Use new parametric form
-            k = self.parameters['k']
-            param_a = self.parameters['param_a']
-            param_b = self.parameters['param_b']
-            C = self.parameters['C']
-            critical_points = self.parameters['critical_points']
-            
-            # Format function in new form using standard polynomial formatting
-            # k*x³/3 + k(b-a)*x²/2 - kabx + C
-            coeff1 = k / 3
-            coeff2 = k * (param_b - param_a) / 2
-            coeff3 = -k * param_a * param_b
-            coeff4 = C
-            
-            # Use format_polynomial for consistency
-            function_latex = format_polynomial([coeff1, coeff2, coeff3, coeff4], var)
-            
-            # Format derivative: f'(x) = k(x-a)(x+b)
-            if k == 1:
-                derivative_latex = f"({var} - {param_a})({var} + {param_b})"
-            elif k == -1:
-                derivative_latex = f"-({var} - {param_a})({var} + {param_b})"
-            else:
-                derivative_latex = f"{k}({var} - {param_a})({var} + {param_b})"
-            
-            # Critical points section
-            critical_points_section = f"\\[\nf'({var}) = 0 \\Rightarrow {derivative_latex} = 0\n\\]\n\\[\n{var} = {param_a}; \\quad {var} = {-param_b}\n\\]"
-            
-        else:
-            # Fallback to standard form
-            a, b, c, d = self.parameters['a'], self.parameters['b'], self.parameters['c'], self.parameters['d']
-            function_latex = format_polynomial([a, b, c, d], var)
-            critical_points = self.parameters['critical_points']
-            derivative_latex = format_polynomial([3 * a, 2 * b, c], var)
-            critical_points_section = f"\\[\nf'({var}) = 0 \\Rightarrow {var} = {format_coord_solution(critical_points[0])}; \\quad {var} = {format_coord_solution(critical_points[1])}\n\\]"
+        """Tính toán thông tin cho hàm bậc 3 - thống nhất với generate_parameters."""
+        a, b, c, d = self.parameters['a'], self.parameters['b'], self.parameters['c'], self.parameters['d']
+        function_latex = format_polynomial([a, b, c, d], var)
+        critical_points = self.parameters['critical_points']
+
+        derivative_latex = format_polynomial([3 * a, 2 * b, c], var)
 
         return {
             'function_intro': CONTEXT_DESCRIPTIONS.get(context['name']) or context.get('subject') or 'hàm số',
@@ -1515,46 +1006,10 @@ class RationalQuadraticMonotonicity(BaseOptimizationQuestion):
             'function_latex': function_latex,
             'domain_info': "Tập xác định: \\(D = \\mathbb{R}\\)",
             'derivative_section': f"\\[\nf'({var}) = {derivative_latex}\n\\]",
-            'critical_points_section': critical_points_section,
+            'critical_points_section': f"\\[\nf'({var}) = 0 \\Rightarrow {var} = {format_coord_solution(critical_points[0])}; \\quad {var} = {format_coord_solution(critical_points[1])}\n\\]",
             'discontinuity_section': "",  # Không có điểm gián đoạn
             'derivative_symbol': 'f'
         }
-
-    def _calculate_polynomial_4_info(self, var, context) -> dict:
-        """Tính toán thông tin cho hàm bậc 4 - thống nhất với generate_parameters."""
-        a, b, c = self.parameters['a'], self.parameters['b'], self.parameters['c']
-        function_latex = format_polynomial([a, 0, b, 0, c], var)
-        critical_points = self.parameters['critical_points']
-
-        if context['question_type'] == 'velocity_from_distance':
-            # Trường hợp đặc biệt: quãng đường → vận tốc → gia tốc
-            velocity_latex = format_polynomial([4 * a, 0, 2 * b, 0], var)
-            acceleration_latex = format_polynomial([2 * b, 0, 12 * a], var)
-
-            return {
-                'function_intro': "quãng đường",
-                'function_symbol': 's',
-                'function_latex': function_latex,
-                'domain_info': "",  # Sẽ được thêm vào domain_constraint_text
-                'derivative_section': f"\\[\nv({var}) = s'({var}) = {velocity_latex} \\text{{ (m/s)}}\n\\]\n\nTính đạo hàm của vận tốc (gia tốc):\n\\[\nv'({var}) = {acceleration_latex}\n\\]",
-                'critical_points_section': f"\\[\nv'({var}) = 0 \\Rightarrow {acceleration_latex} = 0\n\\]\n\nGiải phương trình:\n\\[\n{acceleration_latex} = 0 \\Rightarrow \\text{{tìm các điểm tới hạn của gia tốc}}\n\\]",
-                'discontinuity_section': "",  # Không có điểm gián đoạn
-                'derivative_symbol': 'v'
-            }
-        else:
-            # Trường hợp thông thường
-            derivative_latex = format_polynomial([4 * a, 0, 2 * b, 0], var)
-
-            return {
-                'function_intro': CONTEXT_DESCRIPTIONS.get(context['name']) or context.get('subject') or 'hàm số',
-                'function_symbol': 'f',
-                'function_latex': function_latex,
-                'domain_info': "Tập xác định: \\(D = \\mathbb{R}\\)",
-                'derivative_section': f"\\[\nf'({var}) = {derivative_latex}\n\\]",
-                'critical_points_section': f"\\[\nf'({var}) = 0 \\Rightarrow \\text{{tìm các điểm tới hạn}}\n\\]",
-                'discontinuity_section': "",  # Không có điểm gián đoạn
-                'derivative_symbol': 'f'
-            }
 
     def generate_wrong_answers(self) -> List[str]:
         """Sinh 3 đáp án sai hợp lý dựa trên ngữ cảnh."""
@@ -1656,25 +1111,15 @@ class RationalQuadraticMonotonicity(BaseOptimizationQuestion):
         time_limit_text = f"trong {domain_max} {context['time_unit']} đầu"
 
         # Tạo biểu thức hàm số
-        if function_type == 'rational':
-            a, b, c, d, e = self.parameters['a'], self.parameters['b'], self.parameters['c'], self.parameters['d'], \
-                self.parameters['e']
-            function_latex = format_rational_for_latex(a, b, c, d, e, var)
-        elif function_type == 'polynomial_3':
+        if function_type == 'polynomial_3':
             a, b, c, d = self.parameters['a'], self.parameters['b'], self.parameters['c'], self.parameters['d']
             function_latex = format_polynomial([a, b, c, d], var)
-        elif function_type == 'polynomial_4':
-            a, b, c = self.parameters['a'], self.parameters['b'], self.parameters['c']
-            function_latex = format_polynomial([a, 0, b, 0, c], var)
+        else:
+            raise ValueError(f"Unsupported function_type: {function_type}")
 
         # Tạo câu hỏi dựa trên loại với giới hạn thời gian rõ ràng
-        if context['question_type'] == 'velocity_from_distance':
-            question_text = f"""{context['description']} \\(s({var}) = {function_latex}\\) ({context['unit']}) sau \\({var}\\) {context['time_unit']}. 
-            Vận tốc tức thời của vật tại thời điểm \\({var}\\) là \\(v({var}) = s'({var})\\). 
-            Hỏi vận tốc của vật {monotonicity} trong khoảng thời gian nào {time_limit_text}?"""
-        else:
-            question_text = f"""{context['description']} \\(f({var}) = {function_latex}\\) ({context['unit']}) sau \\({var}\\) {context['time_unit']}. 
-            Hỏi {context['subject']} {monotonicity} trong khoảng thời gian nào {time_limit_text}?"""
+        question_text = f"""{context['description']} \\(f({var}) = {function_latex}\\) ({context['unit']}) sau \\({var}\\) {context['time_unit']}. 
+        Hỏi {context['subject']} {monotonicity} trong khoảng thời gian nào {time_limit_text}?"""
 
         return question_text
 
@@ -1797,7 +1242,7 @@ class OptimizationGenerator:
 
     # Danh sách các dạng toán có sẵn
     QUESTION_TYPES = [
-        RationalQuadraticMonotonicity,
+        PolynomialCubicMonotonicity,
         # ===== THÊM DẠNG TOÁN MỚI VÀO DANH SÁCH NÀY =====
     ]
 
@@ -1840,7 +1285,6 @@ class OptimizationGenerator:
             try:
                 question = cls.generate_question(i)
                 questions.append(question)
-                logging.info(f"Đã tạo thành công câu hỏi {i}")
             except Exception as e:
                 logging.error(f"Lỗi tạo câu hỏi {i}: {e}")
                 continue
@@ -1860,7 +1304,6 @@ class OptimizationGenerator:
                     question_instance = question_type()
                     question_content, correct_answer = question_instance.generate_question_only(i)
                     questions_data.append((question_content, correct_answer))
-                    logging.info(f"Đã tạo thành công câu hỏi {i}")
                 except Exception as e:
                     logging.error(f"Lỗi tạo câu hỏi {i}: {e}")
                     continue
@@ -1886,7 +1329,6 @@ class OptimizationGenerator:
         try:
             with open(filename, "w", encoding="utf-8") as f:
                 f.write(latex_content)
-            logging.info(f"Đã tạo file LaTeX: {filename}")
             return filename
         except Exception as e:
             logging.error(f"Lỗi ghi file {filename}: {e}")
@@ -1913,7 +1355,6 @@ class OptimizationGenerator:
         try:
             with open(filename, "w", encoding="utf-8") as f:
                 f.write(latex_content)
-            logging.info(f"Đã tạo file LaTeX: {filename}")
             return filename
         except Exception as e:
             logging.error(f"Lỗi ghi file {filename}: {e}")

@@ -380,10 +380,6 @@ def convert_decimals_to_fractions(expr):
     
     return expr
 
-def format_number_as_fraction(number):
-    """Chuyển đổi số thành phân số LaTeX. (Legacy function - use format_number_enhanced instead)"""
-    return format_number_enhanced(number)
-
 def clean_negative_signs(expr):
     """Clean up double negative signs in expressions and remove + from standalone positive numbers."""
     # Kiểm tra nếu là multi-line text (có \n) thì chỉ làm sạch từng dòng riêng biệt
@@ -654,9 +650,6 @@ def generate_asymptote_question_3():
     is_correct = random.choice([True, False])
     displayed_count = correct_count if is_correct else wrong_count
     
-    # Debug: Print the logic to verify correctness
-    # print(f"DEBUG: correct_count={correct_count}, displayed_count={displayed_count}, is_correct={is_correct}")
-    
     return {
         'proposition': f"Có \\({displayed_count}\\) giá trị nguyên của \\(m\\) trong khoảng \\([{interval_start}; {interval_end}]\\) để hàm số \\(y = {formula}\\) có {chosen_option}.",
         'is_correct': is_correct,
@@ -772,7 +765,6 @@ def generate_oblique_asymptote_question():
     
     # Thêm log để kiểm tra hệ số
     logging.info(f"[OBLIQUE] Sinh hệ số: A={A}, B={B}, C={C}, D={D}, E={E}")
-    print(f"[OBLIQUE] Sinh hệ số: A={A}, B={B}, C={C}, D={D}, E={E}")
     
     # Calculate oblique asymptote using exact formula from asymptote_mc.py
     slope = Fraction(A, D)
@@ -789,10 +781,6 @@ def generate_oblique_asymptote_question():
     # Format polynomial strings with proper exponents
     num_str = format_polynomial([A, B, C])
     denom_str = format_polynomial([D, E])
-
-    print(f"[DEBUG] format_polynomial input: {[A, B, C]}, output: {num_str}")
-    print(f"[DEBUG] format_polynomial input: {[D, E]}, output: {denom_str}")
-    
     # Fix x{2} → x^{2} formatting  
     num_str = num_str.replace("x{2}", "x^{2}")
     denom_str = denom_str.replace("x{2}", "x^{2}")
@@ -1061,49 +1049,74 @@ def generate_single_question(question_number):
         
         # Try to format roots as exact expressions with radicals
         def format_quadratic_root_simple(discriminant, b_coeff, a_coeff, is_positive_sqrt=True):
-            """Format quadratic root in LaTeX with radicals when possible"""
-            sqrt_disc = math.sqrt(discriminant)
+            """
+            Format nghiệm phương trình bậc hai dạng (-b ± √Δ)/(2a)
+            Đơn giản hóa tự động thành dạng đẹp nhất - SIMPLIFIED VERSION
+            """
             
-            # Check if discriminant can be written as k²×n where n is square-free
-            # Try to find the largest perfect square factor
-            sqrt_disc_rounded = round(sqrt_disc)
+            # Bước 1: Phân tích √discriminant = k√n với n là số không có thừa số chính phương
+            def simplify_sqrt(num):
+                """Đơn giản √num thành k√n"""
+                if num == 0:
+                    return 0, 1
+                
+                k = 1
+                n = num
+                
+                # Tìm tất cả thừa số chính phương
+                i = 2
+                while i * i <= n:
+                    while n % (i * i) == 0:
+                        k *= i
+                        n //= (i * i)
+                    i += 1
+                
+                return k, n
             
-            # Check if sqrt_disc is close to an integer times sqrt of a small integer
-            for k in range(1, 20):
-                for n in range(2, 50):
-                    if abs(discriminant - k*k*n) < 1e-10:
-                        # Found discriminant = k²n, so √discriminant = k√n
-                        # Simplify √n if possible (e.g., √8 = 2√2)
-                        simplified_n = n
-                        simplified_k = k
-                        
-                        # Check if n has perfect square factors
-                        for factor in [4, 9, 16, 25, 36, 49]:
-                            if n % factor == 0:
-                                simplified_k *= int(math.sqrt(factor))
-                                simplified_n = n // factor
-                                break
-                        
-                        sqrt_part = f"{simplified_k}\\sqrt{{{simplified_n}}}" if simplified_k > 1 else f"\\sqrt{{{simplified_n}}}"
-                        
-                        # Calculate the root: (-b ± k√n) / (2a)
-                        sign = "+" if is_positive_sqrt else "-"
-                        
-                        # Simplify the expression
-                        if 2*a_coeff == 2:  # denominator is 2
-                            constant_part = -b_coeff // 2 if b_coeff % 2 == 0 else None
-                            if constant_part is not None and constant_part != 0:
-                                return f"{constant_part} {sign} {sqrt_part}"
-                            elif constant_part == 0:
-                                return f"{sign if is_positive_sqrt else '-'}{sqrt_part}"
-                            else:
-                                return f"\\frac{{{-b_coeff} {sign} {sqrt_part}}}{{2}}"
-                        else:
-                            return f"\\frac{{{-b_coeff} {sign} {sqrt_part}}}{{{2*a_coeff}}}"
-                        
-            # Fallback to decimal approximation
-            root_value = (-b_coeff + (sqrt_disc if is_positive_sqrt else -sqrt_disc)) / (2*a_coeff)
-            return format_number_enhanced(root_value)
+            sqrt_coeff, sqrt_radical = simplify_sqrt(discriminant)
+            
+            # Bước 2: Tạo chuỗi √discriminant
+            if sqrt_radical == 1:
+                sqrt_str = str(sqrt_coeff)  # Số nguyên
+            elif sqrt_coeff == 1:
+                sqrt_str = f"\\sqrt{{{sqrt_radical}}}"
+            else:
+                sqrt_str = f"{sqrt_coeff}\\sqrt{{{sqrt_radical}}}"
+            
+            # Bước 3: Tính nghiệm (-b ± √discriminant)/(2a)
+            sign = "+" if is_positive_sqrt else "-"
+            
+            # Bước 4: Cố gắng đơn giản hóa
+            if 2 * a_coeff == 2:  # mẫu số = 2
+                # Kiểm tra xem có thể rút gọn không
+                if b_coeff % 2 == 0 and sqrt_coeff % 2 == 0:
+                    const_part = -b_coeff // 2
+                    new_sqrt_coeff = sqrt_coeff // 2
+                    
+                    # Tạo chuỗi kết quả
+                    parts = []
+                    
+                    # Phần hằng số
+                    if const_part != 0:
+                        parts.append(str(const_part))
+                    
+                    # Phần căn thức
+                    if sqrt_radical == 1:
+                        # Không có căn thức (số nguyên)
+                        sqrt_part = str(new_sqrt_coeff)
+                    elif new_sqrt_coeff == 1:
+                        sqrt_part = f"\\sqrt{{{sqrt_radical}}}"
+                    else:
+                        sqrt_part = f"{new_sqrt_coeff}\\sqrt{{{sqrt_radical}}}"
+                    
+                    # Kết hợp
+                    if len(parts) == 0:  # const_part = 0
+                        return f"{'-' if not is_positive_sqrt else ''}{sqrt_part}"
+                    else:
+                        return f"{parts[0]} {sign} {sqrt_part}"
+            
+            # Trường hợp không đơn giản được
+            return f"\\frac{{{-b_coeff} {sign} {sqrt_str}}}{{{2*a_coeff}}}"
         
         # Format the roots using the simplified function
         root1_formatted = format_quadratic_root_simple(discriminant, b_coeff, a_coeff, False)
