@@ -24,11 +24,10 @@ env/
 *.vrb
 
 # Generated PDFs and LaTeX files (temporary)
-questions.tex
-questions.pdf
-questions.aux
-questions.log
-*_questions.pdf
+*.tex
+*.pdf
+*.aux
+*.log
 
 # Test files
 test_*.py

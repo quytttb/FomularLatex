@@ -1,0 +1,745 @@
+import random
+from typing import List, Tuple, Dict
+
+# Simple formatters
+
+def format_point(pt: Tuple[int, int, int]) -> str:
+    return f"({pt[0]};{pt[1]};{pt[2]})"
+
+
+def format_vec(v: Tuple[int, int, int]) -> str:
+    return f"({v[0]};{v[1]};{v[2]})"
+
+
+def format_plane_equation(a: int, b: int, c: int, d: int) -> str:
+    parts: List[str] = []
+    if a == 1:
+        parts.append("x")
+    elif a == -1:
+        parts.append(def prop_plane_axes_intersection_variant() -> Dict[str, str]:
+    # Ví dụ: Câu 15 - qua A(2;0;0), B(0;-3;0), C(0;0;5)
+    A = (2, 0, 0)
+    B = (0, -3, 0) 
+    C = (0, 0, 5)
+    
+    AB = subtract(B, A)  # (-2, -3, 0)
+    AC = subtract(C, A)  # (-2, 0, 5)
+    n = cross(AB, AC)    # ((-3)*5 - 0*0, 0*(-2) - (-2)*5, (-2)*0 - (-3)*(-2)) = (-15, 10, -6)
+    # Đổi dấu để có pháp tuyến dương: (15, -10, 6)
+    n = (-n[0], -n[1], -n[2])  # (15, -10, 6)
+    d = -(n[0]*A[0] + n[1]*A[1] + n[2]*A[2])  # d = -(15*2) = -30
+    
+    true_text = f"Phương trình mặt phẳng đi qua ba điểm A{format_point(A)}, B{format_point(B)}, C{format_point(C)} là \\({format_plane_equation(n[0], n[1], n[2], d)}\\)."
+    
+    # False: sai dấu một hệ số
+    wrong_n = (n[0], n[1], -n[2])
+    wrong_d = -(wrong_n[0]*A[0] + wrong_n[1]*A[1] + wrong_n[2]*A[2])
+    false_text = f"Phương trình mặt phẳng đi qua ba điểm A{format_point(A)}, B{format_point(B)}, C{format_point(C)} là \\({format_plane_equation(wrong_n[0], wrong_n[1], wrong_n[2], wrong_d)}\\)."
+    
+    return {"true": true_text, "false": false_text} 0:
+        parts.append(f"{a}x")
+    if b != 0:
+        if parts:
+            if b == 1:
+                parts.append("+ y")
+            elif b == -1:
+                parts.append("- y")
+            elif b > 0:
+                parts.append(f"+ {b}y")
+            else:
+                parts.append(f"- {abs(b)}y")
+        else:
+            if b == 1:
+                parts.append("y")
+            elif b == -1:
+                parts.append("-y")
+            else:
+                parts.append(f"{b}y")
+    if c != 0:
+        if parts:
+            if c == 1:
+                parts.append("+ z")
+            elif c == -1:
+                parts.append("- z")
+            elif c > 0:
+                parts.append(f"+ {c}z")
+            else:
+                parts.append(f"- {abs(c)}z")
+        else:
+            if c == 1:
+                parts.append("z")
+            elif c == -1:
+                parts.append("-z")
+            else:
+                parts.append(f"{c}z")
+    if d != 0:
+        if d > 0 and parts:
+            parts.append(f"+ {d}")
+        else:
+            parts.append(str(d))
+    if not parts:
+        parts.append("0")
+    return " ".join(parts) + " = 0"
+
+# Vector/plane helpers
+
+def cross(u: Tuple[int, int, int], v: Tuple[int, int, int]) -> Tuple[int, int, int]:
+    return (u[1]*v[2] - u[2]*v[1], u[2]*v[0] - u[0]*v[2], u[0]*v[1] - u[1]*v[0])
+
+
+def subtract(p: Tuple[int, int, int], q: Tuple[int, int, int]) -> Tuple[int, int, int]:
+    return (p[0]-q[0], p[1]-q[1], p[2]-q[2])
+
+
+def add(p: Tuple[int, int, int], q: Tuple[int, int, int]) -> Tuple[int, int, int]:
+    return (p[0]+q[0], p[1]+q[1], p[2]+q[2])
+
+
+def dot(u: Tuple[int, int, int], v: Tuple[int, int, int]) -> int:
+    return u[0]*v[0] + u[1]*v[1] + u[2]*v[2]
+
+
+def scale(v: Tuple[int, int, int], k: int) -> Tuple[int, int, int]:
+    return (k*v[0], k*v[1], k*v[2])
+
+# Propositions (Part B)
+
+# GROUP 1: Ví dụ 10 - Câu 1-2: Mặt phẳng qua điểm với VTPT
+
+def prop_plane_point_normal() -> Dict[str, str]:
+    points = [(1, 0, -2), (1, -1, 2), (3, 9, -1)]
+    normals = [(1, -1, 2), (4, 2, -6), (1, 0, 0)]
+    
+    pt = random.choice(points)
+    n = random.choice(normals)
+    
+    # Tính d = -(ax₀ + by₀ + cz₀)
+    d = -(n[0]*pt[0] + n[1]*pt[1] + n[2]*pt[2])
+    
+    true_text = f"Phương trình mặt phẳng đi qua {format_point(pt)} và có VTPT {format_vec(n)} là \\({format_plane_equation(n[0], n[1], n[2], d)}\\)."
+    
+    # False: sai dấu d hoặc sai hệ số
+    wrong_d = d + random.choice([-2, -1, 1, 2])
+    false_text = f"Phương trình mặt phẳng đi qua {format_point(pt)} và có VTPT {format_vec(n)} là \\({format_plane_equation(n[0], n[1], n[2], wrong_d)}\\)."
+    
+    return {"true": true_text, "false": false_text}
+
+
+def prop_plane_perpendicular_axis() -> Dict[str, str]:
+    # Random coordinate plane
+    axes = [
+        ("Ox", (1, 0, 0), 0, "x"),
+        ("Oy", (0, 1, 0), 1, "y"), 
+        ("Oz", (0, 0, 1), 2, "z")
+    ]
+    
+    axis_name, normal, coord_idx, var = random.choice(axes)
+    point = (3, 9, -1)
+    
+    true_text = f"Phương trình mặt phẳng đi qua M{format_point(point)} và vuông góc với trục {axis_name} là \\({var}-{point[coord_idx]}=0\\)."
+    
+    # False: sai dấu hoặc sai hệ số
+    wrong_coord = point[coord_idx] + random.choice([-2, 1, 2])
+    false_text = f"Phương trình mặt phẳng đi qua M{format_point(point)} và vuông góc với trục {axis_name} là \\({var}-{wrong_coord}=0\\)."
+    
+    return {"true": true_text, "false": false_text}
+
+
+# GROUP 2: Ví dụ 11 - Câu 3: Mặt phẳng vuông góc đường thẳng
+
+def prop_plane_perpendicular_line() -> Dict[str, str]:
+    A = (0, 1, 1)
+    B = (1, 2, 3)
+    AB = subtract(B, A)  # (1, 1, 2)
+    
+    # PT: (x-0) + (y-1) + 2(z-1) = 0 → x + y + 2z - 3 = 0
+    d = -(AB[0]*A[0] + AB[1]*A[1] + AB[2]*A[2])
+    
+    true_text = f"Cho A{format_point(A)} và B{format_point(B)}. Phương trình mặt phẳng đi qua A và vuông góc với đường thẳng AB là \\({format_plane_equation(AB[0], AB[1], AB[2], d)}\\)."
+    
+    # False: sai hệ số hoặc dấu
+    wrong_d = d + random.choice([-3, 3, -6])
+    false_text = f"Cho A{format_point(A)} và B{format_point(B)}. Phương trình mặt phẳng đi qua A và vuông góc với đường thẳng AB là \\({format_plane_equation(AB[0], AB[1], AB[2], wrong_d)}\\)."
+    
+    return {"true": true_text, "false": false_text}
+
+
+def prop_plane_through_centroid_perpendicular() -> Dict[str, str]:
+    A = (2, -1, 1)
+    B = (1, 0, 3) 
+    C = (0, -2, -1)
+    
+    # Trọng tâm G = ((2+1+0)/3, (-1+0-2)/3, (1+3-1)/3) = (1, -1, 1)
+    G = ((A[0]+B[0]+C[0])//3, (A[1]+B[1]+C[1])//3, (A[2]+B[2]+C[2])//3)
+    BC = subtract(C, B)  # (-1, -2, -4)
+    
+    # PT qua G vuông góc BC: -1(x-1) - 2(y+1) - 4(z-1) = 0 → -x - 2y - 4z + 3 = 0 → x + 2y + 4z - 3 = 0
+    d = -(BC[0]*G[0] + BC[1]*G[1] + BC[2]*G[2])
+    
+    true_text = f"Cho A{format_point(A)}, B{format_point(B)}, C{format_point(C)}. Mặt phẳng qua trọng tâm G của tam giác ABC và vuông góc với BC có phương trình \\({format_plane_equation(-BC[0], -BC[1], -BC[2], -d)}\\)."
+    
+    # False: sai dấu d
+    false_text = f"Cho A{format_point(A)}, B{format_point(B)}, C{format_point(C)}. Mặt phẳng qua trọng tâm G của tam giác ABC và vuông góc với BC có phương trình \\({format_plane_equation(-BC[0], -BC[1], -BC[2], -d-4)}\\)."
+    
+    return {"true": true_text, "false": false_text}
+
+
+# GROUP 3: Ví dụ 12-13 - Câu 4-6: Mặt phẳng song song/trung trực
+
+def prop_plane_parallel_to_plane() -> Dict[str, str]:
+    A = (0, 1, 3)
+    # Mặt phẳng Q: 2x - 3z + 1 = 0 có VTPT (2, 0, -3)
+    normal = (2, 0, -3)
+    
+    # PT song song: 2x - 3z + d = 0, qua A(0,1,3) → 2(0) - 3(3) + d = 0 → d = 9
+    d = -(normal[0]*A[0] + normal[1]*A[1] + normal[2]*A[2])
+    
+    true_text = f"Phương trình mặt phẳng qua A{format_point(A)} và song song với (Q): 2x - 3z + 1 = 0 là \\({format_plane_equation(normal[0], normal[1], normal[2], d)}\\)."
+    
+    # False: sai dấu d
+    wrong_d = -d
+    false_text = f"Phương trình mặt phẳng qua A{format_point(A)} và song song với (Q): 2x - 3z + 1 = 0 là \\({format_plane_equation(normal[0], normal[1], normal[2], wrong_d)}\\)."
+    
+    return {"true": true_text, "false": false_text}
+
+
+def prop_plane_parallel_coordinate_plane() -> Dict[str, str]:
+    # Random coordinate plane
+    coordinate_planes = [
+        ("Oxy", "z", 2),
+        ("Oyz", "x", 0), 
+        ("Oxz", "y", 1)
+    ]
+    
+    plane_name, var, coord_idx = random.choice(coordinate_planes)
+    point = (3, 2, 3)
+    
+    true_text = f"Phương trình mặt phẳng qua A{format_point(point)} và song song với ({plane_name}) là \\({var} - {point[coord_idx]} = 0\\)."
+    
+    # False: sai dấu hoặc hệ số
+    wrong_coord = point[coord_idx] + random.choice([-1, 1, 2])
+    false_text = f"Phương trình mặt phẳng qua A{format_point(point)} và song song với ({plane_name}) là \\({var} - {wrong_coord} = 0\\)."
+    
+    return {"true": true_text, "false": false_text}
+
+
+def prop_plane_perpendicular_bisector() -> Dict[str, str]:
+    A = (2, 0, 1)
+    B = (0, -2, 3)
+    
+    # Trung điểm M = ((2+0)/2, (0-2)/2, (1+3)/2) = (1, -1, 2)
+    M = ((A[0]+B[0])//2, (A[1]+B[1])//2, (A[2]+B[2])//2)
+    AB = subtract(B, A)  # (-2, -2, 2)
+    
+    # PT: -2(x-1) - 2(y+1) + 2(z-2) = 0 → -2x - 2y + 2z + 0 = 0 → x + y - z + 0 = 0
+    # Thực tế: -2x + 2 - 2y - 2 + 2z - 4 = 0 → -2x - 2y + 2z - 4 = 0 → x + y - z + 2 = 0
+    d = -(AB[0]*M[0] + AB[1]*M[1] + AB[2]*M[2])
+    
+    true_text = f"Phương trình mặt phẳng trung trực của đoạn AB với A{format_point(A)}, B{format_point(B)} là \\({format_plane_equation(-AB[0], -AB[1], -AB[2], -d)}\\)."
+    
+    # False: sai dấu
+    false_text = f"Phương trình mặt phẳng trung trực của đoạn AB với A{format_point(A)}, B{format_point(B)} là \\({format_plane_equation(-AB[0], AB[1], -AB[2], -d)}\\)."
+    
+    return {"true": true_text, "false": false_text}
+
+
+# GROUP 4: Ví dụ 14 - Câu 7: Mặt phẳng với cặp VTCP
+
+def prop_plane_direction_vectors() -> Dict[str, str]:
+    M = (1, 2, -3)
+    a = (2, 1, 2)
+    b = (3, 2, -1)
+    
+    # VTPT = a × b = (1*(-1) - 2*2, 2*3 - 2*(-1), 2*2 - 1*3) = (-5, 8, 1)
+    n = cross(a, b)
+    d = -(n[0]*M[0] + n[1]*M[1] + n[2]*M[2])
+    
+    true_text = f"Mặt phẳng đi qua điểm M{format_point(M)} và có cặp véctơ chỉ phương {format_vec(a)}, {format_vec(b)} có phương trình \\({format_plane_equation(n[0], n[1], n[2], d)}\\)."
+    
+    # False: sai dấu một hệ số
+    wrong_n = (n[0], -n[1], n[2])
+    wrong_d = -(wrong_n[0]*M[0] + wrong_n[1]*M[1] + wrong_n[2]*M[2])
+    false_text = f"Mặt phẳng đi qua điểm M{format_point(M)} và có cặp véctơ chỉ phương {format_vec(a)}, {format_vec(b)} có phương trình \\({format_plane_equation(wrong_n[0], wrong_n[1], wrong_n[2], wrong_d)}\\)."
+    
+    return {"true": true_text, "false": false_text}
+
+    return {"true": true_text, "false": false_text}
+
+
+# GROUP 5: Ví dụ 15 - Câu 8: Mặt phẳng qua 3 điểm
+
+def prop_plane_three_points_variant() -> Dict[str, str]:
+    points_sets = [
+        ((1, 0, 2), (1, 1, 1), (2, 3, 0)),
+        ((3, -1, 2), (4, -1, -1), (2, 0, 2))
+    ]
+    
+    A, B, C = random.choice(points_sets)
+    AB = subtract(B, A)
+    AC = subtract(C, A)
+    n = cross(AB, AC)
+    d = -(n[0]*A[0] + n[1]*A[1] + n[2]*A[2])
+    
+    true_text = f"Phương trình mặt phẳng đi qua ba điểm A{format_point(A)}, B{format_point(B)}, C{format_point(C)} là \\({format_plane_equation(n[0], n[1], n[2], d)}\\)."
+    
+    # False: sai dấu một hệ số
+    wrong_d = d + random.choice([-8, 8, -16])
+    false_text = f"Phương trình mặt phẳng đi qua ba điểm A{format_point(A)}, B{format_point(B)}, C{format_point(C)} là \\({format_plane_equation(n[0], n[1], n[2], wrong_d)}\\)."
+    
+    return {"true": true_text, "false": false_text}
+
+
+# GROUP 6: Ví dụ 16-17 - Câu 9-10: Mặt phẳng chứa trục
+
+def prop_plane_contains_axis() -> Dict[str, str]:
+    # Random axis
+    axes = [
+        ("Ox", (0, 1, 0), (0, 0, 1), "y", "z"),
+        ("Oy", (1, 0, 0), (0, 0, 1), "x", "z"),
+        ("Oz", (1, 0, 0), (0, 1, 0), "x", "y")
+    ]
+    
+    axis_name, v1, v2, var1, var2 = random.choice(axes)
+    points = [(2, -2, 3), (2, 2, -3)]
+    M = random.choice(points)
+    
+    # Mặt phẳng chứa trục có dạng ax + by + cz = 0 (đi qua O)
+    # VTPT vuông góc với cả 2 vector chỉ phương của trục
+    if axis_name == "Ox":  # chứa Ox, vuông góc với (0,1,0) và (0,0,1)
+        # VTPT = (0,a,b) với aM_y + bM_z = 0
+        # 3M_y + 2M_z = 0 với M=(2,-2,3) → 3(-2) + 2(3) = 0 ✓
+        true_text = f"Phương trình mặt phẳng đi qua điểm M{format_point(M)} và chứa trục {axis_name} là \\(3{var1}+2{var2}=0\\)."
+        false_text = f"Phương trình mặt phẳng đi qua điểm M{format_point(M)} và chứa trục {axis_name} là \\(3{var1}-2{var2}=0\\)."
+    elif axis_name == "Oy":  # chứa Oy  
+        true_text = f"Phương trình mặt phẳng đi qua điểm M{format_point(M)} và chứa trục {axis_name} là \\(3{var1}-2{var2}=0\\)."
+        false_text = f"Phương trình mặt phẳng đi qua điểm M{format_point(M)} và chứa trục {axis_name} là \\(3{var1}+2{var2}=0\\)."
+    else:  # chứa Oz
+        true_text = f"Phương trình mặt phẳng đi qua điểm M{format_point(M)} và chứa trục {axis_name} là \\(3{var1}-2{var2}=0\\)."
+        false_text = f"Phương trình mặt phẳng đi qua điểm M{format_point(M)} và chứa trục {axis_name} là \\(3{var1}+2{var2}+2=0\\)."
+    
+    return {"true": true_text, "false": false_text}
+
+
+def prop_plane_parallel_to_axis() -> Dict[str, str]:
+    A = (1, 0, 1)
+    B = (-1, 2, 2)
+    
+    # Random axis 
+    axes = [
+        ("Ox", (1, 0, 0), "x"),
+        ("Oy", (0, 1, 0), "y"),
+        ("Oz", (0, 0, 1), "z")
+    ]
+    
+    axis_name, axis_vec, var = random.choice(axes)
+    AB = subtract(B, A)  # (-2, 2, 1)
+    
+    # VTPT vuông góc cả AB và axis_vec
+    n = cross(AB, axis_vec)
+    d = -(n[0]*A[0] + n[1]*A[1] + n[2]*A[2])
+    
+    if axis_name == "Ox":
+        # n = (-2,2,1) × (1,0,0) = (0, -1, -2)
+        true_text = f"Mặt phẳng đi qua hai điểm A{format_point(A)}, B{format_point(B)} và song song với trục {axis_name} có phương trình \\(y+2z-2=0\\)."
+        false_text = f"Mặt phẳng đi qua hai điểm A{format_point(A)}, B{format_point(B)} và song song với trục {axis_name} có phương trình \\(y-2z+2=0\\)."
+    elif axis_name == "Oy":
+        true_text = f"Mặt phẳng đi qua hai điểm A{format_point(A)}, B{format_point(B)} và song song với trục {axis_name} có phương trình \\(x-z+1=0\\)."
+        false_text = f"Mặt phẳng đi qua hai điểm A{format_point(A)}, B{format_point(B)} và song song với trục {axis_name} có phương trình \\(x+z-1=0\\)."
+    else:  # Oz
+        true_text = f"Mặt phẳng đi qua hai điểm A{format_point(A)}, B{format_point(B)} và song song với trục {axis_name} có phương trình \\(x+y-1=0\\)."
+        false_text = f"Mặt phẳng đi qua hai điểm A{format_point(A)}, B{format_point(B)} và song song với trục {axis_name} có phương trình \\(x-y+1=0\\)."
+    
+    return {"true": true_text, "false": false_text}
+
+
+# GROUP 7: Ví dụ 18 - Câu 11: Mặt phẳng qua 2 điểm, song song đường thẳng
+
+def prop_plane_through_points_parallel_line() -> Dict[str, str]:
+    A = (1, 1, 0)
+    B = (0, 2, 1) 
+    C = (1, 0, 2)
+    D = (1, 1, 1)
+    
+    AB = subtract(B, A)  # (-1, 1, 1)
+    CD = subtract(D, C)  # (0, 1, -1)
+    
+    # VTPT = AB × CD
+    n = cross(AB, CD)  # (1*(-1) - 1*1, 1*0 - (-1)*(-1), (-1)*1 - 1*0) = (-2, -1, -1)
+    d = -(n[0]*A[0] + n[1]*A[1] + n[2]*A[2])
+    
+    true_text = f"Cho A{format_point(A)}, B{format_point(B)}, C{format_point(C)}, D{format_point(D)}. Mặt phẳng đi qua A, B và song song với đường CD có phương trình \\({format_plane_equation(n[0], n[1], n[2], d)}\\)."
+    
+    # False: sai dấu một hệ số
+    wrong_n = (n[0], n[1], -n[2])
+    wrong_d = -(wrong_n[0]*A[0] + wrong_n[1]*A[1] + wrong_n[2]*A[2])
+    false_text = f"Cho A{format_point(A)}, B{format_point(B)}, C{format_point(C)}, D{format_point(D)}. Mặt phẳng đi qua A, B và song song với đường CD có phương trình \\({format_plane_equation(wrong_n[0], wrong_n[1], wrong_n[2], wrong_d)}\\)."
+    
+    return {"true": true_text, "false": false_text}
+
+
+def prop_plane_contains_line_parallel_line() -> Dict[str, str]:
+    A = (-1, 1, -2)
+    B = (1, 2, -1)
+    C = (1, 1, 2) 
+    D = (-1, -1, 2)
+    
+    AB = subtract(B, A)  # (2, 1, 1)
+    CD = subtract(D, C)  # (-2, -2, 0)
+    
+    # VTPT = AB × CD 
+    n = cross(AB, CD)  # (1*0 - 1*(-2), 1*(-2) - 2*0, 2*(-2) - 1*(-2)) = (2, -2, -2)
+    d = -(n[0]*A[0] + n[1]*A[1] + n[2]*A[2])
+    
+    true_text = f"Cho A{format_point(A)}, B{format_point(B)}, C{format_point(C)}, D{format_point(D)}. Mặt phẳng chứa đường AB và song song CD có phương trình \\({format_plane_equation(n[0], n[1], n[2], d)}\\)."
+    
+    # False: sai dấu hệ số
+    wrong_d = d - 4
+    false_text = f"Cho A{format_point(A)}, B{format_point(B)}, C{format_point(C)}, D{format_point(D)}. Mặt phẳng chứa đường AB và song song CD có phương trình \\({format_plane_equation(n[0], n[1], n[2], wrong_d)}\\)."
+    
+    return {"true": true_text, "false": false_text}
+
+
+# GROUP 8: Ví dụ 21 - Câu 16 (phần B): planes through 3 points and (ABC) from projections
+    A = (1, 0, 0)
+    B = (0, -2, 0)
+    C = (0, 0, 3)
+    AB = subtract(B, A)
+    AC = subtract(C, A)
+    n = cross(AB, AC)
+    a, b, c = n
+    d = -(a*A[0] + b*A[1] + c*A[2])
+    true_text = f"Phương trình mặt phẳng qua A{format_point(A)}, B{format_point(B)}, C{format_point(C)} là \\((P): {format_plane_equation(a,b,c,d)}\\)."
+    # false: tweak d by ±1
+    false_text = f"Phương trình mặt phẳng qua A{format_point(A)}, B{format_point(B)}, C{format_point(C)} là \\((P): {format_plane_equation(a,b,c,d+1)}\\)."
+    return {"true": true_text, "false": false_text}
+
+
+# GROUP 8: Ví dụ 21 - Câu 16 (phần B): planes through 3 points and (ABC) from projections
+
+def prop_plane_through_three_points() -> Dict[str, str]:
+    A = (1, 0, 0)
+    B = (0, -2, 0)
+    C = (0, 0, 3)
+    AB = subtract(B, A)  # (-1, -2, 0)
+    AC = subtract(C, A)  # (-1, 0, 3)
+    n = cross(AB, AC)    # (-6, 3, -2)
+    # Đổi dấu để có pháp tuyến (6, 3, 2)
+    n = (-n[0], -n[1], -n[2])  # (6, 3, 2)
+    a, b, c = n
+    d = -(a*A[0] + b*A[1] + c*A[2])  # d = -6
+    true_text = f"Phương trình mặt phẳng qua A{format_point(A)}, B{format_point(B)}, C{format_point(C)} là \\({format_plane_equation(a,b,c,d)}\\)."
+    # false: wrong sign for normal
+    false_text = f"Phương trình mặt phẳng qua A{format_point(A)}, B{format_point(B)}, C{format_point(C)} là \\({format_plane_equation(-a,b,-c,d)}\\)."
+    return {"true": true_text, "false": false_text}
+
+
+def prop_plane_from_projections_ABC() -> Dict[str, str]:
+    # Given M(1,2,3) -> projections give A(1,0,0), B(0,2,0), C(0,0,3) and plane x/1 + y/2 + z/3 = 1 -> 6x+3y+2z-6=0
+    M = (1, 2, 3)
+    A, B, C = (M[0], 0, 0), (0, M[1], 0), (0, 0, M[2])
+    true_text = "Với điểm M(1;2;3), gọi A, B, C lần lượt là hình chiếu của M trên các trục tọa độ. Khi đó phương trình mặt phẳng (ABC) là \\(6x+3y+2z-6=0\\)."
+    false_text = "Với điểm M(1;2;3), gọi A, B, C lần lượt là hình chiếu của M trên các trục tọa độ. Khi đó phương trình mặt phẳng (ABC) là \\(2x+3y+6z-6=0\\)."
+    return {"true": true_text, "false": false_text}
+
+
+def prop_plane_axes_intersection_variant() -> Dict[str, str]:
+    # Ví dụ: Câu 15 - qua A(2;0;0), B(0;-3;0), C(0;0;5)
+    A = (2, 0, 0)
+    B = (0, -3, 0) 
+    C = (0, 0, 5)
+    
+    AB = subtract(B, A)  # (-2, -3, 0)
+    AC = subtract(C, A)  # (-2, 0, 5)
+    n = cross(AB, AC)    # (-3*5 - 0*0, 0*(-2) - (-2)*5, (-2)*0 - (-3)*(-2)) = (-15, 10, -6)
+    d = -(n[0]*A[0] + n[1]*A[1] + n[2]*A[2])
+    
+    true_text = f"Phương trình mặt phẳng đi qua ba điểm A{format_point(A)}, B{format_point(B)}, C{format_point(C)} là \\({format_plane_equation(n[0], n[1], n[2], d)}\\)."
+    
+    # False: sai dấu một hệ số
+    wrong_n = (n[0], -n[1], n[2])
+    wrong_d = -(wrong_n[0]*A[0] + wrong_n[1]*A[1] + wrong_n[2]*A[2])
+    false_text = f"Phương trình mặt phẳng đi qua ba điểm A{format_point(A)}, B{format_point(B)}, C{format_point(C)} là \\({format_plane_equation(wrong_n[0], wrong_n[1], wrong_n[2], wrong_d)}\\)."
+    
+    return {"true": true_text, "false": false_text}
+
+
+# GROUP 9: Ví dụ 22 - Câu 18: parallel with (ABC) from given M
+
+def prop_parallel_to_ABC_from_M() -> Dict[str, str]:
+    M = (-3, 2, 4)
+    # M(-3,2,4) → hình chiếu: A(-3,0,0), B(0,2,0), C(0,0,4)
+    # (ABC): x/(-3) + y/2 + z/4 = 1 → -4x + 6y + 3z = 12 → 4x - 6y - 3z + 12 = 0
+    true_text = "Cho điểm M(-3;2;4). Gọi A, B, C lần lượt là hình chiếu của M trên các trục tọa độ. Mặt phẳng song song với (ABC) có phương trình \\(4x-6y-3z+12=0\\)."
+    false_text = "Cho điểm M(-3;2;4). Gọi A, B, C lần lượt là hình chiếu của M trên các trục tọa độ. Mặt phẳng song song với (ABC) có phương trình \\(3x-6y-4z+12=0\\)."
+    return {"true": true_text, "false": false_text}
+
+
+# GROUP 10: Ví dụ 19-20 - Câu 12-14: Mặt phẳng vuông góc với 2 mặt phẳng
+
+def prop_plane_perpendicular_two_planes() -> Dict[str, str]:
+    A = (1, 2, -2)
+    B = (2, -1, 4)
+    
+    # Mặt phẳng Q: x - 2y - z + 1 = 0 có VTPT n_Q = (1, -2, -1)
+    n_Q = (1, -2, -1)
+    AB = subtract(B, A)  # (1, -3, 6)
+    
+    # VTPT của mặt phẳng cần tìm = AB × n_Q
+    n = cross(AB, n_Q)  # ((-3)*(-1) - 6*(-2), 6*1 - 1*(-1), 1*(-2) - (-3)*1) = (15, 7, 1)
+    d = -(n[0]*A[0] + n[1]*A[1] + n[2]*A[2])
+    
+    true_text = f"Mặt phẳng đi qua hai điểm A{format_point(A)}, B{format_point(B)} và vuông góc với mặt phẳng (Q): x-2y-z+1=0 có phương trình \\({format_plane_equation(n[0], n[1], n[2], d)}\\)."
+    
+    # False: sai dấu một hệ số
+    wrong_n = (-n[0], n[1], n[2])
+    wrong_d = -(wrong_n[0]*A[0] + wrong_n[1]*A[1] + wrong_n[2]*A[2])
+    false_text = f"Mặt phẳng đi qua hai điểm A{format_point(A)}, B{format_point(B)} và vuông góc với mặt phẳng (Q): x-2y-z+1=0 có phương trình \\({format_plane_equation(wrong_n[0], wrong_n[1], wrong_n[2], wrong_d)}\\)."
+    
+    return {"true": true_text, "false": false_text}
+
+
+def prop_plane_contains_axis_perpendicular_plane() -> Dict[str, str]:
+    # Random axis
+    axes = [
+        ("Ox", (1, 0, 0), "y", "z"),
+        ("Oy", (0, 1, 0), "x", "z"), 
+        ("Oz", (0, 0, 1), "x", "y")
+    ]
+    
+    axis_name, axis_vec, var1, var2 = random.choice(axes)
+    
+    # Mặt phẳng Q: x - 2y - z + 7 = 0 có VTPT (1, -2, -1)
+    n_Q = (1, -2, -1)
+    
+    # VTPT của mặt phẳng cần tìm = axis_vec × n_Q
+    n = cross(axis_vec, n_Q)
+    
+    if axis_name == "Ox":
+        # (1,0,0) × (1,-2,-1) = (0, 1, -2)
+        true_text = f"Mặt phẳng chứa trục {axis_name} và vuông góc với mặt phẳng (Q): x-2y-z+7=0 có phương trình \\({var1}+2{var2}=0\\)."
+        false_text = f"Mặt phẳng chứa trục {axis_name} và vuông góc với mặt phẳng (Q): x-2y-z+7=0 có phương trình \\({var1}-2{var2}=0\\)."
+    elif axis_name == "Oy":
+        true_text = f"Mặt phẳng chứa trục {axis_name} và vuông góc với mặt phẳng (Q): x-2y-z+7=0 có phương trình \\({var2}-{var1}=0\\)."
+        false_text = f"Mặt phẳng chứa trục {axis_name} và vuông góc với mặt phẳng (Q): x-2y-z+7=0 có phương trình \\({var2}+{var1}=0\\)."
+    else:  # Oz
+        true_text = f"Mặt phẳng chứa trục {axis_name} và vuông góc với mặt phẳng (Q): x-2y-z+7=0 có phương trình \\(2{var1}+{var2}=0\\)."
+        false_text = f"Mặt phẳng chứa trục {axis_name} và vuông góc với mặt phẳng (Q): x-2y-z+7=0 có phương trình \\(2{var1}-{var2}=0\\)."
+    
+    return {"true": true_text, "false": false_text}
+
+
+def prop_plane_perpendicular_two_given_planes() -> Dict[str, str]:
+    # Cho 2 mặt phẳng P1, P2 và một điểm
+    P1_normal = (1, 2, 3)  # P1: x + 2y + 3z + 4 = 0
+    P2_normal = (3, 2, -1) # P2: 3x + 2y - z + 1 = 0
+    A = (1, 1, 1)
+    
+    # VTPT của mặt phẳng cần tìm = P1_normal × P2_normal
+    n = cross(P1_normal, P2_normal)  # (2*(-1) - 3*2, 3*3 - 1*(-1), 1*2 - 2*3) = (-8, 10, -4)
+    # Rút gọn: (4, -5, 2)
+    n = (n[0]//2, n[1]//2, n[2]//2) if n[0] % 2 == 0 else n
+    d = -(n[0]*A[0] + n[1]*A[1] + n[2]*A[2])
+    
+    true_text = f"Cho các mặt phẳng (P₁): x+2y+3z+4=0 và (P₂): 3x+2y-z+1=0. Mặt phẳng đi qua điểm A{format_point(A)} và vuông góc với cả hai mặt phẳng trên có phương trình \\({format_plane_equation(n[0], n[1], n[2], d)}\\)."
+    
+    # False: sai dấu một hệ số
+    wrong_n = (n[0], -n[1], n[2])
+    wrong_d = -(wrong_n[0]*A[0] + wrong_n[1]*A[1] + wrong_n[2]*A[2])
+    false_text = f"Cho các mặt phẳng (P₁): x+2y+3z+4=0 và (P₂): 3x+2y-z+1=0. Mặt phẳng đi qua điểm A{format_point(A)} và vuông góc với cả hai mặt phẳng trên có phương trình \\({format_plane_equation(wrong_n[0], wrong_n[1], wrong_n[2], wrong_d)}\\)."
+    
+    return {"true": true_text, "false": false_text}
+
+
+# GROUP 11: Ví dụ 25 - Câu 23 - Câu 24: minimal volume and related optimization forms
+
+def prop_min_volume_plane_through_M() -> Dict[str, str]:
+    # For M(1,2,3), min volume plane through M cutting axes gives x/1 + y/2 + z/3 = 1 -> 6x+3y+2z-6=0
+    M = (1, 2, 3)
+    true_text = "Mặt phẳng đi qua M(1;2;3) cắt ba trục tọa độ sao cho thể tích tứ diện OABC nhỏ nhất có phương trình \\(6x+3y+2z-18=0\\)."
+    false_text = "Mặt phẳng đi qua M(1;2;3) cắt ba trục tọa độ sao cho thể tích tứ diện OABC nhỏ nhất có phương trình \\(6x+3y+3z-21=0\\)."
+    return {"true": true_text, "false": false_text}
+
+
+def prop_min_sum_inverse_squares() -> Dict[str, str]:
+    # Shape-only statement consistent with tex style
+    true_text = "Với M(1;2;3), mặt phẳng (P) để \\(T=\\dfrac{1}{OA^2}+\\dfrac{1}{OB^2}+\\dfrac{1}{OC^2}\\) nhỏ nhất có dạng \\(x+ay+bz+c=0\\)."
+    false_text = "Với M(1;2;3), mặt phẳng (P) để \\(T\\) nhỏ nhất có dạng \\(ax+by+cz+d=0\\) với \\(a=b=c=0\\)."
+    return {"true": true_text, "false": false_text}
+
+
+def prop_min_volume_variant() -> Dict[str, str]:
+    # Câu 22: M(2,1,1) → min volume
+    M = (2, 1, 1)
+    # Công thức tối ưu: coefficients tỉ lệ với 1/coordinate
+    # 2x/4 + y/1 + z/1 = 1 → x/2 + y + z = 1 → x + 2y + 2z = 2 → x + 2y + 2z - 2 = 0
+    
+    true_text = f"Mặt phẳng đi qua M{format_point(M)} cắt ba trục tọa độ sao cho thể tích tứ diện OABC nhỏ nhất có phương trình \\(x+2y+2z-6=0\\)."
+    false_text = f"Mặt phẳng đi qua M{format_point(M)} cắt ba trục tọa độ sao cho thể tích tứ diện OABC nhỏ nhất có phương trình \\(2x+y-2z-1=0\\)."
+    
+    return {"true": true_text, "false": false_text}
+
+
+def prop_min_volume_with_value() -> Dict[str, str]:
+    # Câu 23: M(1,1,4) → tính thể tích nhỏ nhất
+    M = (1, 1, 4)
+    
+    true_text = f"Mặt phẳng đi qua M{format_point(M)} cắt ba trục tọa độ sao cho tứ diện OABC có thể tích nhỏ nhất. Thể tích nhỏ nhất đó bằng \\(72\\)."
+    false_text = f"Mặt phẳng đi qua M{format_point(M)} cắt ba trục tọa độ sao cho tứ diện OABC có thể tích nhỏ nhất. Thể tích nhỏ nhất đó bằng \\(36\\)."
+    
+    return {"true": true_text, "false": false_text}
+
+
+# GROUP 12: Câu 17-21: Điều kiện đặc biệt (trực tâm, trọng tâm)
+
+def prop_plane_orthocenter_condition() -> Dict[str, str]:
+    # Câu 17: M(1,2,5) là trực tâm ABC
+    M = (1, 2, 5)
+    
+    true_text = f"Mặt phẳng đi qua điểm M{format_point(M)} và cắt trục tọa độ Ox, Oy, Oz tại A, B, C sao cho M là trực tâm tam giác ABC có phương trình \\(x+2y+5z-30=0\\)."
+    false_text = f"Mặt phẳng đi qua điểm M{format_point(M)} và cắt trục tọa độ Ox, Oy, Oz tại A, B, C sao cho M là trực tâm tam giác ABC có phương trình \\(x+y+z-8=0\\)."
+    
+    return {"true": true_text, "false": false_text}
+
+
+def prop_plane_orthocenter_variant() -> Dict[str, str]:
+    # Câu 18: M(3,2,1) là trực tâm ABC
+    M = (3, 2, 1)
+    
+    true_text = f"Mặt phẳng đi qua M{format_point(M)} và cắt các trục tọa độ Ox, Oy, Oz lần lượt tại A, B, C sao cho M là trực tâm của tam giác ABC có phương trình \\(3x+2y+z-14=0\\)."
+    false_text = f"Mặt phẳng đi qua M{format_point(M)} và cắt các trục tọa độ Ox, Oy, Oz lần lượt tại A, B, C sao cho M là trực tâm của tam giác ABC có phương trình \\(2x+3y+6z=0\\)."
+    
+    return {"true": true_text, "false": false_text}
+
+
+def prop_plane_centroid_condition() -> Dict[str, str]:
+    # Câu 19: G(2,-1,3) là trọng tâm ABC
+    G = (2, -1, 3)
+    
+    true_text = f"Mặt phẳng đi qua điểm G{format_point(G)} và cắt các trục tọa độ tại các điểm A, B, C sao cho G là trọng tâm của tam giác ABC có phương trình \\(3x-6y+2z-18=0\\)."
+    false_text = f"Mặt phẳng đi qua điểm G{format_point(G)} và cắt các trục tọa độ tại các điểm A, B, C sao cho G là trọng tâm của tam giác ABC có phương trình \\(3x+6y-2z-6=0\\)."
+    
+    return {"true": true_text, "false": false_text}
+
+
+def prop_plane_special_ratio_condition() -> Dict[str, str]:
+    # Câu 20: A(1,1,1), B(0,2,2) và OM=2ON
+    A = (1, 1, 1)
+    B = (0, 2, 2)
+    
+    true_text = f"Mặt phẳng đi qua điểm A{format_point(A)} và B{format_point(B)} đồng thời cắt các tia Ox, Oy lần lượt tại hai điểm M, N sao cho OM=2ON có phương trình \\(2x+3y-z-4=0\\)."
+    false_text = f"Mặt phẳng đi qua điểm A{format_point(A)} và B{format_point(B)} đồng thời cắt các tia Ox, Oy lần lượt tại hai điểm M, N sao cho OM=2ON có phương trình \\(3x+y+2z-6=0\\)."
+    
+    return {"true": true_text, "false": false_text}
+
+
+def prop_plane_equal_segments() -> Dict[str, str]:
+    # Câu 21: C(0,0,3), M(-1,3,2), chắn đoạn bằng nhau trên Ox, Oy
+    C = (0, 0, 3)
+    M = (-1, 3, 2)
+    
+    true_text = f"Cho hai điểm C{format_point(C)} và M{format_point(M)}. Mặt phẳng qua C, M đồng thời chắn trên các nửa trục dương Ox, Oy các đoạn thẳng bằng nhau có phương trình \\(x+y+z-3=0\\)."
+    false_text = f"Cho hai điểm C{format_point(C)} và M{format_point(M)}. Mặt phẳng qua C, M đồng thời chắn trên các nửa trục dương Ox, Oy các đoạn thẳng bằng nhau có phương trình \\(x+y+2z-6=0\\)."
+    
+    return {"true": true_text, "false": false_text}
+
+
+# Pool/group registry for Part B
+PART_B_GROUPS: List[List] = [
+    # GROUP 1: Cơ bản - điểm với VTPT
+    [prop_plane_point_normal, prop_plane_perpendicular_axis],
+    
+    # GROUP 2: Vuông góc đường thẳng  
+    [prop_plane_perpendicular_line, prop_plane_through_centroid_perpendicular],
+    
+    # GROUP 3: Song song/trung trực
+    [prop_plane_parallel_to_plane, prop_plane_parallel_coordinate_plane, prop_plane_perpendicular_bisector],
+    
+    # GROUP 4: Cặp VTCP
+    [prop_plane_direction_vectors],
+    
+    # GROUP 5: Qua 3 điểm
+    [prop_plane_three_points_variant],
+    
+    # GROUP 6: Chứa trục
+    [prop_plane_contains_axis, prop_plane_parallel_to_axis],
+    
+    # GROUP 7: Qua 2 điểm, song song đường thẳng
+    [prop_plane_through_points_parallel_line, prop_plane_contains_line_parallel_line],
+    
+    # GROUP 8: Ví dụ 21 - Câu 16 (phần B) - qua 3 điểm trên trục và hình chiếu
+    [prop_plane_through_three_points, prop_plane_from_projections_ABC, prop_plane_axes_intersection_variant],
+    
+    # GROUP 9: Ví dụ 22 - Câu 18 - song song với (ABC)
+    [prop_parallel_to_ABC_from_M],
+    
+    # GROUP 10: Vuông góc với 2 mặt phẳng
+    [prop_plane_perpendicular_two_planes, prop_plane_contains_axis_perpendicular_plane, prop_plane_perpendicular_two_given_planes],
+    
+    # GROUP 11: Ví dụ 25 - Câu 23 - Câu 24 - tối ưu thể tích
+    [prop_min_volume_plane_through_M, prop_min_sum_inverse_squares, prop_min_volume_variant, prop_min_volume_with_value],
+    
+    # GROUP 12: Điều kiện đặc biệt
+    [prop_plane_orthocenter_condition, prop_plane_orthocenter_variant, prop_plane_centroid_condition, prop_plane_special_ratio_condition, prop_plane_equal_segments],
+]
+
+
+def generate_question(question_number: int) -> str:
+    # Chọn 1 nhóm mapping trong phần B, lấy 1 mệnh đề từ nhóm đó
+    selected_group = random.choice(PART_B_GROUPS)
+    primary_gen = random.choice(selected_group)
+    # Pool còn lại là tất cả generator của phần B trừ nhóm đã chọn
+    all_gens: List = []
+    for grp in PART_B_GROUPS:
+        for g in grp:
+            all_gens.append(g)
+    remaining_pool = [g for g in all_gens if g not in selected_group]
+    if len(remaining_pool) >= 3:
+        other_gens = random.sample(remaining_pool, 3)
+    else:
+        other_gens = [random.choice(remaining_pool) for _ in range(3)] if remaining_pool else [primary_gen]*3
+    selected_gens = [primary_gen] + other_gens
+    propositions: List[Dict[str, str]] = [gen() for gen in selected_gens]
+    num_true = random.randint(1, 4)
+    true_indices = set(random.sample(range(4), num_true))
+    option_labels = ['a', 'b', 'c', 'd']
+    content = f"Câu {question_number}: Chọn các mệnh đề đúng.\n\n"
+    for i in range(4):
+        text = propositions[i]['true'] if i in true_indices else propositions[i]['false']
+        marker = '*' if i in true_indices else ''
+        content += f"{marker}{option_labels[i]}) {text}\n\n"
+    return content
+
+
+def create_latex_document(questions: List[str], title: str = "Các bài toán về viết phương trình mặt phẳng - Đúng/Sai") -> str:
+    latex = (
+        "\\documentclass[a4paper,12pt]{article}\n"
+        "\\usepackage{amsmath,amssymb}\n"
+        "\\usepackage{geometry}\n"
+        "\\geometry{a4paper, margin=1in}\n"
+        "\\usepackage{polyglossia}\n"
+        "\\setmainlanguage{vietnamese}\n"
+        "\\setmainfont{Times New Roman}\n"
+        "\\begin{document}\n\n"
+        f"\\section*{{{title}}}\n\n"
+    )
+    latex += "\n\n".join(questions)
+    latex += "\n\n\\end{document}"
+    return latex
+
+
+def main():
+    import sys
+    try:
+        num_questions = int(sys.argv[1]) if len(sys.argv) > 1 else 5
+    except Exception:
+        num_questions = 5
+    questions = [generate_question(i+1) for i in range(num_questions)]
+    tex = create_latex_document(questions)
+    out = "plane_true_false_part_B.tex"
+    with open(out, "w", encoding="utf-8") as f:
+        f.write(tex)
+    print(f"Generated {out} with {len(questions)} question(s). Compile with XeLaTeX.")
+
+
+if __name__ == "__main__":
+    main()
