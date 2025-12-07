@@ -51,6 +51,45 @@ def format_vec(v: Tuple[int, int, int]) -> str:
     return f"({v[0]};{v[1]};{v[2]})"
 
 
+def format_parametric_line(point: Tuple[int, int, int], vec: Tuple[int, int, int], t_symbol: str = "t") -> str:
+    r"""Format phương trình tham số của đường thẳng, chuẩn hóa dấu và hệ số:
+
+    Quy tắc:
+    - Ẩn hệ số 1 và −1: dùng "t" hoặc "-t" thay vì "1t", "-1t".
+    - Bỏ hạng 0: không in "+ 0t" hay "x = 0 + ...".
+    - Dùng dấu cộng/trừ chuẩn: "x = a + bt" hoặc "x = a - bt"; nếu a = 0 thì "x = bt"/"x = t"/"x = -t".
+    """
+    (x0, y0, z0) = point
+    (a, b, c) = vec
+
+    def comp(name: str, base: int, coef: int) -> str:
+        if coef == 0:
+            # Chỉ còn hằng số
+            return f"{name} = {base}"
+        # Chuẩn hóa phần hệ số t
+        t_term = t_symbol if abs(coef) == 1 else f"{abs(coef)}{t_symbol}"
+        if base == 0:
+            # Không in "0 + ..."
+            return f"{name} = {t_term}" if coef > 0 else f"{name} = -{t_term}"
+        # Có hằng số khác 0
+        if coef > 0:
+            return f"{name} = {base} + {t_term}"
+        else:
+            return f"{name} = {base} - {t_term}"
+
+    x_line = comp("x", x0, a)
+    y_line = comp("y", y0, b)
+    z_line = comp("z", z0, c)
+
+    return (
+        "\\begin{cases}\n"
+        f"{x_line} \\\\ \n"
+        f"{y_line} \\\\ \n"
+        f"{z_line}\n"
+        f"\\end{{cases}},\\; {t_symbol} \\in \\mathbb{{R}}"
+    )
+
+
 def subtract(p1: Tuple[int, int, int], p2: Tuple[int, int, int]) -> Tuple[int, int, int]:
     """Vector p1 - p2"""
     return p1[0] - p2[0], p1[1] - p2[1], p1[2] - p2[2]
@@ -97,6 +136,21 @@ def random_nonzero_vector(min_val: int = -3, max_val: int = 3) -> Tuple[int, int
             return v
     # Fallback an toàn nếu không tìm được (rất hiếm)
     return 1, 0, 0
+
+
+def random_component_nonzero(min_val: int, max_val: int) -> int:
+    """Sinh 1 số nguyên trong [min_val, max_val] khác 0."""
+    choices = [i for i in range(min_val, max_val + 1) if i != 0]
+    return random.choice(choices)
+
+
+def random_vector_all_components_nonzero(min_val: int, max_val: int) -> Tuple[int, int, int]:
+    """Sinh véctơ có mỗi thành phần đều khác 0, trong [min_val, max_val]."""
+    return (
+        random_component_nonzero(min_val, max_val),
+        random_component_nonzero(min_val, max_val),
+        random_component_nonzero(min_val, max_val),
+    )
 
 
 def gcd_multiple(*args):
@@ -180,39 +234,16 @@ def format_plane_equation(a: int, b: int, c: int, d: int) -> str:
 def choose_linear_form_coeffs() -> Tuple[int, int, int, int]:
     """Chọn hệ số cho biểu thức pA + qB + rC + sD"""
     coeffs = [-3, -2, -1, 0, 1, 2, 3]
-    return tuple(random.choice(coeffs) for _ in range(4))
+    p = random.choice(coeffs)
+    q = random.choice(coeffs)
+    r = random.choice(coeffs)
+    s = random.choice(coeffs)
+    return (p, q, r, s)
 
 
 def format_linear_form(p: int, q: int, r: int, s: int) -> str:
     """Format biểu thức pA + qB + rC + sD"""
-
-    def add_term(parts, coeff, symbol):
-        if coeff == 0:
-            return
-        term_coeff = coeff
-        if not parts:
-            if term_coeff == 1:
-                parts.append(symbol)
-            elif term_coeff == -1:
-                parts.append(f"-{symbol}")
-            else:
-                parts.append(f"{term_coeff}{symbol}")
-        else:
-            if term_coeff == 1:
-                parts.append(f"+ {symbol}")
-            elif term_coeff == -1:
-                parts.append(f"- {symbol}")
-            elif term_coeff > 0:
-                parts.append(f"+ {term_coeff}{symbol}")
-            else:
-                parts.append(f"- {abs(term_coeff)}{symbol}")
-
-    parts = []
-    add_term(parts, p, "A")
-    add_term(parts, q, "B")
-    add_term(parts, r, "C")
-    add_term(parts, s, "D")
-    return " ".join(parts) if parts else "0"
+    return format_linear_combination([p, q, r, s], ["A", "B", "C", "D"])
 
 
 def evaluate_linear_form(p: int, q: int, r: int, s: int, a: int, b: int, c: int, d: int) -> int:
@@ -280,33 +311,62 @@ def format_sympy_to_latex(expr):
 
 # ---------- Small reusable helpers for expression building ----------
 
+def inline_math(s: str) -> str:
+    """Wrap inline math with \\( ... \\)."""
+    return f"\\({s}\\)"
+
+
+def display_math(s: str) -> str:
+    """Wrap display math with \\[ ... \\] on separate lines for readability."""
+    return f"\\[\n{s}\n\\]"
+
+
+def named_point(name: str, pt: Tuple[int, int, int]) -> str:
+    """Format named point like \\(A(x;y;z)\\) for LaTeX inline math."""
+    return inline_math(f"{name}{format_point(pt)}")
+
+
+def format_sphere_equation(center: Tuple[int, int, int], r_squared: int) -> str:
+    """Format phương trình mặt cầu (x - x0)^2 + (y - y0)^2 + (z - z0)^2 = R^2
+    với chuẩn hóa dấu và số: (x + 2)^2, x^2 thay cho (x - 0)^2, v.v.
+    """
+    def term(var: str, c: int) -> str:
+        if c == 0:
+            return f"{var}^2"
+        sign = '-' if c > 0 else '+'
+        val = abs(c)
+        return f"({var} {sign} {val})^2"
+
+    return f"{term('x', center[0])} + {term('y', center[1])} + {term('z', center[2])} = {r_squared}"
+
+def format_linear_combination(coeffs: List[int], symbols: List[str]) -> str:
+    """Chuẩn hóa biểu thức tuyến tính dạng k1*s1 + k2*s2 + ...
+
+    Quy tắc:
+    - Bỏ các hạng có hệ số 0.
+    - Ẩn hệ số 1 và −1: dùng "x" hoặc "-x" thay vì "1x", "-1x".
+    - Dấu và khoảng trắng chuẩn: "x + 2y - z".
+    - Nếu tất cả 0, trả về "0".
+    """
+    assert len(coeffs) == len(symbols)
+
+    parts: List[str] = []
+
+    for k, sym in zip(coeffs, symbols):
+        if k == 0:
+            continue
+        core = sym if abs(k) == 1 else f"{abs(k)}{sym}"
+        if not parts:
+            parts.append(core if k > 0 else f"-{core}")
+        else:
+            parts.append(f"+ {core}" if k > 0 else f"- {core}")
+
+    return " ".join(parts) if parts else "0"
+
 def format_linear_expression(coeffs: Tuple[int, int, int], symbols: Tuple[str, str, str]) -> str:
     """Format biểu thức tuyến tính k1*s1 + k2*s2 + k3*s3 với quy tắc dấu/1/−1 như các câu hỏi.
     coeffs: (k1, k2, k3), symbols: ví dụ ('a','b','c') hoặc ('u','v','w')."""
-    k1, k2, k3 = coeffs
-
-    def term_str(k: int, sym: str, has_prev: bool) -> str:
-        if k == 0:
-            return ""
-        # hiển thị hệ số 1 và -1
-        core = sym if abs(k) == 1 else f"{abs(k)}{sym}"
-        if not has_prev:
-            return core if k > 0 else f"-{core}"
-        else:
-            return f"+ {core}" if k > 0 else f"- {core}"
-
-    parts: List[str] = []
-    s1 = term_str(k1, symbols[0], False)
-    if s1:
-        parts.append(s1)
-    s2 = term_str(k2, symbols[1], bool(parts))
-    if s2:
-        parts.append(s2)
-    s3 = term_str(k3, symbols[2], bool(parts))
-    if s3:
-        parts.append(s3)
-
-    return " ".join(parts) if parts else "0"
+    return format_linear_combination(list(coeffs), list(symbols))
 
 
 def dot3(coeffs: Tuple[int, int, int], vec: Tuple[int, int, int]) -> int:
@@ -342,15 +402,44 @@ def cau_1_mat_phang_qua_3_diem() -> Dict[str, str]:
     d = -(a * A[0] + b * A[1] + c * A[2])
     a, b, c, d = normalize_plane_coeffs(a, b, c, d)
 
-    # Tạo biểu thức linear
-    p, q, r, s = choose_linear_form_coeffs()
-    expr_str = format_linear_form(p, q, r, s)
-    value_true = evaluate_linear_form(p, q, r, s, a, b, c, d)
+    # Chọn ngẫu nhiên hệ số nào sẽ cho trước (0=A, 1=B, 2=C, 3=D)
+    plane_coeffs = [a, b, c, d]
+    fixed_idx = random.randint(0, 3)
+    fixed_value = plane_coeffs[fixed_idx]
+    
+    # Ba hệ số còn lại
+    remaining_indices = [i for i in range(4) if i != fixed_idx]
+    
+    # Tạo biểu thức cho 3 hệ số còn lại
+    coeff_pool = [-3, -2, -1, 1, 2, 3]
+    k1 = random.choice(coeff_pool)
+    k2 = random.choice(coeff_pool)
+    k3 = random.choice(coeff_pool)
+    
+    value_true = (k1 * plane_coeffs[remaining_indices[0]] + 
+                  k2 * plane_coeffs[remaining_indices[1]] + 
+                  k3 * plane_coeffs[remaining_indices[2]])
     value_false = pick_wrong_value(value_true)
+    
+    # Format phương trình và biểu thức
+    symbols = ['A', 'B', 'C', 'D']
+    remaining_symbols = [symbols[i] for i in remaining_indices]
+    
+    # Tạo phương trình mặt phẳng với hệ số cố định
+    if fixed_idx == 0:
+        plane_eq = f"{fixed_value}x+By+Cz+D=0"
+    elif fixed_idx == 1:
+        plane_eq = f"Ax+{fixed_value}y+Cz+D=0"
+    elif fixed_idx == 2:
+        plane_eq = f"Ax+By+{fixed_value}z+D=0"
+    else:
+        plane_eq = f"Ax+By+Cz+{fixed_value}=0"
+    
+    expr_str = format_linear_combination([k1, k2, k3], remaining_symbols)
 
     prefix = (
-        f"Cho (P) có dạng Ax+By+Cz+D=0 đi qua ba điểm "
-        f"A{format_point(A)}, B{format_point(B)}, C{format_point(C)}."
+        f"Cho (P) có dạng {inline_math(plane_eq)} đi qua ba điểm "
+        f"{named_point('A', A)}, {named_point('B', B)}, {named_point('C', C)}."
     )
     return make_true_false(prefix, expr_str, value_true, value_false)
 
@@ -382,14 +471,44 @@ def cau_2_mat_phang_qua_2_diem_song_song_duong_thang() -> Dict[str, str]:
     d = -(a * A[0] + b * A[1] + c * A[2])
     a, b, c, d = normalize_plane_coeffs(a, b, c, d)
 
-    p, q, r, s = choose_linear_form_coeffs()
-    expr_str = format_linear_form(p, q, r, s)
-    value_true = evaluate_linear_form(p, q, r, s, a, b, c, d)
+    # Chọn ngẫu nhiên hệ số nào sẽ cho trước (0=A, 1=B, 2=C, 3=D)
+    plane_coeffs = [a, b, c, d]
+    fixed_idx = random.randint(0, 3)
+    fixed_value = plane_coeffs[fixed_idx]
+    
+    # Ba hệ số còn lại
+    remaining_indices = [i for i in range(4) if i != fixed_idx]
+    
+    # Tạo biểu thức cho 3 hệ số còn lại
+    coeff_pool = [-3, -2, -1, 1, 2, 3]
+    k1 = random.choice(coeff_pool)
+    k2 = random.choice(coeff_pool)
+    k3 = random.choice(coeff_pool)
+    
+    value_true = (k1 * plane_coeffs[remaining_indices[0]] + 
+                  k2 * plane_coeffs[remaining_indices[1]] + 
+                  k3 * plane_coeffs[remaining_indices[2]])
     value_false = pick_wrong_value(value_true)
+    
+    # Format phương trình và biểu thức
+    symbols = ['A', 'B', 'C', 'D']
+    remaining_symbols = [symbols[i] for i in remaining_indices]
+    
+    # Tạo phương trình mặt phẳng với hệ số cố định
+    if fixed_idx == 0:
+        plane_eq = f"{fixed_value}x+By+Cz+D=0"
+    elif fixed_idx == 1:
+        plane_eq = f"Ax+{fixed_value}y+Cz+D=0"
+    elif fixed_idx == 2:
+        plane_eq = f"Ax+By+{fixed_value}z+D=0"
+    else:
+        plane_eq = f"Ax+By+Cz+{fixed_value}=0"
+    
+    expr_str = format_linear_combination([k1, k2, k3], remaining_symbols)
 
     prefix = (
-        f"Cho (P) có dạng Ax+By+Cz+D=0 đi qua A{format_point(A)}, B{format_point(B)} và song song với đường thẳng CD "
-        f"với C{format_point(C)}, D{format_point(D)}."
+        f"Cho (P) có dạng {inline_math(plane_eq)} đi qua {named_point('A', A)}, {named_point('B', B)} và song song với đường thẳng CD "
+        f"với {named_point('C', C)}, {named_point('D', D)}."
     )
     return make_true_false(prefix, expr_str, value_true, value_false)
 
@@ -427,17 +546,47 @@ def cau_3_mat_phang_qua_2_diem_vuong_goc_mp() -> Dict[str, str]:
     d = -(a * A[0] + b * A[1] + c * A[2])
     a, b, c, d = normalize_plane_coeffs(a, b, c, d)
 
-    p, q, r, s = choose_linear_form_coeffs()
-    expr_str = format_linear_form(p, q, r, s)
-    value_true = evaluate_linear_form(p, q, r, s, a, b, c, d)
+    # Chọn ngẫu nhiên hệ số nào sẽ cho trước (0=A, 1=B, 2=C, 3=D)
+    plane_coeffs = [a, b, c, d]
+    fixed_idx = random.randint(0, 3)
+    fixed_value = plane_coeffs[fixed_idx]
+    
+    # Ba hệ số còn lại
+    remaining_indices = [i for i in range(4) if i != fixed_idx]
+    
+    # Tạo biểu thức cho 3 hệ số còn lại
+    coeff_pool = [-3, -2, -1, 1, 2, 3]
+    k1 = random.choice(coeff_pool)
+    k2 = random.choice(coeff_pool)
+    k3 = random.choice(coeff_pool)
+    
+    value_true = (k1 * plane_coeffs[remaining_indices[0]] + 
+                  k2 * plane_coeffs[remaining_indices[1]] + 
+                  k3 * plane_coeffs[remaining_indices[2]])
     value_false = pick_wrong_value(value_true)
+    
+    # Format phương trình và biểu thức
+    symbols = ['A', 'B', 'C', 'D']
+    remaining_symbols = [symbols[i] for i in remaining_indices]
+    
+    # Tạo phương trình mặt phẳng với hệ số cố định
+    if fixed_idx == 0:
+        plane_eq = f"{fixed_value}x+By+Cz+D=0"
+    elif fixed_idx == 1:
+        plane_eq = f"Ax+{fixed_value}y+Cz+D=0"
+    elif fixed_idx == 2:
+        plane_eq = f"Ax+By+{fixed_value}z+D=0"
+    else:
+        plane_eq = f"Ax+By+Cz+{fixed_value}=0"
+    
+    expr_str = format_linear_combination([k1, k2, k3], remaining_symbols)
 
     eq_Q = format_plane_equation(a_Q, b_Q, c_Q, d_Q)
 
     prefix = (
-        f"Cho (P) có dạng Ax+By+Cz+D=0 đi qua "
-        f"A{format_point(A)}, B{format_point(B)} và "
-        f"vuông góc với mặt phẳng (Q): {eq_Q}."
+        f"Cho (P) có dạng {inline_math(plane_eq)} đi qua "
+        f"{named_point('A', A)}, {named_point('B', B)} và \n"
+        + "vuông góc với mặt phẳng (Q):\n" + display_math(eq_Q)
     )
     return make_true_false(prefix, expr_str, value_true, value_false)
 
@@ -459,27 +608,42 @@ def cau_4_trung_tuyen_tam_giac() -> Dict[str, str]:
         if is_zero_vector(AM_dir):
             AM_dir = (1, 0, 0)
 
-    # Tạo biểu thức: k1*u + k2*v + k3*w
+    # Chọn ngẫu nhiên tọa độ nào sẽ cho trước (0=u, 1=v, 2=w)
+    fixed_idx = random.randint(0, 2)
+    fixed_value = AM_dir[fixed_idx]
+    
+    # Hai tọa độ còn lại
+    remaining_indices = [i for i in range(3) if i != fixed_idx]
+    
+    # Tạo biểu thức cho 2 tọa độ còn lại
     coeff_pool = [-2, -1, 1, 2, 3]
-    k1, k2, k3 = random.choice(coeff_pool), random.choice(coeff_pool), random.choice(coeff_pool)
-
-    value_true = dot3((k1, k2, k3), AM_dir)
+    k1 = random.choice(coeff_pool)
+    k2 = random.choice(coeff_pool)
+    
+    value_true = k1 * AM_dir[remaining_indices[0]] + k2 * AM_dir[remaining_indices[1]]
     value_false = pick_wrong_value(value_true)
+    
+    # Format vector và biểu thức
+    symbols = ['u', 'v', 'w']
+    vec_str = f"({symbols[0]};{symbols[1]};{symbols[2]})"
+    
+    # Thay giá trị cố định vào
+    if fixed_idx == 0:
+        vec_str = f"({fixed_value};v;w)"
+        expr_str = format_linear_combination([k1, k2], ['v', 'w'])
+    elif fixed_idx == 1:
+        vec_str = f"(u;{fixed_value};w)"
+        expr_str = format_linear_combination([k1, k2], ['u', 'w'])
+    else:
+        vec_str = f"(u;v;{fixed_value})"
+        expr_str = format_linear_combination([k1, k2], ['u', 'v'])
 
-    expr_str = format_linear_expression((k1, k2, k3), ("u", "v", "w"))
-
-    true_text = (
-        f"Cho tam giác ABC với A{format_point(A)}, B{format_point(B)}, C{format_point(C)}. "
-        f"Trung tuyến AM có véctơ chỉ phương \\(\\vec{{u}}=(u;v;w)\\). "
-        f"Khi đó {expr_str} = {value_true}."
+    prefix = (
+        f"Cho tam giác ABC với {named_point('A', A)}, {named_point('B', B)}, {named_point('C', C)}. "
+        f"Trung tuyến AM có véctơ chỉ phương \\(\\vec{{u}}={vec_str}\\)."
     )
-    false_text = (
-        f"Cho tam giác ABC với A{format_point(A)}, B{format_point(B)}, C{format_point(C)}. "
-        f"Trung tuyến AM có véctơ chỉ phương \\(\\vec{{u}}=(u;v;w)\\). "
-        f"Khi đó {expr_str} = {value_false}."
-    )
 
-    return {"true": true_text, "false": false_text}
+    return make_true_false(prefix, expr_str, value_true, value_false)
 
 
 def cau_5_duong_thang_qua_diem_song_song() -> Dict[str, str]:
@@ -494,29 +658,42 @@ def cau_5_duong_thang_qua_diem_song_song() -> Dict[str, str]:
     if is_zero_vector(BC):
         BC = (1, 1, 1)
 
-    # Tạo biểu thức
+    # Chọn ngẫu nhiên tọa độ nào sẽ cho trước (0=a, 1=b, 2=c)
+    fixed_idx = random.randint(0, 2)
+    fixed_value = BC[fixed_idx]
+    
+    # Hai tọa độ còn lại
+    remaining_indices = [i for i in range(3) if i != fixed_idx]
+    
+    # Tạo biểu thức cho 2 tọa độ còn lại
     coeff_pool = [-2, -1, 1, 2]
-    k1, k2, k3 = random.choice(coeff_pool), random.choice(coeff_pool), random.choice(coeff_pool)
-
-    value_true = dot3((k1, k2, k3), BC)
+    k1 = random.choice(coeff_pool)
+    k2 = random.choice(coeff_pool)
+    
+    value_true = k1 * BC[remaining_indices[0]] + k2 * BC[remaining_indices[1]]
     value_false = pick_wrong_value(value_true)
+    
+    # Format vector và biểu thức
+    symbols = ['a', 'b', 'c']
+    
+    # Thay giá trị cố định vào
+    if fixed_idx == 0:
+        vec_str = f"({fixed_value};b;c)"
+        expr_str = format_linear_combination([k1, k2], ['b', 'c'])
+    elif fixed_idx == 1:
+        vec_str = f"(a;{fixed_value};c)"
+        expr_str = format_linear_combination([k1, k2], ['a', 'c'])
+    else:
+        vec_str = f"(a;b;{fixed_value})"
+        expr_str = format_linear_combination([k1, k2], ['a', 'b'])
 
-    expr_str = format_linear_expression((k1, k2, k3), ("a", "b", "c"))
-
-    true_text = (
-        f"Cho đường thẳng d qua A{format_point(A)} và song song với BC, "
-        f"với B{format_point(B)}, C{format_point(C)}. "
-        f"Đường thẳng d có véctơ chỉ phương \\(\\vec{{u}}=(a;b;c)\\). "
-        f"Khi đó {expr_str} = {value_true}."
+    prefix = (
+        f"Cho đường thẳng d qua {named_point('A', A)} và song song với BC, "
+        f"với {named_point('B', B)}, {named_point('C', C)}. "
+        f"Đường thẳng d có véctơ chỉ phương \\(\\vec{{u}}={vec_str}\\)."
     )
-    false_text = (
-        f"Cho đường thẳng d qua A{format_point(A)} và song song với BC, "
-        f"với B{format_point(B)}, C{format_point(C)}. "
-        f"Đường thẳng d có véctơ chỉ phương \\(\\vec{{u}}=(a;b;c)\\). "
-        f"Khi đó {expr_str} = {value_false}."
-    )
 
-    return {"true": true_text, "false": false_text}
+    return make_true_false(prefix, expr_str, value_true, value_false)
 
 
 def cau_6_duong_thang_qua_diem_vuong_goc_mp() -> Dict[str, str]:
@@ -534,72 +711,101 @@ def cau_6_duong_thang_qua_diem_vuong_goc_mp() -> Dict[str, str]:
         a_P, b_P, c_P, d_P = 1, 0, 0, 0
 
     # VTCP của đường thẳng = VTPT của (P)
-    # Tạo biểu thức
+    vtcp = (a_P, b_P, c_P)
+    
+    # Chọn ngẫu nhiên tọa độ nào sẽ cho trước (0=u, 1=v, 2=w)
+    fixed_idx = random.randint(0, 2)
+    fixed_value = vtcp[fixed_idx]
+    
+    # Hai tọa độ còn lại
+    remaining_indices = [i for i in range(3) if i != fixed_idx]
+    
+    # Tạo biểu thức cho 2 tọa độ còn lại
     coeff_pool = [-2, -1, 1, 2]
-    k1, k2, k3 = random.choice(coeff_pool), random.choice(coeff_pool), random.choice(coeff_pool)
-
-    value_true = dot3((k1, k2, k3), (a_P, b_P, c_P))
+    k1 = random.choice(coeff_pool)
+    k2 = random.choice(coeff_pool)
+    
+    value_true = k1 * vtcp[remaining_indices[0]] + k2 * vtcp[remaining_indices[1]]
     value_false = pick_wrong_value(value_true)
-
-    expr_str = format_linear_expression((k1, k2, k3), ("u", "v", "w"))
+    
+    # Format vector và biểu thức
+    symbols = ['u', 'v', 'w']
+    
+    # Thay giá trị cố định vào
+    if fixed_idx == 0:
+        vec_str = f"({fixed_value};v;w)"
+        expr_str = format_linear_combination([k1, k2], ['v', 'w'])
+    elif fixed_idx == 1:
+        vec_str = f"(u;{fixed_value};w)"
+        expr_str = format_linear_combination([k1, k2], ['u', 'w'])
+    else:
+        vec_str = f"(u;v;{fixed_value})"
+        expr_str = format_linear_combination([k1, k2], ['u', 'v'])
 
     eq_P = format_plane_equation(a_P, b_P, c_P, d_P)
 
-    true_text = (
-        f"Cho đường thẳng d qua A{format_point(A)} và vuông góc với mặt phẳng (P): {eq_P}. "
-        f"Đường thẳng d có véctơ chỉ phương \\(\\vec{{u}}=(u;v;w)\\). "
-        f"Khi đó {expr_str} = {value_true}."
-    )
-    false_text = (
-        f"Cho đường thẳng d qua A{format_point(A)} và vuông góc với mặt phẳng (P): {eq_P}. "
-        f"Đường thẳng d có véctơ chỉ phương \\(\\vec{{u}}=(u;v;w)\\). "
-        f"Khi đó {expr_str} = {value_false}."
+    prefix = (
+        f"Cho đường thẳng d qua {named_point('A', A)} và vuông góc với mặt phẳng (P):\n" + display_math(eq_P) + " "
+        f"Đường thẳng d có véctơ chỉ phương \\(\\vec{{u}}={vec_str}\\)."
     )
 
-    return {"true": true_text, "false": false_text}
+    return make_true_false(prefix, expr_str, value_true, value_false)
 
 
 def cau_7_duong_thang_vuong_goc_2_duong() -> Dict[str, str]:
     """Câu 7: Đường thẳng qua M vuông góc với d1 và d2"""
-    # Random điểm M
-    M = random_point()
+    # Tham số random theo yêu cầu
+    # M(x_M; y_M; z_M) với mỗi tọa độ trong [-5,5]
+    M = (
+        random.randint(-5, 5),
+        random.randint(-5, 5),
+        random.randint(-5, 5),
+    )
 
-    # Random 2 VTCP không cùng phương (giới hạn số lần thử)
+    # d1, d2: điểm (x_i, y_i, z_i) trong [-4,4], VTCP (a_i,b_i,c_i) trong [-3,3]\{0}, tránh song song
     for _ in range(1000):
-        # VTCP của d1
-        u1 = random_nonzero_vector()
-        # VTCP của d2
-        u2 = random_nonzero_vector()
-
-        # VTCP của đường thẳng cần tìm = u1 × u2
+        P1 = (random.randint(-4, 4), random.randint(-4, 4), random.randint(-4, 4))
+        P2 = (random.randint(-4, 4), random.randint(-4, 4), random.randint(-4, 4))
+        u1 = random_vector_all_components_nonzero(-3, 3)
+        u2 = random_vector_all_components_nonzero(-3, 3)
         u = cross(u1, u2)
-        if not is_zero_vector(u):
+        if not is_zero_vector(u):  # tránh chọn u1, u2 song song
             break
     else:
-        # Fallback an toàn
+        P1, P2 = (0, 0, 0), (1, 1, 1)
         u1, u2 = (1, 0, 0), (0, 1, 0)
         u = cross(u1, u2)
 
-    # Tạo biểu thức hỏi về VTCP
-    coeff_pool = [-2, -1, 1, 2]
-    k1, k2, k3 = random.choice(coeff_pool), random.choice(coeff_pool), random.choice(coeff_pool)
+    # Trình bày đề bài theo format yêu cầu
+    d1_tex = format_parametric_line(P1, u1, "t")
+    d2_tex = format_parametric_line(P2, u2, "t")
 
-    value_true = dot3((k1, k2, k3), u)
-    value_false = pick_wrong_value(value_true)
+    # Tạo phương trình đường thẳng kết quả (qua M với VTCP u)
+    result_line_tex = format_parametric_line(M, u, "t")
 
-    expr_str = format_linear_expression((k1, k2, k3), ("a", "b", "c"))
-
-    true_text = (
-        f"Cho đường thẳng \\(\\Delta\\) qua M{format_point(M)} và vuông góc với cả hai đường thẳng "
-        f"\\(d_1\\) có VTCP {format_vec(u1)} và \\(d_2\\) có VTCP {format_vec(u2)}. "
-        f"Đường thẳng \\(\\Delta\\) có véctơ chỉ phương \\(\\vec{{u}}=(a;b;c)\\). "
-        f"Khi đó {expr_str} = {value_true}."
+    # Mệnh đề: phương trình đường thẳng là... (inline math)
+    prefix = (
+        f"Cho {named_point('M', M)} và hai đường thẳng "
+        f"{inline_math(f'd_1:\\ {d1_tex},\\quad d_2:\\ {d2_tex}')}." 
+        " Phương trình đường thẳng đi qua \\(M\\), đồng thời vuông góc với \\(d_1\\) và \\(d_2\\) là "
+        f"{inline_math(result_line_tex)}."
     )
+
+    true_text = prefix
+    # Tạo phương trình sai: thay đổi một thành phần của VTCP
+    idx = random.randint(0, 2)
+    u_wrong = (
+        u[0] + (random.choice([-2, -1, 1, 2]) if idx == 0 else 0),
+        u[1] + (random.choice([-2, -1, 1, 2]) if idx == 1 else 0),
+        u[2] + (random.choice([-2, -1, 1, 2]) if idx == 2 else 0)
+    )
+    wrong_line_tex = format_parametric_line(M, u_wrong, "t")
+    
     false_text = (
-        f"Cho đường thẳng \\(\\Delta\\) qua M{format_point(M)} và vuông góc với cả hai đường thẳng "
-        f"\\(d_1\\) có VTCP {format_vec(u1)} và \\(d_2\\) có VTCP {format_vec(u2)}. "
-        f"Đường thẳng \\(\\Delta\\) có véctơ chỉ phương \\(\\vec{{u}}=(a;b;c)\\). "
-        f"Khi đó {expr_str} = {value_false}."
+        f"Cho {named_point('M', M)} và hai đường thẳng "
+        f"{inline_math(f'd_1:\\ {d1_tex},\\quad d_2:\\ {d2_tex}')}." 
+        " Phương trình đường thẳng đi qua \\(M\\), đồng thời vuông góc với \\(d_1\\) và \\(d_2\\) là "
+        f"{inline_math(wrong_line_tex)}."
     )
 
     return {"true": true_text, "false": false_text}
@@ -607,54 +813,64 @@ def cau_7_duong_thang_vuong_goc_2_duong() -> Dict[str, str]:
 
 def cau_8_duong_thang_vuong_goc_va_song_song() -> Dict[str, str]:
     """Câu 8: Đường thẳng qua A, vuông góc với d và song song với (P)"""
-    # Random điểm A
-    A = random_point()
+    # Điểm A(x_A, y_A, z_A) và điểm trên d (x0,y0,z0) đều trong [-5,5]
+    A = (random.randint(-5, 5), random.randint(-5, 5), random.randint(-5, 5))
+    P0 = (random.randint(-5, 5), random.randint(-5, 5), random.randint(-5, 5))
 
-    # Random VTCP của đường thẳng d
-    u_d = random_nonzero_vector()
+    # VTCP của d: (a,b,c) trong [-4,4]\{0} từng thành phần; VTPT (alpha,beta,gamma) trong [-4,4]\{0}
+    # Tránh (a,b,c) song song với (alpha,beta,gamma)
+    for _ in range(1000):
+        u_d = random_vector_all_components_nonzero(-4, 4)
+        n_P = random_vector_all_components_nonzero(-4, 4)
+        if not is_zero_vector(cross(u_d, n_P)):
+            break
+    else:
+        u_d, n_P = (1, 1, 1), (1, -1, 0)
 
-    # Random VTPT của mặt phẳng (P)
-    n_P = random_nonzero_vector()
+    delta = random.randint(-10, 10)
 
-    # VTCP của đường thẳng cần tìm: vuông góc với u_d và n_P
-    # => u = u_d × n_P. Nếu u_d // n_P (tích có hướng = 0), chọn một véc-tơ chắc chắn vuông góc với cả hai.
+    # VTCP cần tìm: vuông góc với u_d và song song với (P) => u = u_d × n_P
     u = cross(u_d, n_P)
     if is_zero_vector(u):
-        # u_d // n_P. Lấy một véc-tơ cơ sở e không song song với u_d rồi u = u_d × e
-        basis = [(1, 0, 0), (0, 1, 0), (0, 0, 1)]
-        for e in basis:
-            cand = cross(u_d, e)
-            if not is_zero_vector(cand):
-                u = cand
-                break
-        else:
-            # Fallback cực hiếm (khi u_d là (0,0,0) nhưng đã tránh bằng random_nonzero_vector)
-            u = (1, 0, 0)
+        # fallback phòng xa (đã tránh ở trên)
+        u = (1, 0, 0)
 
-    # Tạo biểu thức
-    coeff_pool = [-2, -1, 1, 2]
-    k1, k2, k3 = random.choice(coeff_pool), random.choice(coeff_pool), random.choice(coeff_pool)
+    # Tạo phương trình đường thẳng kết quả (qua A với VTCP u)
+    result_line_tex = format_parametric_line(A, u, "t")
 
-    value_true = dot3((k1, k2, k3), u)
-    value_false = pick_wrong_value(value_true)
+    # Trình bày đề bài (inline math)
+    d_tex = format_parametric_line(P0, u_d, "t")
+    eq_P = format_plane_equation(n_P[0], n_P[1], n_P[2], delta)
 
-    expr_str = format_linear_expression((k1, k2, k3), ("u", "v", "w"))
-
-    eq_P = format_plane_equation(n_P[0], n_P[1], n_P[2], random.randint(-5, 5))
-
-    true_text = (
-        f"Cho đường thẳng \\(\\Delta\\) qua A{format_point(A)}, "
-        f"vuông góc với đường thẳng có VTCP {format_vec(u_d)} "
-        f"và song song với mặt phẳng (P): {eq_P}. "
-        f"Đường thẳng \\(\\Delta\\) có véctơ chỉ phương \\(\\vec{{u}}=(u;v;w)\\). "
-        f"Khi đó {expr_str} = {value_true}."
+    # Mệnh đề: phương trình đường thẳng là... (inline)
+    prefix = (
+        f"Phương trình đường thẳng \\(\\Delta\\) đi qua {named_point('A', A)}, "
+        "vuông góc với đường thẳng "
+        f"{inline_math(f'd:\\ {d_tex},\\ t \\in \\mathbb{{R}}')} "
+        "và song song với mặt phẳng "
+        f"{inline_math(f'(P):\\ {eq_P}')} "
+        "là "
+        f"{inline_math('\\Delta:\\ ' + result_line_tex)}."
     )
+
+    true_text = prefix
+    # Tạo phương trình sai: thay đổi một thành phần của VTCP
+    idx = random.randint(0, 2)
+    u_wrong = (
+        u[0] + (random.choice([-2, -1, 1, 2]) if idx == 0 else 0),
+        u[1] + (random.choice([-2, -1, 1, 2]) if idx == 1 else 0),
+        u[2] + (random.choice([-2, -1, 1, 2]) if idx == 2 else 0)
+    )
+    wrong_line_tex = format_parametric_line(A, u_wrong, "t")
+    
     false_text = (
-        f"Cho đường thẳng \\(\\Delta\\) qua A{format_point(A)}, "
-        f"vuông góc với đường thẳng có VTCP {format_vec(u_d)} "
-        f"và song song với mặt phẳng (P): {eq_P}. "
-        f"Đường thẳng \\(\\Delta\\) có véctơ chỉ phương \\(\\vec{{u}}=(u;v;w)\\). "
-        f"Khi đó {expr_str} = {value_false}."
+        f"Phương trình đường thẳng \\(\\Delta\\) đi qua {named_point('A', A)}, "
+        "vuông góc với đường thẳng "
+        f"{inline_math(f'd:\\ {d_tex},\\ t \\in \\mathbb{{R}}')} "
+        "và song song với mặt phẳng "
+        f"{inline_math(f'(P):\\ {eq_P}')} "
+        "là "
+        f"{inline_math('\\Delta:\\ ' + wrong_line_tex)}."
     )
 
     return {"true": true_text, "false": false_text}
@@ -662,58 +878,63 @@ def cau_8_duong_thang_vuong_goc_va_song_song() -> Dict[str, str]:
 
 def cau_9_duong_thang_trong_mp_vuong_goc_duong() -> Dict[str, str]:
     """Câu 9: Đường thẳng nằm trong (P) và vuông góc với d"""
-    # Random điểm M
-    M = random_point()
+    # M(x_M, y_M, z_M) trong [-5,5]
+    M = (random.randint(-5, 5), random.randint(-5, 5), random.randint(-5, 5))
 
-    # Random VTPT của mặt phẳng (P) (giới hạn số lần thử)
+    # Mặt phẳng (P): chọn (A,B,C) trong [-4,4]\{0} và ĐẶT D sao cho M thuộc (P)
+    A_coef = random_vector_all_components_nonzero(-4, 4)
+    n_P = A_coef
+    D_coef = -(n_P[0] * M[0] + n_P[1] * M[1] + n_P[2] * M[2])
+
+    # Đường thẳng d: điểm (x0,y0,z0) trong [-5,5], VTCP (a,b,c) trong [-4,4]\{0}
     for _ in range(1000):
-        n_P = random_nonzero_vector()
-        d_P = random.randint(-5, 5)
-        if not is_zero_vector(n_P):
+        P0 = (random.randint(-5, 5), random.randint(-5, 5), random.randint(-5, 5))
+        u_d = random_vector_all_components_nonzero(-4, 4)
+        # đảm bảo (a,b,c) không song song với (A,B,C)
+        if not is_zero_vector(cross(n_P, u_d)):
             break
     else:
-        n_P, d_P = (1, 0, 0), 0
+        P0, u_d = (0, 0, 0), (1, 1, 1)
 
-    # Random VTCP của đường thẳng d
-    u_d = random_nonzero_vector()
-
-    # VTCP của đường thẳng cần tìm: vuông góc với cả n_P và u_d
-    # => u = n_P × u_d. Nếu n_P // u_d, ta dựng u vuông góc với cả hai bằng cách lấy u = dir × e.
+    # VTCP đường thẳng cần tìm: u = n_P × u_d (vuông góc với cả n và u_d, nên nằm trong P và vuông góc d)
     u = cross(n_P, u_d)
     if is_zero_vector(u):
-        # n_P // u_d. Chọn dir là n_P (hoặc u_d), lấy e không song song dir, rồi u = dir × e
-        dir_vec = n_P
-        basis = [(1, 0, 0), (0, 1, 0), (0, 0, 1)]
-        for e in basis:
-            cand = cross(dir_vec, e)
-            if not is_zero_vector(cand):
-                u = cand
-                break
-        else:
-            u = (1, 0, 0)
+        u = (1, 0, 0)
 
-    # Tạo biểu thức
-    coeff_pool = [-2, -1, 1, 2]
-    k1, k2, k3 = random.choice(coeff_pool), random.choice(coeff_pool), random.choice(coeff_pool)
+    # Tạo phương trình đường thẳng kết quả (qua M với VTCP u)
+    result_line_tex = format_parametric_line(M, u, "t")
 
-    value_true = dot3((k1, k2, k3), u)
-    value_false = pick_wrong_value(value_true)
+    # Trình bày đề bài (inline)
+    eq_P = format_plane_equation(n_P[0], n_P[1], n_P[2], D_coef)
+    d_tex = format_parametric_line(P0, u_d, "t")
 
-    expr_str = format_linear_expression((k1, k2, k3), ("a", "b", "c"))
-
-    eq_P = format_plane_equation(n_P[0], n_P[1], n_P[2], d_P)
-
-    true_text = (
-        f"Cho đường thẳng \\(\\Delta\\) nằm trong mặt phẳng (P): {eq_P}, đi qua M{format_point(M)} "
-        f"và vuông góc với đường thẳng có VTCP {format_vec(u_d)}. "
-        f"Đường thẳng \\(\\Delta\\) có véctơ chỉ phương \\(\\vec{{u}}=(a;b;c)\\). "
-        f"Khi đó {expr_str} = {value_true}."
+    # Mệnh đề: phương trình đường thẳng là... (inline)
+    prefix = (
+        "Phương trình đường thẳng \\(\\Delta\\) nằm trong mặt phẳng "
+        f"{inline_math(f'(P):\\ {eq_P}')} "
+        "vuông góc với đường thẳng "
+        f"{inline_math(f'd:\\ {d_tex},\\ t \\in \\mathbb{{R}}')} "
+        f"và đi qua điểm {named_point('M', M)} là "
+        f"{inline_math('\\Delta:\\ ' + result_line_tex)}."
     )
+
+    true_text = prefix
+    # Tạo phương trình sai: thay đổi một thành phần của VTCP
+    idx = random.randint(0, 2)
+    u_wrong = (
+        u[0] + (random.choice([-2, -1, 1, 2]) if idx == 0 else 0),
+        u[1] + (random.choice([-2, -1, 1, 2]) if idx == 1 else 0),
+        u[2] + (random.choice([-2, -1, 1, 2]) if idx == 2 else 0)
+    )
+    wrong_line_tex = format_parametric_line(M, u_wrong, "t")
+    
     false_text = (
-        f"Cho đường thẳng \\(\\Delta\\) nằm trong mặt phẳng (P): {eq_P}, đi qua M{format_point(M)} "
-        f"và vuông góc với đường thẳng có VTCP {format_vec(u_d)}. "
-        f"Đường thẳng \\(\\Delta\\) có véctơ chỉ phương \\(\\vec{{u}}=(a;b;c)\\). "
-        f"Khi đó {expr_str} = {value_false}."
+        "Phương trình đường thẳng \\(\\Delta\\) nằm trong mặt phẳng "
+        f"{inline_math(f'(P):\\ {eq_P}')} "
+        "vuông góc với đường thẳng "
+        f"{inline_math(f'd:\\ {d_tex},\\ t \\in \\mathbb{{R}}')} "
+        f"và đi qua điểm {named_point('M', M)} là "
+        f"{inline_math('\\Delta:\\ ' + wrong_line_tex)}."
     )
 
     return {"true": true_text, "false": false_text}
@@ -721,82 +942,72 @@ def cau_9_duong_thang_trong_mp_vuong_goc_duong() -> Dict[str, str]:
 
 def cau_10_giao_diem_duong_thang_mat_phang() -> Dict[str, str]:
     """Câu 10: Giao điểm của đường thẳng d và mặt phẳng (P)"""
-    # Random điểm M0 trên đường thẳng
-    M0 = (random.randint(-2, 2), random.randint(-2, 2), random.randint(-2, 2))
+    # Tham số random theo yêu cầu
+    # Điểm trên d trong [-5,5]
+    M0 = (random.randint(-5, 5), random.randint(-5, 5), random.randint(-5, 5))
 
-    # Random VTCP của đường thẳng (giới hạn số lần thử)
+    # VTCP của d: (a,b,c) trong [-3,3]\{0} and tất cả thành phần khác 0 theo đề xuất
+    u = random_vector_all_components_nonzero(-3, 3)
+
+    # Mặt phẳng (P): A,B,C trong [-3,3]\{0}; D trong [-10,10]
     for _ in range(1000):
-        u = (random.randint(-2, 2), random.randint(-2, 2), random.randint(-2, 2))
-        if not is_zero_vector(u):
+        a_P, b_P, c_P = random_vector_all_components_nonzero(-3, 3)
+        d_P = random.randint(-10, 10)
+        # Đảm bảo Aa+Bb+Cc != 0 để cắt
+        if a_P * u[0] + b_P * u[1] + c_P * u[2] != 0:
             break
     else:
-        u = (1, 1, 0)
+        a_P, b_P, c_P, d_P = 1, 1, 1, 0
 
-    # Random mặt phẳng (P) (giới hạn số lần thử)
-    for _ in range(1000):
-        a_P = random.randint(-3, 3)
-        b_P = random.randint(-3, 3)
-        c_P = random.randint(-3, 3)
-        d_P = random.randint(-5, 5)
-        if not is_zero_vector((a_P, b_P, c_P)):
-            break
-    else:
-        a_P, b_P, c_P, d_P = 1, 0, 0, 0
-
-    # Phương trình tham số: x = x0 + at, y = y0 + bt, z = z0 + ct
-    # Thay vào (P): a(x0+at) + b(y0+bt) + c(z0+ct) + d = 0
-    # => (a*u[0] + b*u[1] + c*u[2])t + (a*M0[0] + b*M0[1] + c*M0[2] + d) = 0
-
+    # Tính giao điểm chính xác
     denom = a_P * u[0] + b_P * u[1] + c_P * u[2]
-    if denom == 0:
-        # Đường thẳng song song hoặc nằm trong mặt phẳng
-        # Chọn lại u song song với VTPT để đảm bảo không song song mặt phẳng
-        u = (a_P, b_P, c_P)
-        denom = a_P * u[0] + b_P * u[1] + c_P * u[2]
-
-    # Tính t0 dạng hữu tỉ để giữ chính xác
     num = -(a_P * M0[0] + b_P * M0[1] + c_P * M0[2] + d_P)
     t0 = Rational(num, denom)
 
-    # Tọa độ giao điểm (dạng hữu tỉ)
-    A = (
+    I_int = (
         Rational(M0[0]) + Rational(u[0]) * t0,
         Rational(M0[1]) + Rational(u[1]) * t0,
         Rational(M0[2]) + Rational(u[2]) * t0,
     )
 
-    # Tạo biểu thức hỏi về tọa độ (giữ chính xác)
-    expr_choices = [
-        ("x_A + y_A", A[0] + A[1]),
-        ("y_A + z_A", A[1] + A[2]),
-        ("x_A + z_A", A[0] + A[2]),
-        ("x_A + y_A + z_A", A[0] + A[1] + A[2]),
-    ]
+    # Format tọa độ giao điểm
+    I_x_latex = format_sympy_to_latex(I_int[0])
+    I_y_latex = format_sympy_to_latex(I_int[1])
+    I_z_latex = format_sympy_to_latex(I_int[2])
 
-    expr_str, value_true = random.choice(expr_choices)
-    # Sinh giá trị sai phù hợp kiểu dữ liệu
-    if isinstance(value_true, Rational):
-        if value_true.q == 1:
-            value_false = pick_wrong_value(int(value_true))
-        else:
-            value_false = Rational(value_true.p + 1, value_true.q)
-    else:
-        value_false = pick_wrong_value(int(value_true))
-
+    # Trình bày đề bài theo format (inline)
+    d_tex = format_parametric_line(M0, u, "t")
     eq_P = format_plane_equation(a_P, b_P, c_P, d_P)
 
-    value_true_latex = format_sympy_to_latex(value_true)
-    value_false_latex = format_sympy_to_latex(value_false)
-
-    true_text = (
-        f"Cho đường thẳng d đi qua M{format_point(M0)} có VTCP {format_vec(u)} và mặt phẳng (P): {eq_P}. "
-        f"Giao điểm A của d và (P) có tọa độ \\(A(x_A; y_A; z_A)\\). "
-        f"Khi đó \\({expr_str} = {value_true_latex}\\)."
+    # Mệnh đề: tọa độ giao điểm là... (inline)
+    prefix = (
+        "Cho đường thẳng "
+        f"{inline_math(f'd:\\ {d_tex},\\ t \\in \\mathbb{{R}}')} "
+        "và mặt phẳng "
+        f"{inline_math(f'(P):\\ {eq_P}')}. "
+        "Tọa độ giao điểm \\(I\\) của đường thẳng \\(d\\) và mặt phẳng \\((P)\\) là "
+        f"\\(I({I_x_latex}; {I_y_latex}; {I_z_latex})\\)."
     )
+
+    true_text = prefix
+    # Tạo tọa độ giao điểm sai: thay đổi một tọa độ
+    idx = random.randint(0, 2)
+    delta = random.choice([-2, -1, 1, 2])
+    num_sym, den_sym = sp.fraction(sp.simplify(I_int[idx]))
+    wrong_val = (num_sym + sp.Integer(delta)) / den_sym
+    
+    I_wrong = list(I_int)
+    I_wrong[idx] = wrong_val
+    
+    I_wrong_latex = [format_sympy_to_latex(I_wrong[i]) for i in range(3)]
+    
     false_text = (
-        f"Cho đường thẳng d đi qua M{format_point(M0)} có VTCP {format_vec(u)} và mặt phẳng (P): {eq_P}. "
-        f"Giao điểm A của d và (P) có tọa độ \\(A(x_A; y_A; z_A)\\). "
-        f"Khi đó \\({expr_str} = {value_false_latex}\\)."
+        "Cho đường thẳng "
+        f"{inline_math(f'd:\\ {d_tex},\\ t \\in \\mathbb{{R}}')} "
+        "và mặt phẳng "
+        f"{inline_math(f'(P):\\ {eq_P}')}. "
+        "Tọa độ giao điểm \\(I\\) của đường thẳng \\(d\\) và mặt phẳng \\((P)\\) là "
+        f"\\(I({I_wrong_latex[0]}; {I_wrong_latex[1]}; {I_wrong_latex[2]})\\)."
     )
 
     return {"true": true_text, "false": false_text}
@@ -829,16 +1040,18 @@ def cau_11_giao_diem_duong_thang_mat_cau() -> Dict[str, str]:
     expr_str, value_true = random.choice(expr_choices)
     value_false = pick_wrong_value(value_true)
 
-    # Format phương trình mặt cầu
-    sphere_eq = f"(x - {center[0]})^2 + (y - {center[1]})^2 + (z - {center[2]})^2 = {R_squared}"
+    # Format phương trình mặt cầu với chuẩn hóa dấu/số
+    sphere_eq = format_sphere_equation(center, R_squared)
 
     true_text = (
-        f"Cho đường thẳng d có VTCP {format_vec(vtcp)} và mặt cầu (S): \\({sphere_eq}\\). "
+        f"Cho đường thẳng d có VTCP {inline_math(format_vec(vtcp))} và mặt cầu (S): "
+        + display_math(sphere_eq) + " "
         f"Mặt cầu có tâm \\(I(x_I; y_I; z_I)\\). "
         f"Khi đó \\({expr_str} = {value_true}\\)."
     )
     false_text = (
-        f"Cho đường thẳng d có VTCP {format_vec(vtcp)} và mặt cầu (S): \\({sphere_eq}\\). "
+        f"Cho đường thẳng d có VTCP {inline_math(format_vec(vtcp))} và mặt cầu (S): "
+        + display_math(sphere_eq) + " "
         f"Mặt cầu có tâm \\(I(x_I; y_I; z_I)\\). "
         f"Khi đó \\({expr_str} = {value_false}\\)."
     )
@@ -872,12 +1085,12 @@ def cau_12_mat_cau_tu_tam_va_the_tich() -> Dict[str, str]:
     V_coeff_latex = format_sympy_to_latex(V_coeff)
 
     true_text = (
-        f"Cho mặt cầu (S) có tâm I{format_point(center)} và thể tích \\({V_coeff_latex}\\pi\\). "
+        f"Cho mặt cầu (S) có tâm {named_point('I', center)} và thể tích \\({V_coeff_latex}\\pi\\). "
         f"Mặt cầu có tâm \\(I(x_I; y_I; z_I)\\) và bán kính R. "
         f"Khi đó \\( {expr_str} = {value_true} \\)."
     )
     false_text = (
-        f"Cho mặt cầu (S) có tâm I{format_point(center)} và thể tích \\({V_coeff_latex}\\pi\\). "
+        f"Cho mặt cầu (S) có tâm {named_point('I', center)} và thể tích \\({V_coeff_latex}\\pi\\). "
         f"Mặt cầu có tâm \\(I(x_I; y_I; z_I)\\) và bán kính R. "
         f"Khi đó \\( {expr_str} = {value_false} \\)."
     )
@@ -964,13 +1177,13 @@ def cau_13_mat_cau_ngoai_tiep_tu_dien() -> Dict[str, str]:
 
             true_text = (
                 f"Cho mặt cầu ngoại tiếp tứ diện ABCD với "
-                f"A{format_point(A)}, B{format_point(B)}, C{format_point(C)}, D{format_point(D)}. "
+                f"{named_point('A', A)}, {named_point('B', B)}, {named_point('C', C)}, {named_point('D', D)}. "
                 f"Mặt cầu có tâm \\(I(a;b;c)\\) và bán kính R. "
                 f"Khi đó \\({expr_str} = {value_true_latex}\\)."
             )
             false_text = (
                 f"Cho mặt cầu ngoại tiếp tứ diện ABCD với "
-                f"A{format_point(A)}, B{format_point(B)}, C{format_point(C)}, D{format_point(D)}. "
+                f"{named_point('A', A)}, {named_point('B', B)}, {named_point('C', C)}, {named_point('D', D)}. "
                 f"Mặt cầu có tâm \\(I(a;b;c)\\) và bán kính R. "
                 f"Khi đó \\({expr_str} = {value_false_latex}\\)."
             )
@@ -984,11 +1197,11 @@ def cau_13_mat_cau_ngoai_tiep_tu_dien() -> Dict[str, str]:
     # Nếu tất cả đều fail (rất hiếm), dùng bộ điểm mặc định đơn giản nhất
     A, B, C, D = [(1, 0, 0), (0, 1, 0), (0, 0, 1), (1, 1, 1)]
     true_text = (
-        f"Cho mặt cầu ngoại tiếp tứ diện ABCD với A{format_point(A)}, B{format_point(B)}, C{format_point(C)}, D{format_point(D)}. "
+        f"Cho mặt cầu ngoại tiếp tứ diện ABCD với {named_point('A', A)}, {named_point('B', B)}, {named_point('C', C)}, {named_point('D', D)}. "
         f"Mặt cầu có tâm \\(I(a;b;c)\\) và bán kính R. Khi đó \\(a + b + c = \\frac{{3}}{2}\\)."
     )
     false_text = (
-        f"Cho mặt cầu ngoại tiếp tứ diện ABCD với A{format_point(A)}, B{format_point(B)}, C{format_point(C)}, D{format_point(D)}. "
+        f"Cho mặt cầu ngoại tiếp tứ diện ABCD với {named_point('A', A)}, {named_point('B', B)}, {named_point('C', C)}, {named_point('D', D)}. "
         f"Mặt cầu có tâm \\(I(a;b;c)\\) và bán kính R. Khi đó \\(a + b + c = 2\\)."
     )
     return {"true": true_text, "false": false_text}

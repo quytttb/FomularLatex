@@ -242,25 +242,18 @@ class BaseOptimizationQuestion(ABC):
                 else:
                     latex_content += f"{question_data}\n\n"
         else:
-            # Format 2: câu hỏi + lời giải, đáp án ở cuối
-            correct_answers = []
+            # Format 2: câu hỏi + lời giải, đáp án ở cuối mỗi câu
             for question_data in questions_data:
                 if isinstance(question_data, tuple):
                     question_content, correct_answer = question_data
-                    latex_content += question_content + "\n\n"
-                    correct_answers.append(correct_answer)
+                    latex_content += question_content
+                    # Thêm đáp án ngay sau mỗi câu hỏi
+                    ans = strip_latex_inline_math(correct_answer)
+                    ans_comma = to_decimal_comma(ans)
+                    latex_content += f"Đáp án: {ans} | {ans_comma}\n\n"
                 else:
                     # Fallback cho format cũ
                     latex_content += f"{question_data}\n\n"
-
-            # Thêm phần đáp án ở cuối
-            if correct_answers:
-                latex_content += "Đáp án\n\n"
-                for idx, answer in enumerate(correct_answers, 1):
-                    # Luôn in cả 2 định dạng dấu chấm và dấu phẩy, bọc trong inline math
-                    ans = strip_latex_inline_math(answer)
-                    ans_comma = to_decimal_comma(ans)
-                    latex_content += f"Câu {idx}: \\({ans}\\) | \\({ans_comma}\\)\n\n"
 
         latex_content += "\\end{document}"
         return latex_content
@@ -375,12 +368,12 @@ class MinSumDistancesOnPlaneQuestion(BaseOptimizationQuestion):
 
     @staticmethod
     def _dot_plane(a: int, b: int, c: int, d: int, x: int, y: int, z: int) -> sp.Expr:
-        return sp.Integer(a)*x + sp.Integer(b)*y + sp.Integer(c)*z + sp.Integer(d)
+        return sp.Integer(a)*x + sp.Integer(b)*y + sp.Integer(c)*z + sp.Integer(d)  # type: ignore
 
     @staticmethod
     def _norm(vec: Tuple[sp.Expr, sp.Expr, sp.Expr]) -> sp.Expr:
         vx, vy, vz = vec
-        return sp.sqrt(sp.simplify(vx**2 + vy**2 + vz**2))
+        return sp.sqrt(sp.simplify(vx**2 + vy**2 + vz**2))  # type: ignore
 
     def _compute_core(self) -> Dict[str, Any]:
         """Tính toán toàn bộ đại lượng cần thiết cho đáp án và lời giải."""
@@ -392,7 +385,7 @@ class MinSumDistancesOnPlaneQuestion(BaseOptimizationQuestion):
         # Các biểu thức Sympy để tính chính xác
         fA = self._dot_plane(A, B, C, D, xA, yA, zA)
         fO = self._dot_plane(A, B, C, D, xO, yO, zO)
-        n2 = sp.Integer(A)**2 + sp.Integer(B)**2 + sp.Integer(C)**2
+        n2 = sp.Integer(A)**2 + sp.Integer(B)**2 + sp.Integer(C)**2  # type: ignore
         n_norm = sp.sqrt(sp.simplify(n2))
 
         AO_vec = (sp.Integer(xO - xA), sp.Integer(yO - yA), sp.Integer(zO - zA))
@@ -416,9 +409,9 @@ class MinSumDistancesOnPlaneQuestion(BaseOptimizationQuestion):
 
         # Phản chiếu O qua (P): O' = O - 2 f(O)/||n||^2 * n
         O_ref = (
-            sp.nsimplify(xO - 2*fO*A/n2),
-            sp.nsimplify(yO - 2*fO*B/n2),
-            sp.nsimplify(zO - 2*fO*C/n2),
+            sp.nsimplify(xO - 2*fO*A/n2),  # type: ignore
+            sp.nsimplify(yO - 2*fO*B/n2),  # type: ignore
+            sp.nsimplify(zO - 2*fO*C/n2),  # type: ignore
         )
         AO_ref_vec = (
             sp.nsimplify(O_ref[0] - xA),
@@ -440,8 +433,8 @@ class MinSumDistancesOnPlaneQuestion(BaseOptimizationQuestion):
             )
 
         # Khoảng cách tới (P) (phục vụ phương án nhiễu)
-        dist_A_to_P = sp.nsimplify(sp.Abs(fA) / n_norm)
-        dist_O_to_P = sp.nsimplify(sp.Abs(fO) / n_norm)
+        dist_A_to_P = sp.nsimplify(sp.Abs(fA) / n_norm)  # type: ignore
+        dist_O_to_P = sp.nsimplify(sp.Abs(fO) / n_norm)  # type: ignore
 
         return {
             "fA": fA, "fO": fO, "n2": n2, "n_norm": n_norm,

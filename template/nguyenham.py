@@ -527,6 +527,38 @@ class IndefiniteIntegralQuestion:
         # Bảo đảm trả về SymPy Expr cho cả A và B
         return sp.sympify(A), sp.sympify(B)
 
+    def _are_expressions_equal(self, expr1: sp.Expr, expr2: sp.Expr, x: sp.Symbol) -> bool:
+        """Kiểm tra 2 biểu thức có bằng nhau (hoặc chỉ khác hằng số C).
+        
+        Returns True nếu expr1 ≡ expr2 hoặc expr1 = expr2 + const.
+        Tối ưu hóa tối đa - chỉ dùng numeric evaluation (không simplify).
+        """
+        try:
+            expr1_s = sp.sympify(expr1)
+            expr2_s = sp.sympify(expr2)
+            
+            # Kiểm tra numeric nhanh: đạo hàm tại 3 điểm
+            # Nếu đạo hàm bằng nhau tại 3 điểm -> coi như trùng (đủ tin cậy)
+            sample_points = [1, 2, 3]
+            deriv_matches = 0
+            
+            for v in sample_points:
+                try:
+                    dv1 = complex(sp.diff(expr1_s, x).subs(x, v).evalf())  # type: ignore
+                    dv2 = complex(sp.diff(expr2_s, x).subs(x, v).evalf())  # type: ignore
+                    if abs(dv1 - dv2) < 1e-8:
+                        deriv_matches += 1
+                except Exception:
+                    # Nếu không tính được, bỏ qua điểm này
+                    pass
+            
+            # Nếu đạo hàm khớp ở cả 3 điểm -> chỉ khác hằng số -> trùng
+            return deriv_matches == 3
+            
+        except Exception:
+            # Nếu không so sánh được, coi như không trùng (safe fallback)
+            return False
+
     def _build_term(self) -> Dict[str, Any]:
         """Sinh 1 hạng tử theo danh mục công thức cho trước."""
         term_types = [
@@ -640,7 +672,7 @@ class IndefiniteIntegralQuestion:
             k = term["k"]
             expr = k / x
             F = k * sp.log(sp.Abs(x))
-            wrongs = [sp.log(sp.Abs(x))]
+            wrongs = [sp.log(sp.Abs(x))]  # type: ignore
             return sp.sympify(expr), sp.simplify(F), wrongs
         if t == "k_lin_pow_n":
             k, A, B, n = term["k"], term["A"], term["B"], term["n"]
@@ -714,8 +746,8 @@ class IndefiniteIntegralQuestion:
             A, B = term["A"], term["B"]
             lin = A * x + B
             expr = sp.exp(-lin)
-            F = -sp.exp(-lin) / A
-            wrongs = [sp.exp(-lin) / A, -sp.exp(-lin)]
+            F = -sp.exp(-lin) / A  # type: ignore[operator]
+            wrongs = [sp.exp(-lin) / A, -sp.exp(-lin)]  # type: ignore[list-item]
             return sp.sympify(expr), sp.simplify(F), wrongs
         if t == "inv_a_lin":
             a, A, B = term["a"], term["A"], term["B"]
@@ -819,9 +851,9 @@ class IndefiniteIntegralQuestion:
                 else:
                     parts.append(Ftrue)
             Fcand = sp.Add(*parts) if parts else sp.Integer(0)
-            if not is_correct_candidate(Fcand):
-                # de-duplicate
-                if all(sp.simplify(sp.sympify(Fcand) - sp.sympify(w)) != 0 for w in wrong_candidates):
+            if not is_correct_candidate(Fcand) and not self._are_expressions_equal(Fcand, correct_F, x):
+                # de-duplicate: kiểm tra không trùng với các đáp án sai khác
+                if all(not self._are_expressions_equal(Fcand, w, x) for w in wrong_candidates):
                     wrong_candidates.append(Fcand)
 
         # Fallback nếu thiếu, thêm biến đổi đơn giản nhưng sai
@@ -840,15 +872,40 @@ class IndefiniteIntegralQuestion:
                 cand = correct_F * sp.Rational(1, 2) + x  # derivative = 0.5 integrand + 1
             else:
                 cand = 2 * correct_F - x  # derivative = 2 integrand - 1
-            if not is_correct_candidate(cand):
-                if all(sp.simplify(sp.sympify(cand) - w) != 0 for w in wrong_candidates):
+            if not is_correct_candidate(cand) and not self._are_expressions_equal(cand, correct_F, x):
+                if all(not self._are_expressions_equal(cand, w, x) for w in wrong_candidates):
                     wrong_candidates.append(sp.sympify(cand))
         # Final safety: if still shortage, append artificial polynomial shift
         while len(wrong_candidates) < 3:
             idx_factor = sp.Integer(len(wrong_candidates) + 1)
             cand = correct_F + x**2 + idx_factor * x
-            if not is_correct_candidate(cand):
-                wrong_candidates.append(sp.sympify(cand))
+            if not is_correct_candidate(cand) and not self._are_expressions_equal(cand, correct_F, x):
+                if all(not self._are_expressions_equal(cand, w, x) for w in wrong_candidates):
+                    wrong_candidates.append(sp.sympify(cand))
+
+        # Validation cuối: Kiểm tra nhanh tất cả đáp án không trùng lặp
+        # Đơn giản hóa để tránh treo - chỉ log warning thay vì raise error
+        all_options = [correct_F] + wrong_candidates[:3]
+        for i in range(len(all_options)):
+            for j in range(i + 1, len(all_options)):
+                if self._are_expressions_equal(all_options[i], all_options[j], x):
+                    # Phát hiện trùng lặp - log chi tiết
+                    logging.warning(
+                        f"Phát hiện đáp án trùng lặp: "
+                        f"Option {i} và Option {j} giống nhau. "
+                        f"Expr1={sp.latex(all_options[i])}, Expr2={sp.latex(all_options[j])}"
+                    )
+                    # Tạo đáp án thay thế đơn giản (không lặp quá nhiều lần)
+                    for k in range(3):
+                        noise_factor = sp.Integer(j * 3 + k + 1)
+                        new_cand = correct_F + noise_factor * x**2 - noise_factor * x
+                        if not is_correct_candidate(new_cand):
+                            # Thay thế đáp án trùng
+                            if j > 0:
+                                wrong_candidates[j - 1] = sp.sympify(new_cand)
+                            break
+                    # Cập nhật all_options
+                    all_options = [correct_F] + wrong_candidates[:3]
 
         # Biểu diễn LaTeX
         integrand_latex = self._expr_to_latex(integrand)
