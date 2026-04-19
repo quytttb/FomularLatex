@@ -1,0 +1,45 @@
+*** /home/haiquy/PycharmProjects/FomularLatex/27_03/duong_ham_parabol.tex
+--- /home/haiquy/PycharmProjects/FomularLatex/27_03/duong_ham_parabol.tex
+@@ -16,21 +16,29 @@
+ 
+ Lời giải:
+ 
+-Đặt $AB = x$, ta sẽ rút $BE$ theo $x$.
++Nhận xét: $S_{\text{parabol}} = \frac{4}{3} B.h$
+ 
+-Sử dụng định lý Talet trong tam giác, ta có:
+-$$BE = 10 - 0.25x$$
++Đây là bài toán tính $V$ thông qua diện tích thiết diện 1 phần Parabol $S(x)$.
+ 
+-Diện tích $(P)$ đầy đủ:
+-$$S_1 = \frac{4}{3} HE \cdot SH = \frac{8}{3} HE^2$$
+++) Bước 1: Đặt trục toạ độ
++Đặt $AB = x$, ta sẽ rút $BE$ theo $x$.
++$$\frac{CD}{BE} = \frac{CT}{BT} = \frac{20}{40-x}$$
++$$\Rightarrow 5(40-x) = 20 \cdot BE$$
++$$\Leftrightarrow BE = 10 - 0.25x$$
+ 
+-Diện tích thiết diện $S(x)$ tại mặt cắt cách $A$ một khoảng $x$:
+-Do $S(x) = k \cdot S_1$ nên ta so sánh $S(x)$ và $S_1$ thông qua mô hình parabol chuẩn: 
+-Giả sử chọn $SH = 2$, $HE = 1$, parabol có phương trình $y = -2x^2 + 2$.
+-Theo bài $BG = BE$, đặt $G(m-1; m)$, $G \in (P)$ nên:
+-$$m = -2((m-1)^2 - 1) \Rightarrow m = 1.5$$
++Diện tích $(P)$ đầy đủ:
++$$S_1 = \frac{4}{3} HE \cdot SH = \frac{8}{3} HE^2 \quad (1)$$
+ 
+-Ta chứng minh được tỉ lệ $\frac{S(x)}{S_1} = \frac{27}{32} \Rightarrow S(x) = BE^2$.
+-Do đó: 
+-$$V = \int_{0}^{20} S(x) dx = \frac{3500}{3} \approx 1167$$
+++) Bước 2: Vì $S(x) = k \cdot S_1$ nên ta sẽ so sánh $S(x)$ và $S_1$ thông qua Mô hình sau:
++Giả sử ta chọn: $\begin{cases} SH=2 \\ HE=1 \end{cases}$
++$\Rightarrow (P): y = a(x^2 - 1)$ qua $S(0; 2)$
++$\Rightarrow y = -2x^2 + 2$
++Theo bài $BG = BE$, đặt $G(m-1; m)$
++Vì $G \in (P)$ nên: $m = a((m-1)^2 - 1) \Rightarrow m = 3/2 \Rightarrow OB = 0,5 \Rightarrow \frac{S(x)}{S_1} = \frac{\int_{-1}^{\frac{1}{2}} (-2x^2 + 2) dx}{\frac{4}{3} \cdot 1 \cdot 2} = \frac{27}{32}$
++
++Ta có: $HE = \frac{2}{3} BE \Rightarrow S_1 = \frac{32}{27} BE^2$
++Do đó: $S(x) = BE^2$.
++
++Vậy: $V = \int_{0}^{20} S(x) dx = \frac{3500}{3} \approx 1167$
+ 
+ Trả lời: 1167

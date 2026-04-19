@@ -1,0 +1,3517 @@
+\ProvidesPackage{ex_test}[21/10/2024 for Ex_test version 3.1, Tran Anh Tuan and Duong Phuoc Sang]
+\RequirePackage[utf8]{vietnam}
+\RequirePackage{ifthen}
+\RequirePackage{ntheorem}
+\RequirePackage{longtable,xtab}
+\RequirePackage{array}
+\RequirePackage{multicol}
+\RequirePackage{multirow}
+\RequirePackage{fancyhdr}
+\RequirePackage{answers}
+%\RequirePackage{filecontents}
+\RequirePackage{tikz}
+\RequirePackage{calc}
+\RequirePackage{etoolbox}
+\RequirePackage{probsoln}
+\RequirePackage{picinpar}
+\RequirePackage{varwidth,mathrsfs}
+\RequirePackage{xstring}
+\RequirePackage{expl3,xparse,epic,cntformats,xtemplate,environ}
+\@ifpackageloaded{tcolorbox}{}
+	{\RequirePackage[many,most]{tcolorbox}}
+
+\def\thindent{}
+%Fix in đáp án trắc nghiệm cho các môi trường vd, bt,...
+\def\saveFileAns{}\def\keyEX{}\def\chType{9}
+\def\saveKQ{}\def\addques{}\def\addans{}\def\kinditch{}
+\newcommand{\fixshowans}[1]{%
+	\foreach \env in {#1} {%
+		\AtBeginEnvironment{\env}{%
+			\gdef\saveFileAns{}\gdef\keyEX{}\gdef\chType{9}%
+			\setcounter{dapan}{0}%
+			\def\dotEX{.}%
+			\def\labelex{}%
+		}%
+		\AtEndEnvironment{\env}{%
+			\ifthenelse{\equal{\saveFileAns}{}}{}{%
+				\ifthenelse{\equal{\labelthm}{}}{\Writetofile{ans}{\string\begin{Solution}{\Currentlabel}}}
+					{\ifthenelse{\equal{\chType}{1} \OR \equal{\chType}{-1} \OR \equal{\chType}{-2} \OR \equal{\chType}{10}}
+						{\Writetofile{ans}{\string\begin{Solution}[\detokenize\expandafter{\labelthm}]{\Currentlabel}}}
+						{\Writetofile{ans}{\string\begin{Solution}{\Currentlabel}}}}%
+				\Writetofile{ans}{\saveFileAns^^J\string\end{Solution}}%
+			}%
+			\gdef\saveFileAns{}\gdef\keyEX{}\gdef\chType{9}\gdef\addques{}\gdef\addans{}%
+			\labelex%
+		}%
+	}%
+}
+\fixshowans{ex,chc,bt,vd,printex}
+%Ghi đáp số bên phải  câu hỏi
+\makeatletter
+\newcommand{\dapso}[2][a]{}
+\newcommand{\exitdapso}{%
+	\renewcommand{\dapso}[2][a]{\gdef\chType{10}%
+		\ifInList%
+		{\stepcounter{dapan}%
+			\ifthenelse{\equal{##1}{1}}
+			{\xdef\saveFileAns{\saveFileAns\string\dapsoTL[\alph{dapan}]\detokenize{{##2}}}}
+			{\ifthenelse{\equal{##1}{A}}
+			{\xdef\saveFileAns{\saveFileAns\ifnum\thedapan>1\@percentchar^^J\fi\string\dapsoTL[\Alph{dapan}]\detokenize{{##2}}}}
+			{\xdef\saveFileAns{\saveFileAns\ifnum\thedapan>1\@percentchar^^J\fi\string\dapsoTL[\alph{dapan}]\detokenize{{##2}}}}}}
+		{\xdef\saveFileAns{\string\dapsoTL\detokenize{{##2}}}}%
+		\xdef\saveKQ{\detokenize{##2}}%
+		\leavevmode\unskip%
+	}%
+}%
+\let\hidedapso\exitdapso
+\newcommand{\showdapso}{%
+	\renewcommand{\dapso}[2][a]{\gdef\chType{10}%%
+		\ifInList%
+		{\stepcounter{dapan}%
+			\ifthenelse{\equal{##1}{1}}
+			{\xdef\saveFileAns{\saveFileAns\string\dapsoTL[\arabic{dapan}]\detokenize{{##2}}}}
+			{\ifthenelse{\equal{##1}{A}}
+			{\xdef\saveFileAns{\saveFileAns\ifnum\thedapan>1\@percentchar^^J\fi\string\dapsoTL[\Alph{dapan}]\detokenize{{##2}}}}
+			{\xdef\saveFileAns{\saveFileAns\ifnum\thedapan>1\@percentchar^^J\fi\string\dapsoTL[\alph{dapan}]\detokenize{{##2}}}}}}
+		{\xdef\saveFileAns{\string\dapsoTL\saveFileAns\detokenize{{##2}}}}%
+		\xdef\saveKQ{\detokenize{##2}}%
+		\ifthenelse{\equal{##2}{}}{}%
+		{\hspace{\fill}\mbox{}\linebreak[0]\hspace*{\fill}\textbf{\chudapso} ##2}%
+	}%
+}
+\showdapso
+\makeatother%
+%Gán tên và đánh số hình vẽ trong môi trường \immini
+\def\IMname{}
+\def\IMlabel{}
+\newcommand{\imlabel}[2]{%
+	\def\IMname{\refstepcounter{figure}\label{#2}}%
+	\def\IMlabel{Hình \thefigure: #1}%
+}
+%hide choice và hidechoice list
+\makeatletter
+\def\fhchFT{0}%
+\NewDocumentCommand{\hidechoice}{m o}{%	\hidechoice{<môi trường>}[<list>]
+	\IfNoValueTF{#2}{\AtBeginEnvironment{#1}{%
+		\renewcommand{\writeChoice}[2][1]{%
+			\ifnum\chType=0\relax\else%
+				\ifnum\thedebai=1\relax%
+					\par\setlength{\parskip}{\parskipchoice}%
+					\noindent\hspace{0.02\dorongfix}\begindapan
+						##2\dotEX\strut
+					\end{minipage}%
+				\else
+					\noindent\begindapan
+						##2\dotEX\strut
+					\end{minipage}%
+				\fi%
+				\ifnum\addanswers=1\ifnum\chType=1\ifnum\addquestions=1\gandeTFaddanswers{##1}\fi\fi\fi%
+				\stepcounter{debai}%
+				\ifnum\thedebai>##1\setcounter{debai}{1}\fi%
+			\fi%
+			\@ifnextchar\bgroup{\writeChoice[##1]}{%
+				\let\center\originalcenter%
+				\let\endcenter\originalendcenter}%
+		}%
+		}}%
+	{%
+		{\AtBeginEnvironment{#1}{%
+			\foreach \t in {#2}{%
+				\ifnum\the\numexpr\t-1-\value{#1}=0\relax
+					\gdef\fhchFT{1}
+				\fi}
+			\ifnum\fhchFT=1%
+				\renewcommand{\writeChoice}[2][1]{
+					\ifnum\chType=0\relax\else%
+						\ifnum\thedebai=1\relax%
+							\par\setlength{\parskip}{\parskipchoice}%
+							\noindent\hspace{0.02\dorongfix}\begindapan
+								##2\dotEX\strut
+							\end{minipage}%
+						\else
+							\noindent\begindapan
+								##2\dotEX\strut
+							\end{minipage}%
+						\fi%
+						\ifnum\addanswers=1\ifnum\chType=1\ifnum\addquestions=1\gandeTFaddanswers{##1}\fi\fi\fi%
+						\stepcounter{debai}%
+						\ifnum\thedebai>##1\setcounter{debai}{1}\fi%
+					\fi%
+					\@ifnextchar\bgroup{\writeChoice[##1]}{%
+						\let\center\originalcenter%
+						\let\endcenter\originalendcenter}%
+				}%
+			\fi
+		}}%
+		\AtEndEnvironment{#1}{\gdef\fhchFT{0}}%
+	}
+}
+%hideenviron
+\NewDocumentCommand{\hideenviron}{m o o}{% \hideenviron{<môi trường>}[<list>][<name>]
+	\IfNoValueTF{#2}{\RenewEnviron{#1}{}}
+	{%
+		\IfNoValueTF{#3}{\renewcommand{\nameprintex}{\nameex}}
+			{\renewcommand{\nameprintex}{#3}}%
+		\RenewEnviron{#1}[1][]{%
+		\stepcounter{#1}%
+		\def\fprint{1}%
+		\foreach \t in {#2}{%
+			\ifnum\the\numexpr\t-\value{#1}=0\relax
+				\xdef\fprint{\the\numexpr\fprint*0\relax}
+			\else
+				\xdef\fprint{\the\numexpr\fprint*1\relax}%
+			\fi}%
+		\ifnum\fprint>0\relax
+			\setcounter{printex}{\value{#1}-1}
+			\ifthenelse{\equal{##1}{}}
+			{\begin{printex}}
+			{\begin{printex}[##1]}
+				\BODY% 
+			\end{printex}
+		\fi%
+		}%
+	}
+}
+%print
+\NewDocumentCommand{\print}{m m o}{% \print{<môi trường>}{<list>}[name]
+	\IfNoValueTF{#3}{\renewcommand{\nameprintex}{\nameex}}
+		{\renewcommand{\nameprintex}{#3}}%
+	\RenewEnviron{#1}[1][]{%
+		\stepcounter{#1}%
+		\foreach \t in {#2}{%
+			\ifnum\the\numexpr\t-\value{#1}=0\relax
+				\setcounter{printex}{\value{#1}-1}
+				\par%
+				\ifthenelse{\equal{##1}{}}
+				{\begin{printex}}
+				{\begin{printex}[##1]}
+					\BODY% 
+				\end{printex}
+			\fi}%
+	}%
+}
+
+%dotlineEX equal number line
+\newdimen\linepar
+\newlength{\paroutindent}
+\newlength{\lineheight}
+\setlength{\lineheight}{\heightof{A}}
+\newif\ifInTcolorbox
+\newcounter{iftcbcounter}
+\BeforeBeginEnvironment{tcolorbox}{%
+    \stepcounter{iftcbcounter}%
+    \InTcolorboxtrue%
+}
+\AfterEndEnvironment{tcolorbox}{%
+    \addtocounter{iftcbcounter}{-1}%
+    \ifnum\value{iftcbcounter}=0\relax
+        \InTcolorboxfalse%
+    \fi%
+}
+\newif\ifInex
+\newcounter{ifex}
+\BeforeBeginEnvironment{ex}{%
+    \stepcounter{ifex}%
+    \Inextrue%
+}
+\AfterEndEnvironment{ex}{%
+    \addtocounter{ifex}{-1}%
+    \ifnum\theifex=0\relax
+        \Inexfalse%
+    \fi%
+}
+\makeatletter
+\newcommand{\writeansbook}[1]{}
+\newcommand{\chooseNSA}{\def\kindSA{}}
+\newcommand{\dotlinefull}[2][1]{%
+	\fixshowans{#2}%
+	\renewcommand{\chooseNSA}{\def\kindSA{\kindSAapply}}
+	\AtBeginEnvironment{#2}{%
+		\def\colorEX{}%
+		\ifthenelse{\equal{\kindSA}{ShowSAKeyColor}}{\chooseNSA}{}%
+		\ifthenelse{\equal{\kindSA}{ShowSAKeyLG}}{\chooseNSA}{}%
+		\renewcommand{\TrueTF}{\FalseTF}\gdef\tickT{}\gdef\tickF{}%
+		\renewcommand{\TrueEX}{\FalseEX}%
+		\renewcommand{\TrueEXn}{\FalseEXn}%
+		\renewcommand{\TrueUn}{\FalseUn}%
+		\renewcommand{\writekeyTFone}{}%
+		\renewcommand{\writekeyTF}{\ifthenelse{\equal{\cotDS}{2}}{&&}{\ifthenelse{\equal{\cotDS}{1}}{&}{}}}%
+		\renewcommand{\ansmatch}{\viewansmatch{fbox}{.}{}}%
+		\renewcommand{\loigiai}[1]{%
+			\labelex\gdef\labelex{}%
+			\ifInTcolorbox
+				\ifdef{\endbox}{\endbox\gdef\endbox{}}{}
+			\fi%
+			\par\noindent\textbf{\loigiaiEX}%
+			\setlength{\paroutindent}{\expandafter\parindent}%
+			\setbox0=\vbox{\hbox{%
+				\noindent\begin{minipage}{\linewidth}%
+				\setlength{\parindent}{\paroutindent}##1\end{minipage}%
+			}}%
+			\linepar=\ht0%
+			\pgfmathparse{int(ceil((\linepar-\fboxsep)/(\lineheight)))}%
+			\IfInteger{#1}{\dotlineEXb[#1]{\pgfmathresult}}
+				{\dotlineEXb{\pgfmathresult}}%
+			\writeansbook{##1}%
+		}
+	}
+	\@ifnextchar\bgroup{\dotlinefull[#1]}{}
+}
+%Ẩn hiện công thức tự động
+\newlength\wsh
+\newlength\hsh
+\newlength\dsh
+\def\dotfillans#1{\cleaders\hbox to #1{.}\hfill}
+\newcommand\dotlinesh[2][.5em]{\leavevmode\hbox to #2{\dotfillans{#1}\hfil}}
+\newcommand{\sh}[1]{%
+	\settowidth\wsh{#1}%
+	\settoheight\hsh{#1}%
+	\settodepth\dsh{#1}%
+	\ifdim\wsh<20pt\relax\setlength{\wsh}{20pt}\fi%
+	\raisebox{0pt}[\hsh][\dsh]{%
+		\dotlinesh{\wsh}%
+	}
+}
+\newcommand{\TF}[1]{\EXboxTF{\textbf{\colorEX#1}}}
+\newcommand{\boxEX}[2][9pt]{%
+	\def\sizeboxEX{#1}%
+	\setbox1=\hbox{#2}%
+	\ \EXbox{#2}\ %
+}
+%Lệnh tagEX gán nhãn công thức thủ công
+\newcommand{\tagEX}[1]{%
+	\hfill{\rm (#1)}%
+	\par
+	\@ifnextchar\begin%
+	{\vspace{-\baselineskip}}
+	{}
+}
+%Đánh dấu phương án đúng
+\newcommand*\circled[1]{\tikz[baseline=(char.base)]{
+            \node[shape=circle,draw,inner sep=0.5pt] (char) {#1};}}
+\newcommand{\circT}[2][red,fill=yellow!50]{\tikz[baseline=(char.base)]{\draw[#1,scale=\f@size/11.5] (0,0) circle(7pt);\node (char)[above=-1.4ex]{\color{red}#2};\node (char)[right=6pt,scale=0.95]{\color{black}\parbox[t]{2.6mm}{\centering Đ}};}\vspace{0.1mm}}
+\newcommand{\circF}[2][red,fill=yellow!50]{\tikz[baseline=(char.base)]{\draw[#1,scale=\f@size/11.5] (0,0) circle(7pt);\node (char)[above=-1.4ex]{\color{red}#2};\node (char)[right=6pt,scale=0.95]{\color{black}\parbox[t]{2.6mm}{\centering S}};}\vspace{0.1mm}}
+\newcommand{\circX}[2][red,fill=yellow!50]{\tikz[baseline=(char.base)]{\draw[#1,scale=\f@size/11.5] (0,0) circle(7pt);\node (char)[above=-1.3ex]{\color{red}#2};}\vspace{0.1mm}}
+\newcommand{\Onlycirc}{%
+	\renewcommand{\circT}[2][draw=black,fill=blue]{\,\tikz[baseline=(char.base)]{\node[shape=circle,inner sep=0.4pt,##1] (char) {\phantom{H}};\node (0,0) {\bfseries\color{white}##2};}}
+	\renewcommand{\circF}[2][draw=black,fill=white]{\,\tikz[baseline=(char.base)]{\node[shape=circle,inner sep=0.4pt,##1] (char) {\phantom{H}};\node (0,0) {\color{black}##2};}}
+}
+\newcommand{\Fullcirc}{%
+	\renewcommand{\circT}[2][red,fill=yellow!40]{\tikz[baseline=(char.base)]{\draw[##1] (0,0) circle(7pt);\node (char)[above=-1.4ex]{\color{black}##2};\node (char)[right=6pt,scale=0.95]{\color{black}Đúng};}}
+	\renewcommand{\circF}[2][red,fill=yellow!40]{\tikz[baseline=(char.base)]{\draw[##1] (0,0) circle(7pt);\node (char)[above=-1.4ex]{\color{black}##2};\node (char)[right=6pt,scale=0.95]{\phantom{Đúng}};\node (char)[right=12pt,scale=0.95]{\color{black}Sai};}}
+}
+\newcommand{\Returncirc}{%
+	\renewcommand{\circT}[2][red,fill=yellow!50]{\tikz[baseline=(char.base)]{\draw[##1,scale=\f@size/11.5] (0,0) circle(7pt);\node (char)[above=-1.4ex]{\color{red}##2};\node (char)[right=6pt,scale=0.95]{\color{black}\parbox[t]{2.6mm}{\centering Đ}};}\vspace{0.1mm}}
+	\renewcommand{\circF}[2][red,fill=yellow!50]{\tikz[baseline=(char.base)]{\draw[##1,scale=\f@size/11.5] (0,0) circle(7pt);\node (char)[above=-1.4ex]{\color{red}##2};\node (char)[right=6pt,scale=0.95]{\color{black}\parbox[t]{2.6mm}{\centering S}};}\vspace{0.1mm}}
+}
+\newcommand{\circEX}[2][fill=yellow!50,draw=red]{%
+	\tikz[baseline=(char.base)]{\node[shape=circle,inner sep=1pt,#1] (char) {\color{red}#2};}
+}
+\newcommand{\circTF}[2][fill=yellow!50,draw=red]{%
+	\tikz[baseline=(char.base)]{\node[shape=circle,inner sep=0.5pt,#1](char){\phantom{Đ}};\node[inner sep=0.5pt](char){\color{red}#2};}
+}
+\newcommand{\squareEX}[2][fill=yellow!50,draw=red]{%
+	\tikz[baseline=(char.base)]{\node[shape=rectangle,inner sep=2.5pt,#1] (char) {\color{red}#2};}
+}
+\newcommand{\squareTF}[2][fill=yellow!50,draw=red]{%
+	\tikz[baseline=(char.base)]{\node[shape=rectangle,inner sep=0.5pt,#1] (char) {~#2\phantom{~}};}
+}
+
+%%==============================
+%Hiện Chọn đáp án trong lời giải chi tiết
+\def\selectchoice{Chọn đáp án}	\def\keyCh{\circEX[fill=yellow!50,draw=red]{\color{red}\keyEX}}
+\def\selectchoiceTF{Chọn đáp án}\def\keyTF{\squareTF[fill=yellow!5,draw=black]{\color{black}\keyEX}}
+\def\selectshortans{Đáp án:}	\def\keySA{\squareEX[fill=yellow!40,draw=red]{\color{red}\keyEX}}
+\newcommand{\textchoice}{%
+	\par\noindent
+	\ifnum\chType=0 \selectchoice\ \keyCh\fi
+	\ifnum\chType=2 \selectchoice\ \keyTF\fi
+	\ifnum\chType=1 \selectchoiceTF\ \keyTF\fi
+	\ifnum\chType=-2\selectchoiceTF\ \keyTF\fi
+	\ifnum\chType=-1\selectshortans\ \keySA\fi
+	\ifthenelse{\equal{\qedEX}{}}{}{\dotfill\qedEX\par}%
+}
+\newcommand{\hidetextchoice}{%
+	\renewcommand{\textchoice}{}%
+}
+\newcommand{\showtextchoice}{%
+	\renewcommand{\textchoice}{%
+		\par\noindent%
+		\ifnum\chType=0 \selectchoice\ \keyCh\fi
+		\ifnum\chType=2 \selectchoice\ \keyTF\fi
+		\ifnum\chType=1 \selectchoiceTF\ \keyTF\fi
+		\ifnum\chType=-2 \selectchoiceTF\ \keyTF\fi
+		\ifnum\chType=-1\selectshortans\ \keySA\fi
+		\ifthenelse{\equal{\qedEX}{}}{}{\dotfill\qedEX\par}%
+	}
+}
+%Tương thích môi trường enumerate,itemize,taskEX
+\makeatletter
+\newcommand{\listenumerate}[1]{%
+    \def\temp##1{%
+        \ifcsname ##1\endcsname
+		\ifcsname listened@##1\endcsname\else
+            \expandafter\let\csname old##1\expandafter\endcsname\csname ##1\endcsname
+            \expandafter\renewcommand\csname ##1\endcsname{%
+                \@ifnextchar\begin{\csname old##1\expandafter\endcsname\hfill}{\csname old##1\endcsname}%
+            }%
+            \expandafter\newcommand\csname listened@##1\endcsname{}%
+        \fi\fi%
+    }%
+	\forcsvlist\temp{#1}%
+}
+\AtBeginDocument{\listenumerate{ex,chc,vd,bt,printex}}
+%Lời giải
+\def\loigiaiEX{\noindent\parbox[c]{\linewidth-1mm}{\centering\color{blue}Lời giải.}}
+%Danh sách môi trường hiện dòng kẻ trong lời giải
+\newcommand{\dotlineans}[3][]{%
+	\fixshowans{#2}%
+	\renewcommand{\chooseNSA}{\def\kindSA{\kindSAapply}}
+	\AtBeginEnvironment{#3}{%
+		\makeatletter
+		\def\colorEX{}%
+		\ifthenelse{\equal{\kindSA}{ShowSAKeyColor}}{\chooseNSA}{}%
+		\ifthenelse{\equal{\kindSA}{ShowSAKeyLG}}{\chooseNSA}{}%
+		\renewcommand{\TrueTF}{\FalseTF}\gdef\tickT{}\gdef\tickF{}%
+		\renewcommand{\TrueEX}{\FalseEX}%
+		\renewcommand{\TrueEXn}{\FalseEXn}%
+		\renewcommand{\TrueUn}{\FalseUn}%
+		\renewcommand{\writekeyTFone}{}%
+		\renewcommand{\writekeyTF}{\ifthenelse{\equal{\cotDS}{2}}{&&}{\ifthenelse{\equal{\cotDS}{1}}{&}{}}}%
+		\renewcommand{\ansmatch}{\viewansmatch{fbox}{.}{}}%
+		\renewcommand{\loigiai}[1]{%
+			\labelex\gdef\labelex{}%
+			\ifInTcolorbox\ifdef{\endbox}{\endbox\gdef\endbox{}}{}\fi%
+			\par\noindent\textbf{\loigiaiEX}%
+			\IfInteger{#1}{\dotlineEXb[#1]{#2}}
+				{\dotlineEXb{#2}}%
+			\writeansbook{##1}%
+		}
+	}
+	\@ifnextchar\bgroup{\dotlineans[#1]}{}
+}
+%Danh sách môi trường hiện dòng kẻ trong lời giải
+\NewDocumentCommand{\showansEX}{m o}{% \showansEX{<môi trường>}[<list>]
+	\IfNoValueTF{#2}{{\AtBeginEnvironment{#1}{\gdef\fhchFT{1}}}}
+	{{\AtBeginEnvironment{#1}{%
+		\foreach \t in {#2}{%
+			\ifnum\the\numexpr\t-1-\value{#1}=0\relax
+				\gdef\fhchFT{1}%
+			\fi}%
+	}}
+	\AtEndEnvironment{#1}{\gdef\fhchFT{0}}}%
+	\AtBeginEnvironment{#1}{%
+		\makeatletter
+		\ifnum\fhchFT=1\relax
+	%		\chooseNSA
+			\renewcommand{\ansmatch}{\viewansmatch{fbox}{\;>>>>\;}{cotII}}
+			\showanswers
+			%Xuất hiện chữ Lời giải trong môi trường onlysolution
+			\renewcommand{\do@onlysolution}[1]{%
+				\par\noindent\textbf{\loigiaiEX}%
+				\ifshowanswers
+				 \@ifnextchar\immini
+				{}
+				{\@ifnextchar\begin
+				{}
+				{\par\noindent}
+				}
+				##1%
+				\fi
+				\ifthenelse{\equal{\keyEX}{}}{}
+					{\leavevmode\unskip\textchoice\ignorespaces\xdef\keyEX{}}%
+			}%
+			\renewcommand{\loigiai}[1]{%
+				\labelex\gdef\labelex{}%
+				\ifInTcolorbox\ifdef{\endbox}{\endbox\gdef\endbox{}}{}\fi%
+				\begin{onlysolution}
+				##1
+				\end{onlysolution}%
+				\writeansbook{##1}%
+			}%
+		\fi%
+	}%
+}
+\newcommand{\exitshowansEX}[1]{%
+%	\renewcommand{\chooseNSA}{\def\kindSA{}}
+		\AtBeginEnvironment{#1}{%
+			\makeatletter
+%			\chooseNSA
+			\renewcommand{\ansmatch}{\viewansmatch{fbox}{.}{}}
+			\renewcommand{\loigiai}[1]{%
+				\writeansbook{##1}%
+			}
+		}%
+}
+%Danh sách môi trường hiện dòng kẻ trong lời giải
+\makeatletter
+\NewDocumentCommand{\hideansEX}{m o}{%	\hideansEX{<môi trường>}[<list>]
+	\renewcommand{\chooseNSA}{\def\kindSA{\kindSAapply}}%
+	\IfNoValueTF{#2}{{\AtBeginEnvironment{#1}{\gdef\fhchFT{1}}}}
+	{\AtEndEnvironment{#1}{\gdef\fhchFT{0}}
+	{\AtBeginEnvironment{#1}{%
+		\foreach \t in {#2}{%
+			\ifnum\the\numexpr\t-1-\value{#1}=0\relax
+				\gdef\fhchFT{1}%
+			\fi}%
+	}}}%
+	\AtBeginEnvironment{#1}{%
+		\def\colorEX{}%
+		\ifthenelse{\equal{\kindSA}{ShowSAKeyColor}}{\chooseNSA}{}%
+		\ifthenelse{\equal{\kindSA}{ShowSAKeyLG}}{\chooseNSA}{}%
+		\renewcommand{\TrueTF}{\FalseTF}%
+		\renewcommand{\TrueEX}{\FalseEX}%
+		\renewcommand{\TrueEXn}{\FalseEXn}%
+		\renewcommand{\TrueUn}{\FalseUn}%
+		\renewcommand{\writekeyTFone}{\gdef\TrueX{}\gdef\FalseX{}}%
+		\renewcommand{\writekeyTF}{\ifthenelse{\equal{\cotDS}{2}}{&&}{\ifthenelse{\equal{\cotDS}{1}}{&}{}}}%
+		\renewcommand{\ansmatch}{\viewansmatch{fbox}{.}{}}%
+		\ifnum\fhchFT=1\renewcommand{\loigiai}[1]{\writeansbook{##1}}\fi%
+	}%
+}
+\newcommand{\exithideansEX}[1]{}
+%Định nghĩa QED kết thúc chứng minh
+\def\qedEX{\ensuremath{\square}}
+%Đáp số câu hỏi tự luận
+\Newassociation{solshort}{Solshort}{ansshort}
+\renewcommand{\Solshortlabel}[1]{\color{violet}\textbf{#1.}}
+\newcommand{\shortsolnum}[1]{
+	\renewenvironment{Solshort}[1]
+	{\begin{minipage}{\dimexpr\linewidth/#1-1.2\fboxsep\relax}
+	\color{violet}\textbf{##1.}
+	\color{black}
+	}
+	{\end{minipage}}
+}
+\newcommand{\shortsol}[1]{
+	\scantokens{
+	\begin{solshort}
+	#1
+	\end{solshort}}
+}
+%Trích dẫn nguồn
+\def\labelex{}
+
+\newcommand{\nameex}{\color{violet}Câu}
+\newcommand{\namebt}{\color{blue}Bài}
+\newcommand{\namevd}{\color{red}Ví dụ}
+\newcommand{\nameprintex}{\nameex}
+%Tương thích gói picinpar
+\def\picinpar{\setlength{\linewidth}{\linewidth}}
+\AtBeginEnvironment{window}{\def\picinpar{\setlength{\linewidth}{\linewidth-\picwd-\lwindowsep-2\fboxsep}}}
+%Tùy chọn lời giải
+\newcommand{\choicew}[1]{\setlength{\widthch}{#1}}
+\newcommand{\loigiai}[1]{%
+	\begin{onlysolution}
+	#1
+	\end{onlysolution}
+}
+%Cách hiển thị cho các phương án
+\newcounter{dapan}
+\newcounter{numTrue}	%Không dùng nữa
+\newcounter{numTrueSol}	%Không dùng nữa
+\def\colorEX{}	% Màu cho phương án đúng
+\def\dotEX{.}	% Dấu câu sau mỗi phương án
+\def\sepTF{.}
+\def\deA{}\def\deB{}\def\deC{}\def\deD{}\def\deE{}\def\deF{}\def\deG{}\def\deH{}\def\deI{}\def\deJ{}
+\def\daA{}\def\daB{}\def\daC{}\def\daD{}\def\daE{}\def\daF{}\def\daG{}\def\daH{}\def\daI{}\def\daJ{}
+\newcommand{\DapAnTF}{\alph{dapan}}
+\newcommand{\DapAnN}{\arabic{dapan}}
+\newcommand{\DapAnSA}{\alph{dapan}}
+\newcommand{\FalseTF}{\stepcounter{dapan}\textbf{\DapAnTF\sepTF}\ignorespaces}
+\newcommand{\TrueTF}{\FalseTF}
+\newcommand{\FalseEX}{\stepcounter{dapan}\textbf{\Alph{dapan}.}\ignorespaces}
+\newcommand{\TrueEX}{\FalseEX}
+\newcommand{\FalseEXn}{\stepcounter{dapan}\textbf{\DapAnN\sepN}\ignorespaces}
+\newcommand{\TrueEXn}{\FalseEXn}
+\newcommand{\FalseUn}{\bfseries\Alph{dapan}}
+\newcommand{\TrueUn}{\FalseUn}
+\newcommand{\True}{}
+\newlength\widthalpha
+\newlength\widthalphaT
+\newlength\widthalphaF
+\ifnum\chType=0\settowidth\widthalphaT{\TrueEX}\settowidth\widthalphaF{\FalseEX}
+\else\ifnum\chType=2\settowidth\widthalphaT{\TrueTFn}\settowidth\widthalphaF{\FalseTFn}
+\else\settowidth\widthalphaT{\TrueTF}\settowidth\widthalphaF{\FalseTF}\fi\fi%
+\ifdim\widthalpha<\widthalphaT\relax\setlength{\widthalpha}{\widthalphaT}\fi%
+\ifdim\widthalpha<\widthalphaF\relax\setlength{\widthalpha}{\widthalphaF}\fi%
+%
+\makeatletter
+\newcommand{\begindapan}{%
+	\@ifnextchar\True
+	{\hspace{\fboxsep}%
+	\begin{minipage}[t]{\widthalpha}
+		\ifnum\chType=0\TrueEX\else\ifnum\chType=2\TrueEXn\else\TrueTF\fi\fi%
+	\end{minipage}
+	\hspace{\fboxsep}%
+	\begin{minipage}[t]{\dorong}
+		\ifnum\chType=1\relax%
+			\xdef\saveFileAns{\saveFileAns\string\circT{\DapAnTF}}%
+			\ifnum\thedapan=1\relax\xdef\keyEX{\DapAnTF\ đúng}%
+			\else\xdef\keyEX{\keyEX\ \big| \DapAnTF\ đúng}\fi%
+			\ifnum\addanswers=1\relax\gandaTFaddanswers{\circTF{Đ}}\fi%
+		\else%
+		\ifnum\chType=2\relax%
+			\ifthenelse{\equal{\saveFileAns}{}}
+				{\xdef\saveFileAns{\saveFileAns\DapAnN}}
+				{\xdef\saveFileAns{\saveFileAns.\DapAnN}}%
+			\ifthenelse{\equal{\keyEX}{}}
+			{\xdef\keyEX{\DapAnN}}
+			{\xdef\keyEX{\keyEX\ \big| \DapAnN}}%
+		\else%
+			\xdef\saveFileAns{\Alph{dapan}}%
+			\xdef\keyEX{\Alph{dapan}}%
+		\fi%
+		\fi%
+	}
+	{\hspace{\fboxsep}%
+	\begin{minipage}[t]{\widthalpha}
+		\ifnum\chType=0\FalseEX\else\ifnum\chType=2\FalseEXn\else\FalseTF\fi\fi%
+	\end{minipage}
+	\hspace{\fboxsep}%
+	\begin{minipage}[t]{\dorong}
+		\ifnum\chType=1\relax%
+			\xdef\saveFileAns{\saveFileAns\string\circF{\DapAnTF}}%
+			\ifnum\thedapan=1\relax\xdef\keyEX{\keyEX\DapAnTF\ sai}%
+			\else\xdef\keyEX{\keyEX\ \big| \DapAnTF\ sai}\fi%
+			\ifnum\addanswers=1\relax\gandaTFaddanswers{\circTF{S}}\fi%
+		\fi%
+	}
+}
+%%%% 3 lệnh dưới đây tạm giữ lại (dùng cho tài liệu quá cũ)
+\newcommand{\motcot}[4]{\choice[1]{#1}{#2}{#3}{#4}}
+\newcommand{\haicot}[4]{\choice[2]{#1}{#2}{#3}{#4}}
+\newcommand{\boncot}[4]{\choice[4]{#1}{#2}{#3}{#4}}
+%%%%%%%
+\newlength\widthcha
+\newlength\widthchb
+\newlength\widthchc
+\newlength\widthchd
+\newlength\widthche
+\newlength\widthch
+\newlength\fourthtabwidth
+\newlength\halftabwidth
+\def\parskipchoice{1mm}
+\newcommand{\choice}[2][1mm]{%
+	\gdef\chType{0}%
+	\@ifnextchar\bgroup
+	{\choiceS[#1]{#2}}
+	{\choiceUn{#2}}%
+}
+\newcommand{\choiceN}[5][1mm]{% Dùng cho trắc nghiệm chọn nhiều PA
+	\gdef\chType{2}%
+	\choiceS[#1]{#2}{#3}{#4}{#5}%
+}
+\newcommand{\choiceUn}[2][1mm]{\!\!%	Thiết kế cho môn tiếng Anh
+	\stepcounter{dapan}%
+	\tikz[baseline=(char.base)]{%
+		\node (char){%
+			\underline{%
+				\@ifnextchar\True%
+				{\gdef\dapanUn{\TrueUn}%
+				 \xdef\saveFileAns{\Alph{dapan}}%
+				 \xdef\keyEX{\Alph{dapan}}}%
+				{\gdef\dapanUn{\FalseUn}}%
+				#2}%
+			};%
+		\node (0,0)[yshift=-0.9\baselineskip]{\dapanUn\ignorespaces};%
+	}%
+}
+\newcommand{\choiceS}[5][1mm]{%
+	\setcounter{dapan}{0}%
+	\savekinditch\picinpar%
+	\let\originalcenter\center%
+	\let\originalendcenter\endcenter%
+	\renewenvironment{center}%
+		{\par\centering\bgroup}%
+		{\egroup\par}%
+	\setlength{\fourthtabwidth}{\dimexpr0.25\linewidth-0.005\dorongfix-\widthalpha-4\fboxsep\relax}%
+		\setlength{\halftabwidth}{\dimexpr0.5\linewidth-0.01\dorongfix-\widthalpha-4\fboxsep\relax}%
+		\settowidth\widthcha{#2\dotEX}%
+		\settowidth\widthchb{#3\dotEX}%
+		\settowidth\widthchc{#4\dotEX}%
+		\settowidth\widthchd{#5\dotEX}%
+		\setlength{\widthch}{\widthcha}%
+		\ifdim\widthch<\widthchb\relax\setlength{\widthch}{\widthchb}\fi%
+		\ifdim\widthch<\widthchc\relax\setlength{\widthch}{\widthchc}\fi%
+		\ifdim\widthch<\widthchd\relax\setlength{\widthch}{\widthchd}\fi%
+	\IfInteger{#1}
+		{\ifnum#1>0\gdef\socot{#1}\else\gdef\socot{1}\fi}
+		{\def\parskipchoice{#1}%
+			\ifdim\widthch<\fourthtabwidth\relax\gdef\socot{4}%
+			\else\ifdim\widthch<\halftabwidth\relax\gdef\socot{2}%
+			\else\gdef\socot{1}\fi\fi}%
+	%
+	\@ifnextchar\bgroup{\choicefix[#1]{#2}{#3}{#4}{#5}}
+		{\choiceint[\socot]{#2}{#3}{#4}{#5}}%
+}
+\newcommand{\choicefix}[6][0]{%
+	\@ifnextchar\bgroup{\choiceint[\socot]{#2}{#3}{#4}{#5}{#6}}
+		{\choicefiveS[#1]{#2}{#3}{#4}{#5}{#6}}%
+}
+\makeatletter
+\newcommand{\choiceint}[1][1]{%
+	\IfInteger{#1}
+		{\setlength{\dorong}{\dimexpr\linewidth/#1-0.02\dorongfix/#1-\widthalpha-4\fboxsep\relax}}
+		{\setlength{\dorong}{\dimexpr\linewidth-0.02\dorongfix-\widthalpha-4\fboxsep\relax}}
+	\setcounter{debai}{1}%
+	\IfInteger{#1}{\writeChoice[#1]}{\writeChoice}%
+}
+\newcommand{\writeChoice}[2][1]{%
+	\ifnum\thedebai=1\relax%
+		\par\setlength{\parskip}{\parskipchoice}%
+		\noindent\hspace{0.02\dorongfix}\begindapan
+			#2\dotEX\strut
+		\end{minipage}%
+	\else
+		\noindent\begindapan
+			#2\dotEX\strut
+		\end{minipage}%
+	\fi%
+	\ifnum\addanswers=1\ifnum\chType=1\ifnum\addquestions=1\gandeTFaddanswers{#1}\fi\fi\fi%
+	\stepcounter{debai}%
+	\ifnum\thedebai>#1\setcounter{debai}{1}\fi%
+	\@ifnextchar\bgroup{\writeChoice[#1]}{%
+		\let\center\originalcenter%
+		\let\endcenter\originalendcenter}%
+}
+
+%Trắc nghiệm 5 lựa chọn
+\newlength\MO
+\newlength\HA
+\newlength\NA
+\newlength\BA
+\newlength\RU
+\newcounter{numChoice}
+\newcommand{\choicefive}[6][0]{%
+	\gdef\chType{0}%
+	\choicefiveS[#1]{#2}{#3}{#4}{#5}{#6}%
+}
+\newcommand{\setnumchoice}[6]{%
+	\ifdim\widthcha<#1\relax%
+	\ifdim\widthchb<#2\relax%
+	\ifdim\widthchc<#3\relax%
+	\ifdim\widthchd<#4\relax%
+	\ifdim\widthche<#5\relax%
+		\gdef\numchoice{#6}%
+	\fi\fi\fi\fi\fi%
+}
+\newcommand{\choicefiveS}[6][1mm]{%
+	\setcounter{dapan}{0}%
+	\savekinditch\picinpar%
+	\settowidth\widthcha{#2\dotEX}%
+	\settowidth\widthchb{#3\dotEX}%
+	\settowidth\widthchc{#4\dotEX}%
+	\settowidth\widthchd{#5\dotEX}%
+	\settowidth\widthche{#6\dotEX}%
+	\setlength{\MO}{\dimexpr\linewidth/1-0.02\dorongfix/1-\widthalpha-4\fboxsep\relax}%
+	\setlength{\HA}{\dimexpr\linewidth/2-0.02\dorongfix/2-\widthalpha-4\fboxsep\relax}%
+	\setlength{\NA}{\dimexpr\linewidth/5-0.02\dorongfix/5-\widthalpha-4\fboxsep\relax}%
+	\setlength{\BA}{\dimexpr\linewidth/3-0.02\dorongfix/3-\widthalpha-4\fboxsep\relax}%
+	\setlength{\RU}{\dimexpr2\linewidth/3-0.04\dorongfix/3-\widthalpha-4.6\fboxsep\relax}%
+	%Khởi tạo điều kiện 
+	\gdef\numchoice{0}\gdef\socot{1}%
+	\setnumchoice{\BA}{\RU}{\BA}{\RU}{\MO}{11}%
+	\setnumchoice{\RU}{\BA}{\RU}{\BA}{\MO}{10}%
+	\setnumchoice{\HA}{\HA}{\HA}{\HA}{\MO}{9}%
+	\setnumchoice{\HA}{\HA}{\BA}{\BA}{\BA}{8}%
+	\setnumchoice{\RU}{\BA}{\BA}{\BA}{\BA}{7}%
+	\setnumchoice{\BA}{\RU}{\BA}{\BA}{\BA}{6}%
+	\setnumchoice{\BA}{\BA}{\BA}{\MO}{\MO}{5}%
+	\setnumchoice{\BA}{\BA}{\BA}{\HA}{\HA}{4}%
+	\setnumchoice{\BA}{\BA}{\BA}{\RU}{\BA}{3}%
+	\setnumchoice{\BA}{\BA}{\BA}{\BA}{\RU}{2}%
+	\setnumchoice{\NA}{\NA}{\NA}{\NA}{\NA}{1}%
+	\setcounter{numChoice}{\numchoice}%
+	%Lựa chọn cách sắp xếp
+	\IfInteger{#1}
+	{\gdef\socot{#1}%
+		 \setlength{\dorong}{\dimexpr\linewidth/\socot-0.02\dorongfix/\socot-\widthalpha-4\fboxsep\relax}%
+		 \setcounter{debai}{1}%
+		 \writeChoice[\socot]{#2}{#3}{#4}{#5}{#6}}%
+	{\def\parskipchoice{#1}%
+		\setcounter{debai}{1}%
+		\ifnum\the\value{numChoice}=1\relax%
+			\setlength{\dorong}{\NA}{\writeChoice[5]{#2}{#3}{#4}{#5}{#6}}%
+		\else\ifnum\the\value{numChoice}=2\relax%
+			\setlength{\dorong}{\BA}{\writeChoice[3]{#2}{#3}{#4}}\setcounter{debai}{1}%
+			{\writeChoice[3]{#5}}\setlength{\dorong}{\RU}{\writeChoice{#6}}%
+		\else\ifnum\the\value{numChoice}=3\relax%
+			\setlength{\dorong}{\BA}{\writeChoice[3]{#2}{#3}{#4}}\setcounter{debai}{1}%
+			\setlength{\dorong}{\RU}{\writeChoice[2]{#5}}\setlength{\dorong}{\BA}{\writeChoice{#6}}%
+		\else\ifnum\the\value{numChoice}=4\relax%
+			\setlength{\dorong}{\BA}{\writeChoice[3]{#2}{#3}{#4}}\setcounter{debai}{1}%
+			\setlength{\dorong}{\HA}{\writeChoice[2]{#5}{#6}}%
+		\else\ifnum\the\value{numChoice}=5\relax%
+			\setlength{\dorong}{\BA}{\writeChoice[3]{#2}{#3}{#4}}\setcounter{debai}{1}%
+			\setlength{\dorong}{\MO}{\writeChoice{#5}{#6}}%
+		\else\ifnum\the\value{numChoice}=6\relax%
+			\setlength{\dorong}{\BA}{\writeChoice[3]{#2}}%
+			\setlength{\dorong}{\RU}{\writeChoice[2]{#3}}\setcounter{debai}{1}%
+			\setlength{\dorong}{\BA}{\writeChoice[3]{#4}{#5}{#6}}%
+		\else\ifnum\the\value{numChoice}=7\relax%
+			\setlength{\dorong}{\RU}{\writeChoice[2]{#2}}%
+			\setlength{\dorong}{\BA}{\writeChoice[3]{#3}}\setcounter{debai}{1}%
+			\setlength{\dorong}{\BA}{\writeChoice[3]{#4}{#5}{#6}}%
+		\else\ifnum\the\value{numChoice}=8\relax%
+			\setlength{\dorong}{\HA}{\writeChoice[2]{#2}{#3}}\setcounter{debai}{1}%
+			\setlength{\dorong}{\BA}{\writeChoice[3]{#4}{#5}{#6}}%
+		\else\ifnum\the\value{numChoice}=9\relax%
+			\setlength{\dorong}{\HA}{\writeChoice[2]{#2}{#3}}\setcounter{debai}{1}%
+			\setlength{\dorong}{\HA}{\writeChoice[2]{#4}{#5}}\setcounter{debai}{1}%
+			\setlength{\dorong}{\MO}{\writeChoice{#6}}%
+		\else\ifnum\the\value{numChoice}=10\relax%
+			\setlength{\dorong}{\RU}{\writeChoice[2]{#2}}%
+			\setlength{\dorong}{\BA}{\writeChoice[3]{#3}}\setcounter{debai}{1}%
+			\setlength{\dorong}{\RU}{\writeChoice[2]{#4}}%
+			\setlength{\dorong}{\BA}{\writeChoice[3]{#5}}\setcounter{debai}{1}%
+			\setlength{\dorong}{\MO}{\writeChoice{#6}}%
+		\else\ifnum\the\value{numChoice}=11\relax%
+			\setlength{\dorong}{\BA}{\writeChoice[3]{#2}}%
+			\setlength{\dorong}{\RU}{\writeChoice[2]{#3}}\setcounter{debai}{1}%
+			\setlength{\dorong}{\BA}{\writeChoice[3]{#4}}%
+			\setlength{\dorong}{\RU}{\writeChoice[2]{#5}}\setcounter{debai}{1}%
+			\setlength{\dorong}{\MO}{\writeChoice{#6}}%
+		\else%
+			\setlength{\dorong}{\dimexpr\linewidth/\socot-0.02\dorongfix/\socot-\widthalpha-4\fboxsep\relax}%
+			\writeChoice[\socot]{#2}{#3}{#4}{#5}{#6}%
+		\fi\fi\fi\fi\fi\fi\fi\fi\fi\fi\fi%
+	}%
+}
+%%============= CÁC LỆNH MỚI =============
+%\choiceTF
+\def\tickT{X}	% Chỗ này dùng để định nghĩa dấu tick đúng hoặc sai
+\def\tickF{X}
+\gdef\TrueX{}\gdef\FalseX{\tickF}
+\def\phatbieu{Phát biểu}
+\newtoggle{InMulticols}\togglefalse{InMulticols}
+\AtBeginEnvironment{multicols}{\toggletrue{InMulticols}}
+\AtEndEnvironment{multicols}{\togglefalse{InMulticols}}
+\newtoggle{InParacol}\togglefalse{InParacol}
+\AtBeginEnvironment{paracol}{\toggletrue{InParacol}}
+\AtEndEnvironment{paracol}{\togglefalse{InParacol}}
+\makeatletter
+\newcommand{\boldTF}{\bfseries}
+\newlength\TabCS
+\newlength\lengthDS
+\define@key{optn}{chudapso}{\def\chudapso{#1}}%
+\define@key{optn}{dongPB}{\def\dongPB{#1}}%	dùng để ẩn hiện dòng tiêu đề Phát biểu
+\define@key{optn}{cotDS}{\def\cotDS{#1}}%	dùng để ẩn hiện cột đánh dấu Đúng/Sai
+\define@key{optn}{dapanTF}{\def\dapanTF{#1}}
+\define@key{optn}{dapanN}{\def\dapanN{#1}}
+\define@key{optn}{phatbieu}{\def\phatbieu{#1}}
+\define@key{optn}{viettat}{\def\viettat{#1}}
+\define@key{optn}{sepTF}{\def\sepTF{#1}\def\sepitcTF{#1}}%	dấu ngăn cách cho abcd với phát biểu Đ/S
+\define@key{optn}{sepN}{\def\sepN{#1}\def\sepitcN{#1}}%	dấu ngăn cách cho abcd với phát biểu Đ/S
+\define@key{optn}{cotSTT}{\def\cotSTT{#1}}
+\define@key{optn}{addquestions}{\def\addquestions{#1}}
+\define@key{optn}{addanswers}{\def\addanswers{#1}}
+\define@key{optn}{boldTF}{%
+	\ifthenelse{\equal{#1}{0}}
+	{\renewcommand{\boldTF}{}}
+	{\renewcommand{\boldTF}{\bfseries}}%
+}
+\define@key{optn}{kindTF}{\def\kindTF{#1}%
+	\ifthenelse{\equal{#1}{0}}
+	{\renewcommand{\choiceTFt}[1][]{\choiceTF}}
+	{\ifthenelse{\equal{#1}{t0} \OR \equal{#1}{t00}}{\def\kindTF{t}\def\dongPB{0}\def\cotDS{0}}
+	{\ifthenelse{\equal{#1}{t10}}{\def\kindTF{t}\def\dongPB{1}\def\cotDS{0}}
+	{\ifthenelse{\equal{#1}{t01}}{\def\kindTF{t}\def\dongPB{0}\def\cotDS{2}}
+	{\ifthenelse{\equal{#1}{tDS}}{\def\kindTF{t}\def\dongPB{1}\def\cotDS{1}}{}}}}}%
+}
+\makeatletter
+\def\applykindSA{1} % Chuẩn bị ĐK để áp dụng \kindSA
+\def\kindSAapply{}	% Để ưu tiên sử dụng khi \hideansEX
+\define@key{optn}{kindSA}{\def\kindSAapply{#1}\ifnum\applykindSA=1\def\kindSA{#1}\fi}
+\define@key{optn}{ketquaSA}{\def\ketqua{#1}\def\ketquaSA{\ketqua}}
+\define@key{optn}{widthSA} {\def\SAwidth{#1}\def\widthSA{\SAwidth}}
+\define@key{optn}{heightSA}{\def\SAheight{#1}\def\heightSA{\SAheight}}
+\define@key{optn}{dapanSA}{\def\dapanSA{#1}}
+\newcounter{debai}%cho MW
+\makeatletter
+\newcommand{\DeBaiMW}{\arabic{debai}}
+\newcommand{\DapAnMW}{\Alph{dapan}}
+\newcommand{\boldMW}{\bfseries}
+\define@key{optn}{chidan}{\def\chidan{#1}
+	\ifthenelse{\equal{\chidan}{}}{\def\chidanMW{0}}{\def\chidanMW{1}}}
+\define@key{optn}{boldMW}{%
+	\ifthenelse{\equal{#1}{0}}
+	{\renewcommand{\boldMW}{}}
+	{\renewcommand{\boldMW}{\bfseries}}%
+}
+\define@key{optn}{debaiMW}{\def\debaiMW{#1}%
+	\ifthenelse{\equal{#1}{a}}
+	{\renewcommand{\DeBaiMW}{\alph{debai}}%
+	\def\viewdebaiMW{{\bfseries\DeBaiMW)}}}
+	{\ifthenelse{\equal{#1}{A}}
+	{\renewcommand{\DeBaiMW}{\Alph{debai}}}
+	{\renewcommand{\DeBaiMW}{\arabic{debai}}}%
+	\def\viewdebaiMW{\circled{\bfseries\DeBaiMW}}}%
+}
+\define@key{optn}{dapanMW}{%
+	\ifthenelse{\equal{#1}{a}}
+	{\renewcommand{\DapAnMW}{\alph{dapan}}%
+	\def\viewdapanMW{{\bfseries\DapAnMW)}}}
+	{\ifthenelse{\equal{#1}{1}}
+	{\renewcommand{\DapAnMW}{\arabic{dapan}}%
+	\def\viewdapanMW{{\bfseries\DapAnMW)}}}
+	{\renewcommand{\DapAnMW}{\Alph{dapan}}}%
+	\def\viewdapanMW{{\bfseries\DapAnMW.}}}%
+}
+\define@key{optn}{tieudeMW}{\def\tieudeMW{#1}}
+\define@key{optn}{cotI}{\def\cotI{#1}}
+\define@key{optn}{cotII}{\def\cotII{#1}}
+\define@key{optn}{cotI}{\def\cotI{#1}}
+\define@key{optn}{ketquaMW}{\def\ketquaMW{#1}
+\ifthenelse{\equal{\ketquaMW}{}}{\gdef\showKQMW{0}}{\gdef\showKQMW{1}}}
+\define@key{optn}{TabCS}{\setlength{\TabCS}{#1}}
+\define@key{optn}{parskipI}{\def\parskipI{#1}}
+\define@key{optn}{parskipII}{\def\parskipII{#1}}
+\define@key{optn}{length}{\def\length{#1}}
+\define@key{optn}{lengthII}{\def\lengthII{#1}}
+\define@key{optn}{addanswers}{\def\addanswers{#1}}
+\define@key{optn}{explain}{\def\explain{#1}}
+\define@key{optn}{exbreak}{\def\exbreak{#1}}
+\newcommand{\OPTN}[1]{%
+	\setkeys{optn}{#1}%
+	\ifthenelse{\equal{\viettat}{0}}
+	{\ifthenelse{\equal{\cotDS}{1}}
+		{\def\Dung{Đúng/Sai}}
+		{\def\Dung{Đúng}\def\Sai{Sai}}}
+	{\ifthenelse{\equal{\cotDS}{1}}
+		{\def\Dung{Đ/S}}
+		{\def\Dung{Đ}\def\Sai{S}}}%
+	\ifthenelse{\equal{\viettat}{0} \OR \equal{\colorEX}{} \OR \equal{\Dung}{Đ/S}}
+		{\settowidth\lengthDS{\Dung}}
+		{\settowidth\lengthDS{\TrueTF}}
+	\IfSubStr{#1}{sepTF}{%
+		\ifthenelse{\equal{\dapanTF}{A}}
+		{\renewcommand{\DapAnTF}{\Alph{dapan}}}
+		{\ifthenelse{\equal{\dapanTF}{1}}
+		{\renewcommand{\DapAnTF}{\arabic{dapan}}}
+		{\renewcommand{\DapAnTF}{\alph{dapan}}}}%
+	}{\ifthenelse{\equal{\dapanTF}{A}}
+		{\renewcommand{\DapAnTF}{\Alph{dapan}}\def\sepTF{.}\def\sepitcTF{.}}
+		{\ifthenelse{\equal{\dapanTF}{1}}
+		{\renewcommand{\DapAnTF}{\arabic{dapan}}\def\sepTF{)}\def\sepitcTF{)}}
+		{\renewcommand{\DapAnTF}{\alph{dapan}}\def\sepTF{)}\def\sepitcTF{)}}}%
+	}%
+	\IfSubStr{#1}{sepN}{%
+		\ifthenelse{\equal{\dapanN}{A}}
+		{\renewcommand{\DapAnN}{\Alph{dapan}}}
+		{\ifthenelse{\equal{\dapanN}{1}}
+		{\renewcommand{\DapAnN}{\arabic{dapan}}}
+		{\renewcommand{\DapAnN}{\alph{dapan}}}}%
+	}{\ifthenelse{\equal{\dapanN}{A}}
+		{\renewcommand{\DapAnN}{\Alph{dapan}}\def\sepN{.}\def\sepitcN{.}}
+		{\ifthenelse{\equal{\dapanN}{1}}
+		{\renewcommand{\DapAnN}{\arabic{dapan}}\def\sepN{)}\def\sepitcN{)}}
+		{\renewcommand{\DapAnN}{\alph{dapan}}\def\sepN{)}\def\sepitcN{)}}}%
+	}%
+	\renewcommand{\chooseNSA}{\xdef\kindSA{\kindSAapply}}
+	\ifthenelse{\equal{\dapanSA}{A}}
+		{\renewcommand{\DapAnSA}{\Alph{dapan}}}
+		{\ifthenelse{\equal{\dapanSA}{1}}
+		{\renewcommand{\DapAnSA}{\arabic{dapan}}}
+		{\renewcommand{\DapAnSA}{\alph{dapan}}}}%
+}
+\newcommand{\TFOPTN}[1]{\OPTN{#1}}
+\newcommand{\SAOPTN}[1]{\OPTN{#1}}
+\makeatother
+\OPTN{explain=0,exbreak=0,chudapso=ĐS:,dapanN=1,%
+	kindTF=,cotSTT=0,dongPB=1,cotDS=2,dapanTF=a,boldTF=0,phatbieu=Phát biểu,viettat=0,addquestions=0,addanswers=1,%
+	kindSA=,ketquaSA=KQ:,widthSA=4,heightSA=0.9,dapanSA=a,%
+	chidan=Ghép mỗi phát biểu ở cột I với một ý ghép ở cột II để được mệnh đề đúng,%
+	tieudeMW=1,boldMW=0,cotI=Cột I,cotII=Cột II,debaiMW=1,dapanMW=A, ketquaMW=Kết quả ghép nối:,%
+	TabCS=2mm,parskipI=1mm,parskipII=1mm,length=1,lengthII=0.25%
+}
+\makeatletter
+\newcommand{\callcotDS}{}
+\newcommand{\ifInMulticol}[2]{%
+	\iftoggle{InMulticols}{#1}{%
+	\iftoggle{InParacol}{#1}{#2}}%
+}
+\newcommand{\choiceTF}[5][0cm]{%
+	\gdef\chType{1}\callcotDS%
+	\savekinditch%
+	%Tương thích môi trường {center}
+	\let\originalcenter\center%
+	\let\originalendcenter\endcenter%
+	\xdef\sdotEX{\dotEX}
+	\renewenvironment{center}%
+		{\xdef\dotEX{}%
+		\par\centering\bgroup}%
+		{\egroup\par}%
+	\ifthenelse{\equal{\kindTF}{1t} \OR \equal{\kindTF}{2t} \OR \equal{\kindTF}{t}}
+	{\setlength{\TabCS}{\tabcolsep}%
+	 \ifInMulticol
+		{\choiceTFt{#2}{#3}{#4}{#5}}
+		{\ifthenelse{\equal{\kindTF}{2t}}
+			{\@ifnextchar\bgroup{\choiceTFt{#2}{#3}{#4}{#5}}{\haibang{#2}{#3}{#4}{#5}}}
+			{\ifthenelse{\equal{\kindTF}{t}}
+				{\@ifnextchar\bgroup{\choiceTFt{#2}{#3}{#4}{#5}}{%
+					\settowidth\widthcha{#2\dotEX}%
+					\settowidth\widthchb{#3\dotEX}%
+					\settowidth\widthchc{#4\dotEX}%
+					\settowidth\widthchd{#5\dotEX}%
+					\setlength{\widthch}{\widthcha}%
+					\ifdim\widthch<\widthchb\relax\setlength{\widthch}{\widthchb}\fi%
+					\ifdim\widthch<\widthchc\relax\setlength{\widthch}{\widthchc}\fi%
+					\ifdim\widthch<\widthchd\relax\setlength{\widthch}{\widthchd}\fi%
+					\ifnum\cotDS=2%
+						\ifnum\cotSTT=1\setlength{\halftabwidth}{\dimexpr0.5\linewidth-\widthalpha-8\TabCS-15mm-2\fboxsep\relax}
+						\else\setlength{\halftabwidth}{\dimexpr0.5\linewidth-\widthalpha-6\TabCS-15mm-2\fboxsep\relax}\fi%
+					\else\ifnum\cotDS=1%
+						\ifnum\cotSTT=1\setlength{\halftabwidth}{\dimexpr0.5\linewidth-\widthalpha-6\TabCS-15mm-1\fboxsep\relax}
+						\else\setlength{\halftabwidth}{\dimexpr0.5\linewidth-\widthalpha-4\TabCS-15mm-1\fboxsep\relax}\fi%%
+					\else%
+						\ifnum\cotSTT=1\setlength{\halftabwidth}{\dimexpr0.5\linewidth-\widthalpha-4\TabCS-7mm-0\fboxsep\relax}
+						\else\setlength{\halftabwidth}{\dimexpr0.5\linewidth-\widthalpha-2\TabCS-7mm-0\fboxsep\relax}\fi%
+					\fi\fi%
+					\ifdim\widthch<\halftabwidth\relax
+						\haibang{#2}{#3}{#4}{#5}
+					 \else
+						\choiceTFt{#2}{#3}{#4}{#5}
+					 \fi}%
+				}
+				{\choiceTFt{#2}{#3}{#4}{#5}}}}%
+	}
+	{\ifthenelse{\equal{\kindTF}{0}}
+		{\choiceS[#1]{#2}{#3}{#4}{#5}}
+		{\ifthenelse{\equal{#1}{t}}
+			{\@ifnextchar\bgroup{\choiceTFt{#2}{#3}{#4}{#5}}{%
+				\setlength{\TabCS}{\tabcolsep}%
+				\settowidth\widthcha{#2\dotEX}%
+				\settowidth\widthchb{#3\dotEX}%
+				\settowidth\widthchc{#4\dotEX}%
+				\settowidth\widthchd{#5\dotEX}%
+				\setlength{\widthch}{\widthcha}%
+				\ifdim\widthch<\widthchb\relax\setlength{\widthch}{\widthchb}\fi%
+				\ifdim\widthch<\widthchc\relax\setlength{\widthch}{\widthchc}\fi%
+				\ifdim\widthch<\widthchd\relax\setlength{\widthch}{\widthchd}\fi%
+				\ifnum\cotDS=2%
+					\ifnum\cotSTT=1\setlength{\halftabwidth}{\dimexpr0.5\linewidth-\widthalpha-8\TabCS-15mm-2\fboxsep\relax}
+					\else\setlength{\halftabwidth}{\dimexpr0.5\linewidth-\widthalpha-6\TabCS-15mm-2\fboxsep\relax}\fi%
+				\else\ifnum\cotDS=1%
+					\ifnum\cotSTT=1\setlength{\halftabwidth}{\dimexpr0.5\linewidth-\widthalpha-6\TabCS-15mm-1\fboxsep\relax}
+					\else\setlength{\halftabwidth}{\dimexpr0.5\linewidth-\widthalpha-4\TabCS-15mm-1\fboxsep\relax}\fi%
+				\else%
+					\ifnum\cotSTT=1\setlength{\halftabwidth}{\dimexpr0.5\linewidth-\widthalpha-4\TabCS-7mm-0\fboxsep\relax}
+					\else\setlength{\halftabwidth}{\dimexpr0.5\linewidth-\widthalpha-2\TabCS-7mm-0\fboxsep\relax}\fi%
+				\fi\fi%	
+				\ifdim\widthch<\halftabwidth
+				\haibang{#2}{#3}{#4}{#5}%
+				\else\choiceTFt{#2}{#3}{#4}{#5}%
+				\fi%
+				}
+			}
+			{\ifthenelse{\equal{#1}{1t}}
+				{\setlength{\TabCS}{\tabcolsep}%
+				  \choiceTFt{#2}{#3}{#4}{#5}}
+				{\ifthenelse{\equal{#1}{2t}}
+					{\setlength{\TabCS}{\tabcolsep}%
+					  \@ifnextchar\bgroup{\choiceTFt{#2}{#3}{#4}{#5}}{\haibang{#2}{#3}{#4}{#5}}}
+					{\choiceS[#1]{#2}{#3}{#4}{#5}}}}}%
+	}%
+}
+\newcommand{\begindapanTFt}{%
+	\ifnum\cotSTT=1\def\sepTF{}\fi%
+	\@ifnextchar\True
+	{
+	\ifthenelse{\equal{\cotSTT}{1}}
+	{\vspace{1pt}\centering\TrueTF&\rule[0pt]{-2pt}{14pt}}
+	{\begin{minipage}[t]{\widthalpha}
+		\TrueTF
+	\end{minipage}~}
+	\begin{minipage}[t]{\dorong}
+	\ifnum\chType=1
+		\xdef\saveFileAns{\saveFileAns\string\circT{\DapAnTF}}%
+		\ifnum\thedapan=1 \xdef\keyEX{\DapAnTF\ đúng}
+		\else \xdef\keyEX{\keyEX\ \big| \DapAnTF\ đúng} \fi%
+		\ifnum\addanswers=1\gandaTFaddanswers{\circTF{Đ}}\fi%
+	\else
+		\xdef\saveFileAns{\Alph{dapan}}%
+		\xdef\keyEX{\Alph{dapan}}%
+	\fi%
+	}
+	{
+	\ifthenelse{\equal{\cotSTT}{1}}
+	{\vspace{1pt}\centering\FalseTF&\rule[0pt]{-2pt}{14pt}}
+	{\begin{minipage}[t]{\widthalpha}
+	\FalseTF
+	\end{minipage}~}
+	\begin{minipage}[t]{\dorong}
+	\ifnum\chType=1
+		\xdef\saveFileAns{\saveFileAns\string\circF{\DapAnTF}}%
+		\ifnum\thedapan=1 \xdef\keyEX{\keyEX\DapAnTF\ sai}
+		\else \xdef\keyEX{\keyEX\ \big| \DapAnTF\ sai} \fi%
+		\ifnum\addanswers=1\gandaTFaddanswers{\circTF{S}}\fi%
+	\fi%
+	}
+}
+\newcommand{\writeChoiceTF}[1]{%
+	\hline\rule[0pt]{0pt}{14pt}%
+	\xdef\dotEX{\sdotEX}%
+	\ifnum\thedapan=0\relax\writekeyTFone\fi%
+	\noindent\hspace{-1.3mm}\begindapanTFt%
+		#1\dotEX\strut%
+		\ifnum\addquestions=1\gandeTFaddanswers{#1}\fi%
+	\end{minipage}\vspace{1pt}%
+	\writekeyTF\\
+}
+\newcommand{\writekeyTFone}{\gdef\TrueX{}\gdef\FalseX{}}
+\newcommand{\writekeyTF}{\ifthenelse{\equal{\cotDS}{2}}{&&}{\ifthenelse{\equal{\cotDS}{1}}{&}{}}}
+\newcommand{\haibang}[4]{%
+	\ifInMulticol
+	{\choiceTFt{#1}{#2}{#3}{#4}}
+	{\gdef\TrueX{}\gdef\FalseX{}%
+		\ifnum\cotDS=2%
+			\ifnum\cotSTT=1\setlength{\dorong}{\dimexpr0.5\linewidth-\widthalpha-8\TabCS-2\lengthDS-9mm-2\fboxsep\relax}%
+			\else\setlength{\dorong}{\dimexpr0.5\linewidth-\widthalpha-6\TabCS-2\lengthDS-9mm-2\fboxsep\relax}\fi%
+		\else\ifnum\cotDS=1%
+			\ifnum\cotSTT=1\setlength{\dorong}{\dimexpr0.5\linewidth-\widthalpha-6\TabCS-1\lengthDS-9mm-2\fboxsep\relax}%
+			\else\setlength{\dorong}{\dimexpr0.5\linewidth-\widthalpha-4\TabCS-1\lengthDS-9mm-2\fboxsep\relax}\fi%
+		\else%
+			\ifnum\cotSTT=1\setlength{\dorong}{\dimexpr0.5\linewidth-\widthalpha-4\TabCS-9mm-2\fboxsep\relax}%
+			\else\setlength{\dorong}{\dimexpr0.5\linewidth-\widthalpha-2\TabCS-7mm-2\fboxsep\relax}\fi%
+		\fi\fi%
+		\par\noindent
+		\begin{minipage}[t][][b]{0.5\textwidth}
+			\vspace{-\baselineskip}%
+			\ifnum\cotDS=2%
+				\ifnum\cotSTT=1\begin{longtable}{|m{2\TabCS+1mm}|m{\linewidth-8\TabCS-2\lengthDS-13mm}|m{\lengthDS}|m{\lengthDS}|}
+				\else\begin{longtable}{|m{\linewidth-6\TabCS-2\lengthDS-7mm}|m{\lengthDS}|m{\lengthDS}|}\fi%
+					\ifnum\dongPB=1%
+						\hline\ifnum\cotSTT=1\centering{\boldTF TT} &\fi%
+						\centering{\boldTF\phatbieu} & \centering{\boldTF\Dung} & \centering{\boldTF\Sai}\tabularnewline%
+					\fi%
+			\else\ifnum\cotDS=1%
+				\ifnum\cotSTT=1\begin{longtable}{|m{2\TabCS+1mm}|m{\linewidth-6\TabCS-1\lengthDS-13mm}|m{\lengthDS}|}
+				\else\begin{longtable}{|m{\linewidth-4\TabCS-1\lengthDS-7mm}|m{\lengthDS}|}\fi%
+					\ifnum\dongPB=1%
+						\hline\ifnum\cotSTT=1\centering{\boldTF TT} &\fi%
+						\centering{\boldTF\phatbieu} & \centering{\boldTF\Dung}\tabularnewline%
+					\fi%
+			\else%
+				\ifnum\cotSTT=1\begin{longtable}{|m{2\TabCS+1mm}|m{\linewidth-4\TabCS-13mm}|}
+				\else\begin{longtable}{|m{\linewidth-2\TabCS-7mm}|}\fi%
+					\ifnum\dongPB=1%
+						\hline\ifnum\cotSTT=1\centering{\boldTF TT} &\fi%
+						\centering{\boldTF\phatbieu}\tabularnewline%
+					\fi%
+			\fi\fi%
+				\ifInMulticol{}{\endhead}%
+				\writeChoiceTF{#1}%
+				\writeChoiceTF{#2}%
+				\hline
+			\end{longtable}\vspace{-\baselineskip}
+		\end{minipage}%
+		\begin{minipage}[t][][b]{0.5\textwidth}
+			\vspace{-\baselineskip}%
+			\ifnum\cotDS=2%
+				\ifnum\cotSTT=1\begin{longtable}{|m{2\TabCS+1mm}|m{\linewidth-8\TabCS-2\lengthDS-13mm}|m{\lengthDS}|m{\lengthDS}|}
+				\else\begin{longtable}{|m{\linewidth-6\TabCS-2\lengthDS-8mm}|m{\lengthDS}|m{\lengthDS}|}\fi%
+					\ifnum\dongPB=1%
+						\hline\ifnum\cotSTT=1\centering{\boldTF TT} &\fi%
+						\centering{\boldTF\phatbieu} & \centering{\boldTF\Dung} & \centering{\boldTF\Sai}\tabularnewline%
+					\fi%
+			\else\ifnum\cotDS=1%
+				\ifnum\cotSTT=1\begin{longtable}{|m{2\TabCS+1mm}|m{\linewidth-6\TabCS-1\lengthDS-13mm}|m{\lengthDS}|}
+				\else\begin{longtable}{|m{\linewidth-4\TabCS-1\lengthDS-9mm}|m{\lengthDS}|}\fi%
+					\ifnum\dongPB=1%
+						\hline\ifnum\cotSTT=1\centering{\boldTF TT} &\fi%
+						\centering{\boldTF\phatbieu} & \centering{\boldTF\Dung}\tabularnewline%
+					\fi%
+			\else%
+				\ifnum\cotSTT=1\begin{longtable}{|m{2\TabCS+1mm}|m{\linewidth-4\TabCS-13mm}|}
+				\else\begin{longtable}{|m{\linewidth-2\TabCS-9mm}|}\fi%
+					\ifnum\dongPB=1%
+						\hline\ifnum\cotSTT=1\centering{\boldTF TT} &\fi%
+						\centering{\boldTF\phatbieu}\tabularnewline%
+					\fi%
+			\fi\fi%
+					\ifInMulticol{}{\endhead}%
+				\writeChoiceTF{#3}
+				\writeChoiceTF{#4}
+				\hline
+			\end{longtable}\vspace{-\baselineskip}
+		\end{minipage}
+		\let\center\originalcenter%
+		\let\endcenter\originalendcenter%
+		\par\medskip}\def\sepTF{\sepitcTF}%
+}
+%\choiceTFt
+\makeatletter
+\newcommand{\choiceTFt}[1][]{%
+	\gdef\chType{1}\savekinditch%
+	\setlength\TabCS{\tabcolsep}%
+	\gdef\TrueX{}\gdef\FalseX{}%
+	\vspace{-0.35\baselineskip}%
+	\setlength{\dorong}{\dimexpr\linewidth-\widthalpha-6\TabCS-2\lengthDS-7mm-2\fboxsep\relax}%
+	\ifthenelse{\equal{#1}{}}{}{\renewcommand{\arraystretch}{#1}}%
+	\ifnum\cotDS=2%
+		\ifnum\cotSTT=1\setlength{\dorong}{\dimexpr\linewidth-\widthalpha-8\TabCS-2\lengthDS-7mm-2\fboxsep\relax}%
+		\else\setlength{\dorong}{\dimexpr\linewidth-\widthalpha-6\TabCS-2\lengthDS-7mm-2\fboxsep\relax}\fi%
+	\else\ifnum\cotDS=1%
+		\ifnum\cotSTT=1\setlength{\dorong}{\dimexpr\linewidth-\widthalpha-6\TabCS-1\lengthDS-7mm-2\fboxsep\relax}%
+		\else\setlength{\dorong}{\dimexpr\linewidth-\widthalpha-4\TabCS-1\lengthDS-7mm-2\fboxsep\relax}\fi%
+	\else%
+		\ifnum\cotSTT=1\setlength{\dorong}{\dimexpr\linewidth-\widthalpha-4\TabCS-7mm-2\fboxsep\relax}%
+		\else\setlength{\dorong}{\dimexpr\linewidth-\widthalpha-2\TabCS-7mm-2\fboxsep\relax}\fi%
+	\fi\fi%
+	\ifInMulticol
+	{\par\medskip\hfill\xentrystretch{-0.15}%
+		\ifnum\cotDS=2%
+			\ifnum\cotSTT=1\begin{xtabular}{|m{2\TabCS+1mm}|m{\linewidth-8\TabCS-2\lengthDS-13mm}|m{\lengthDS}|m{\lengthDS}|}
+			\else\begin{xtabular}{|m{\linewidth-6\TabCS-2\lengthDS-7mm}|m{\lengthDS}|m{\lengthDS}|}\fi%
+			\ifnum\dongPB=1%
+				\hline\ifnum\cotSTT=1\centering{\boldTF TT} &\fi%
+				\centering{\boldTF\phatbieu} & \centering{\boldTF\Dung} & \centering{\boldTF\Sai}\tabularnewline%
+			\fi%
+		\else\ifnum\cotDS=1%
+			\ifnum\cotSTT=1\begin{xtabular}{|m{2\TabCS+1mm}|m{\linewidth-6\TabCS-1\lengthDS-13mm}|m{\lengthDS}|}
+			\else\begin{xtabular}{|m{\linewidth-4\TabCS-1\lengthDS-7mm}|m{\lengthDS}|}\fi%
+			\ifnum\dongPB=1%
+				\hline\ifnum\cotSTT=1\centering{\boldTF TT} &\fi%
+				\centering{\boldTF\phatbieu} & \centering{\boldTF\Dung}\tabularnewline%
+			\fi%
+		\else%
+			\ifnum\cotSTT=1\begin{xtabular}{|m{2\TabCS+1mm}|m{\linewidth-4\TabCS-13mm}|}
+			\else\begin{xtabular}{|m{\linewidth-2\TabCS-7mm}|}\fi%
+			\ifnum\dongPB=1%
+				\hline\ifnum\cotSTT=1\centering{\boldTF TT} &\fi%
+				\centering{\boldTF\phatbieu}\tabularnewline%
+			\fi%
+		\fi\fi}
+	{\ifnum\cotDS=2%
+		\ifnum\cotSTT=1\begin{longtable}{|m{2\TabCS+1mm}|m{\linewidth-8\TabCS-2\lengthDS-13mm}|m{\lengthDS}|m{\lengthDS}|}
+		\else\begin{longtable}{|m{\linewidth-6\TabCS-2\lengthDS-7mm}|m{\lengthDS}|m{\lengthDS}|}\fi%
+		\ifnum\dongPB=1%
+			\hline\ifnum\cotSTT=1\centering{\boldTF TT} &\fi%
+			\centering{\boldTF\phatbieu} & \centering{\boldTF\Dung} & \centering{\boldTF\Sai}\tabularnewline%
+		\fi%
+	\else\ifnum\cotDS=1%
+		\ifnum\cotSTT=1\begin{longtable}{|m{2\TabCS+1mm}|m{\linewidth-6\TabCS-1\lengthDS-13mm}|m{\lengthDS}|}
+		\else\begin{longtable}{|m{\linewidth-4\TabCS-1\lengthDS-7mm}|m{\lengthDS}|}\fi%
+		\ifnum\dongPB=1%
+			\hline\ifnum\cotSTT=1\centering{\boldTF TT} &\fi%
+			\centering{\boldTF\phatbieu} & \centering{\boldTF\Dung}\tabularnewline%
+		\fi%
+	\else%
+		\ifnum\cotSTT=1\begin{longtable}{|m{2\TabCS+1mm}|m{\linewidth-4\TabCS-13mm}|}
+		\else\begin{longtable}{|m{\linewidth-2\TabCS-7mm}|}\fi%
+		\ifnum\dongPB=1%
+			\hline\ifnum\cotSTT=1\centering{\boldTF TT} &\fi%
+			\centering{\boldTF\phatbieu}\tabularnewline%
+		\fi%
+	\fi\fi}
+	\ifInMulticol{}{\endhead}%
+	\writeChoiceTFt
+}
+\newcommand{\writeChoiceTFt}[1]{%
+	\hline\rule[0pt]{0pt}{14pt}%
+	\ifnum\thedapan=0\writekeyTFone\fi%
+	\noindent\hspace{-1.3mm}\begindapanTFt
+		#1\dotEX\strut%
+		\ifnum\addquestions=1\gandeTFaddanswers{#1}\fi%
+	\end{minipage}\vspace{1pt}
+	\writekeyTF
+	\@ifnextchar\bgroup{\tabularnewline\writeChoiceTFt}{\tabularnewline\hline%
+		\ifInMulticol
+		{\end{xtabular}\par}%
+		{\end{longtable}\vspace{-\baselineskip}}%
+		\let\center\originalcenter%
+		\let\endcenter\originalendcenter%
+		\medskip\def\sepTF{\sepitcTF}}
+}
+\let\choiceTFn\choiceTF	%Tạm giữ lệnh \choiceTFn (các v. trước) 
+%\shortans
+\makeatletter
+\newcommand{\Split}[1]{%
+	\def\str{\detokenize{#1}}%
+	\StrSubstitute{\str}{\detokenize{ }}{}[\cleaned]%
+	\StrSubstitute{\cleaned}{\detokenize{$}}{}[\cleaned]%
+	\StrSubstitute{\cleaned}{\detokenize{\,}}{}[\cleaned]%
+	\StrSubstitute{\cleaned}{\detokenize{\;}}{}[\cleaned]%
+	\StrSubstitute{\cleaned}{\detokenize{~}}{}[\cleaned]%
+	\StrSubstitute{\cleaned}{\detokenize{{,}}}{,}[\cleaned]%
+	\StrSubstitute{\cleaned}{\detokenize{-}}{}[\nstr]%
+	\StrSubstitute{\nstr}{\detokenize{,}}{}[\nstr]%
+	\StrSubstitute{\nstr}{\detokenize{0}}{}[\nstr]%
+	\StrSubstitute{\nstr}{\detokenize{1}}{}[\nstr]%
+	\StrSubstitute{\nstr}{\detokenize{2}}{}[\nstr]%
+	\StrSubstitute{\nstr}{\detokenize{3}}{}[\nstr]%
+	\StrSubstitute{\nstr}{\detokenize{4}}{}[\nstr]%
+	\StrSubstitute{\nstr}{\detokenize{5}}{}[\nstr]%
+	\StrSubstitute{\nstr}{\detokenize{6}}{}[\nstr]%
+	\StrSubstitute{\nstr}{\detokenize{7}}{}[\nstr]%
+	\StrSubstitute{\nstr}{\detokenize{8}}{}[\nstr]%
+	\StrSubstitute{\nstr}{\detokenize{9}}{}[\nstr]%
+	\IfStrEq{\nstr}{}%
+	{\StrLen{\cleaned}[\lengthKQ]%
+		\ifnum\lengthKQ<5%
+			{\renewcommand{\tabcolsep}{1.8mm}%
+			\begin{tabular}{|m{2.5mm}|m{2.5mm}|m{2.5mm}|m{2.5mm}|}
+				\hline%
+				\ifnum\lengthKQ>0\StrChar{\cleaned}{1}[\firstchar]\centering$\firstchar$\fi&%
+				\ifnum\lengthKQ>1\StrChar{\cleaned}{2}[\secondchar]\centering$\secondchar$\fi&%
+				\ifnum\lengthKQ>2\StrChar{\cleaned}{3}[\thirdchar]\centering$\thirdchar$\fi&%
+				\ifnum\lengthKQ>3\StrChar{\cleaned}{4}[\fourthchar]\centering$\fourthchar$\fi\tabularnewline%
+				\hline%
+			\end{tabular}}%
+		\else #1 \fi%
+	}{#1}%
+}
+\newcommand{\TachO}[1]{\Split{#1}}
+\newcommand{\CancelSplit}{\renewcommand{\Split}[1]{}}%Để huỷ Tách ô.
+\newcommand{\AutoSplit}{\renewcommand{\CancelSplit}{}}%Để tiếp tục tách ô.
+\makeatletter
+\newcommand{\SA}[2][]{\shortans[#1]{#2}}
+\newcommand{\ifInList}[2]{\ifnumgreater{\@listdepth}{0}{#1}{#2}}
+\newcommand{\oKQ}[2][]{%
+	\ifthenelse{\equal{#1}{}}
+		{\raisebox{0pt}{\tikz[baseline=(char.base)]{\node (char)[left]{\ketquaSA};
+			\draw[rounded corners=2pt] (0,-0.5*\heightSA) rectangle (#2,0.5*\heightSA);}}}
+		{\ifthenelse{\equal{#1}{oly}}
+			{\raisebox{0pt}{\tikz[baseline=(char.base)]{\node (char)[left]{\ketquaSA};
+				\foreach \i in {1,...,#2}{\draw (0.75*\i-0.75,-0.35)rectangle(0.75*\i,0.35);}}}}
+			{\ifthenelse{\equal{#1}{...}}
+				{\raisebox{0pt}{\tikz[baseline=(char.base)]{\node (char)[left]{\ketquaSA};
+					\clip[rounded corners=2pt] (0,-0.4*\heightSA) rectangle (#2,0.6*\heightSA);
+					\node (char)[right,yshift=-2]{\ldots\ldots\ldots\ldots\ldots\ldots\ldots\ldots};}}}
+				{}}}%
+}
+\newcommand{\shortans}[2][]{%
+	\gdef\chType{-1}%
+	\savekinditch%
+	\ifthenelse{\equal{\kindSA}{}}
+	{\shortansfix[#1]{\Split{#2}}}
+	{\ifthenelse{\equal{\kindSA}{ShowSAKeyColor}}
+		{\hfill\raisebox{0pt}{\tikz[baseline=(char.base)]{%
+			\node (char)[rectangle,inner sep=2pt,rounded corners=2pt,fill=yellow!50,draw=red]{\color{red}~\selectshortans\ \Split{#2}\phantom{~}};}}%
+			\ifInList{\hspace{-2mm}}{\par}}
+		{\ifthenelse{\equal{\kindSA}{ShowSAKeyLG}}
+			{\hfill\raisebox{0pt}{\tikz[baseline=(char.base)]{%
+				\node (char)[rectangle,inner sep=2pt,rounded corners=2pt]{\color{red}~\selectshortans\ \Split{#2}\phantom{~}};}}%
+				\ifInList{\hspace{-2mm}}{\par}}
+			{\shortansfix[\kindSA]{\Split{#2}}}%
+		}%
+	}%
+	\xdef\saveKQ{\detokenize{#2}}\gdef\keyEX{#2}%
+	\ifInList
+	{\stepcounter{dapan}%
+		\xdef\saveFileAns{\saveFileAns\ifnum\thedapan>1\@percentchar^^J\fi\string\dapsoSA[\DapAnSA]\detokenize{{#2}}}}
+	{\xdef\saveFileAns{\string\dapsoSA\detokenize{{#2}}}}%
+}
+\newcommand{\shortansfix}[2][]{%
+	\ifthenelse{\equal{#1}{0}}{}
+		{\ifthenelse{\equal{#1}{}}
+			{\hfill\oKQ{\widthSA}}
+			{\ifthenelse{\equal{#1}{oly}}
+				{\hfill\oKQ[oly]{4}}
+				{\ifthenelse{\equal{#1}{...}}
+					{\hfill\oKQ[...]{\widthSA}}
+					{\hfill\oKQ{#1}}}}%
+		\ifInList{\hspace{-1mm}}{\par}%
+		}%
+}
+
+%%=============================================================
+%% match  with    Để dành cho câu ghép đôi
+%%=============================================================
+
+\newcommand{\match}{%
+	\pgfmathsetmacro{\lengthI}{0.945*\length-\lengthII}
+	\def\Aa{}\def\Ab{}\def\Ac{}\def\Ad{}\def\Ae{}\def\Af{}\def\Ag{}\def\Ah{}\def\Ai{}\def\Aj{}
+	\def\Ba{?}\def\Bb{?}\def\Bc{?}\def\Bd{?}\def\Be{?}\def\Bf{?}\def\Bg{?}\def\Bh{?}\def\Bi{?}\def\Bj{?}
+	\def\Ta{0}\def\Tb{0}\def\Tc{0}\def\Td{0}\def\Te{0}\def\Tf{0}\def\Tg{0}\def\Th{0}\def\Ti{0}\def\Tj{0}
+	\xdef\deA{}\xdef\deB{}\xdef\deC{}\xdef\deD{}\xdef\deE{}\xdef\deF{}\xdef\deG{}\xdef\deH{}\xdef\deI{}\xdef\deJ{}
+	\xdef\daA{?}\xdef\daB{?}\xdef\daC{?}\xdef\daD{?}\xdef\daE{?}\xdef\daF{?}\xdef\daG{?}\xdef\daH{?}\xdef\daI{?}\xdef\daJ{?}
+	\xdef\saveFileAns{}\gdef\chType{-2}%
+	\setcounter{debai}{0}\setcounter{dapan}{0}%
+	\setlength{\TabCS}{\tabcolsep}%
+	\par\noindent%
+	\ifInMulticol
+	{\vspace{0.1cm}\par\hspace{3mm}\xentrystretch{-0.15}%
+		\begin{xtabular}{|m{\lengthI\linewidth-2\TabCS}|m{\lengthII\linewidth-2\TabCS}|}}
+	{\begin{longtable}{|m{\lengthI\linewidth-2\TabCS}|m{\lengthII\linewidth-2\TabCS}|}}
+	\ifnum\chidanMW=1%
+		\hline\multicolumn{2}{|c|}{\boldMW\chidan}\\%
+	\fi%
+	\ifnum\tieudeMW=1%
+		\hline \parbox[t]{\linewidth}{\centering\boldMW\cotI} & \parbox[t]{\linewidth}{\centering\boldMW\cotII}\\%
+	\fi%
+	\hline
+		\vspace{-1mm}%
+		\cotA%
+}
+\newcommand{\cotA}[2][\thedebai]{%
+	\stepcounter{debai}%
+	\ifnum\thedebai>1\vspace{\parskipI}\else \vspace{0.2\baselineskip}\fi%
+	\par%
+	\begin{minipage}[t]{6mm}
+	 \viewdebaiMW\ifnum\thedebai=1 \xdef\Aa{\DeBaiMW} \xdef\Ta{#1}%
+			\else\ifnum\thedebai=2 \xdef\Ab{\DeBaiMW} \xdef\Tb{#1}%
+			\else\ifnum\thedebai=3 \xdef\Ac{\DeBaiMW} \xdef\Tc{#1}%
+			\else\ifnum\thedebai=4 \xdef\Ad{\DeBaiMW} \xdef\Td{#1}%
+			\else\ifnum\thedebai=5 \xdef\Ae{\DeBaiMW} \xdef\Te{#1}%
+			\else\ifnum\thedebai=6 \xdef\Af{\DeBaiMW} \xdef\Tf{#1}%
+			\else\ifnum\thedebai=7 \xdef\Ag{\DeBaiMW} \xdef\Tg{#1}%
+			\else\ifnum\thedebai=8 \xdef\Ah{\DeBaiMW} \xdef\Th{#1}%
+			\else\ifnum\thedebai=9 \xdef\Ai{\DeBaiMW} \xdef\Ti{#1}%
+			\else\ifnum\thedebai=10\xdef\Aj{\DeBaiMW} \xdef\Tj{#1}%
+			\fi\fi\fi\fi\fi\fi\fi\fi\fi\fi%
+	\end{minipage}
+	\begin{minipage}[t]{\linewidth-7mm}
+		#2\strut%
+		\ifnum\addanswers=1%
+			\ifnum\addquestions=1%
+					 \ifnum\thedebai=1 \gdef\deA{#2}\xdef\addques{\addques\string\def\string\deA{\detokenize{#2}}}%
+				\else\ifnum\thedebai=2 \gdef\deB{#2}\xdef\addques{\addques\string\def\string\deB{\detokenize{#2}}}%
+				\else\ifnum\thedebai=3 \gdef\deC{#2}\xdef\addques{\addques\string\def\string\deC{\detokenize{#2}}}%
+				\else\ifnum\thedebai=4 \gdef\deD{#2}\xdef\addques{\addques\string\def\string\deD{\detokenize{#2}}}%
+				\else\ifnum\thedebai=5 \gdef\deE{#2}\xdef\addques{\addques\string\def\string\deE{\detokenize{#2}}}%
+				\else\ifnum\thedebai=6 \gdef\deF{#2}\xdef\addques{\addques\string\def\string\deF{\detokenize{#2}}}%
+				\else\ifnum\thedebai=7 \gdef\deG{#2}\xdef\addques{\addques\string\def\string\deG{\detokenize{#2}}}%
+				\else\ifnum\thedebai=8 \gdef\deH{#2}\xdef\addques{\addques\string\def\string\deH{\detokenize{#2}}}%
+				\else\ifnum\thedebai=9 \gdef\deI{#2}\xdef\addques{\addques\string\def\string\deI{\detokenize{#2}}}%
+				\else\ifnum\thedebai=10\gdef\deJ{#2}\xdef\addques{\addques\string\def\string\deJ{\detokenize{#2}}}%
+				\fi\fi\fi\fi\fi\fi\fi\fi\fi\fi%
+			\fi%
+		\fi%
+	\end{minipage}%
+	\@ifnextchar[{\cotA}{\@ifnextchar\bgroup{\cotA}{\vspace{0.2\baselineskip}&\vspace{-1mm}}}%
+}
+\newcommand{\with}[2][0]{%
+	\savekinditch%
+	\stepcounter{dapan}%%
+	\ifnum\thedapan>1\vspace{\parskipII}\else\vspace{0.2\baselineskip}\fi%
+	\par%
+	\begin{minipage}[t]{5mm}%
+	 \viewdapanMW\ifnum#1=\Ta \xdef\Ba{\DapAnMW}%
+			\else\ifnum#1=\Tb \xdef\Bb{\DapAnMW}%
+			\else\ifnum#1=\Tc \xdef\Bc{\DapAnMW}%
+			\else\ifnum#1=\Td \xdef\Bd{\DapAnMW}%
+			\else\ifnum#1=\Te \xdef\Be{\DapAnMW}%
+			\else\ifnum#1=\Tf \xdef\Bf{\DapAnMW}%
+			\else\ifnum#1=\Tg \xdef\Bg{\DapAnMW}%
+			\else\ifnum#1=\Th \xdef\Bh{\DapAnMW}%
+			\else\ifnum#1=\Tg \xdef\Bi{\DapAnMW}%
+			\else\ifnum#1=\Th \xdef\Bj{\DapAnMW}%
+			\fi\fi\fi\fi\fi\fi\fi\fi\fi\fi%
+	\end{minipage}
+	\begin{minipage}[t]{\linewidth-7mm}
+		#2\dotEX\strut%
+		\ifnum\addanswers=1%
+				 \ifnum#1=\Ta \gdef\daA{#2.\par\noindent}\xdef\addans{\addans\string\def\string\daA{\detokenize{#2.\par\noindent}}}%
+			\else\ifnum#1=\Tb \gdef\daB{#2.\par\noindent}\xdef\addans{\addans\string\def\string\daB{\detokenize{#2.\par\noindent}}}%
+			\else\ifnum#1=\Tc \gdef\daC{#2.\par\noindent}\xdef\addans{\addans\string\def\string\daC{\detokenize{#2.\par\noindent}}}%
+			\else\ifnum#1=\Td \gdef\daD{#2.\par\noindent}\xdef\addans{\addans\string\def\string\daD{\detokenize{#2.\par\noindent}}}%
+			\else\ifnum#1=\Te \gdef\daE{#2.\par\noindent}\xdef\addans{\addans\string\def\string\daE{\detokenize{#2.\par\noindent}}}%
+			\else\ifnum#1=\Tf \gdef\daF{#2.\par\noindent}\xdef\addans{\addans\string\def\string\daF{\detokenize{#2.\par\noindent}}}%
+			\else\ifnum#1=\Tg \gdef\daG{#2.\par\noindent}\xdef\addans{\addans\string\def\string\daG{\detokenize{#2.\par\noindent}}}%
+			\else\ifnum#1=\Th \gdef\daH{#2.\par\noindent}\xdef\addans{\addans\string\def\string\daH{\detokenize{#2.\par\noindent}}}%
+			\else\ifnum#1=\Ti \gdef\daI{#2.\par\noindent}\xdef\addans{\addans\string\def\string\daI{\detokenize{#2.\par\noindent}}}%
+			\else\ifnum#1=\Tj \gdef\daJ{#2.\par\noindent}\xdef\addans{\addans\string\def\string\daJ{\detokenize{#2.\par\noindent}}}%
+			\fi\fi\fi\fi\fi\fi\fi\fi\fi\fi%
+		\fi%
+	\end{minipage}
+	\@ifnextchar[{\with}{\@ifnextchar\bgroup{\with}{%
+		\vspace{0.2\baselineskip}\\%
+		\hline%
+		\ifnum\showKQMW=1%
+			\multicolumn{2}{l}{\rule[0pt]{0pt}{18pt}\noindent\ansmatch}\\%
+		\fi%
+		\ifInMulticol
+		{\end{xtabular}\vspace{2mm}\par\noindent}%
+		{\end{longtable}}%
+			\ifnum\Ta>0 \xdef\saveFileAns{\saveFileAns\string\circEX{\Aa}\Ba} 			\xdef\keyEX{\keyEX\Aa.\Ba} \fi%
+			\ifnum\Tb>0 \xdef\saveFileAns{\saveFileAns\string\;\string\circEX{\Ab}\Bb}	\xdef\keyEX{\keyEX\;\big|\;\Ab.\Bb} \fi%
+			\ifnum\Tc>0 \xdef\saveFileAns{\saveFileAns\string\;\string\circEX{\Ac}\Bc}	\xdef\keyEX{\keyEX\;\big|\;\Ac.\Bc} \fi%
+			\ifnum\Td>0 \xdef\saveFileAns{\saveFileAns\string\;\string\circEX{\Ad}\Bd}	\xdef\keyEX{\keyEX\;\big|\;\Ad.\Bd} \fi%
+			\ifnum\Te>0 \xdef\saveFileAns{\saveFileAns\string\;\string\circEX{\Ae}\Be}	\xdef\keyEX{\keyEX\;\big|\;\Ae.\Be} \fi%
+			\ifnum\Tf>0 \xdef\saveFileAns{\saveFileAns\string\;\string\circEX{\Af}\Bf}	\xdef\keyEX{\keyEX\;\big|\;\Af.\Bf} \fi%
+			\ifnum\Tg>0 \xdef\saveFileAns{\saveFileAns\string\;\string\circEX{\Ag}\Bg}	\xdef\keyEX{\keyEX\;\big|\;\Ag.\Bg} \fi%
+			\ifnum\Th>0 \xdef\saveFileAns{\saveFileAns\string\;\string\circEX{\Ah}\Bh}	\xdef\keyEX{\keyEX\;\big|\;\Ah.\Bh} \fi%
+			\ifnum\Ti>0 \xdef\saveFileAns{\saveFileAns\string\;\string\circEX{\Ai}\Bi}	\xdef\keyEX{\keyEX\;\big|\;\Ai.\Bi} \fi%
+			\ifnum\Tj>0 \xdef\saveFileAns{\saveFileAns\string\;\string\circEX{\Aj}\Bj}	\xdef\keyEX{\keyEX\;\big|\;\Aj.\Bj} \fi%
+		}
+	}
+}
+\newcommand{\ansmatch}{\viewansmatch{fbox}{.}{}}
+\newcommand{\viewansmatch}[3]{%
+	\ketquaMW\ 
+		\ifthenelse{\equal{#1}{fbox}}{%
+			\ifnum\Ta>0 	 \fbox{\Aa#2\ifthenelse{\equal{#3}{}}{\qquad}{\Ba}}\fi
+			\ifnum\Tb>0 \quad\fbox{\Ab#2\ifthenelse{\equal{#3}{}}{\qquad}{\Bb}}\fi
+			\ifnum\Tc>0 \quad\fbox{\Ac#2\ifthenelse{\equal{#3}{}}{\qquad}{\Bc}}\fi
+			\ifnum\Td>0 \quad\fbox{\Ad#2\ifthenelse{\equal{#3}{}}{\qquad}{\Bd}}\fi
+			\ifnum\Te>0 \quad\fbox{\Ae#2\ifthenelse{\equal{#3}{}}{\qquad}{\Be}}\fi
+			\ifnum\Tf>0 \quad\fbox{\Af#2\ifthenelse{\equal{#3}{}}{\qquad}{\Bf}}\fi
+			\ifnum\Tg>0 \quad\fbox{\Ag#2\ifthenelse{\equal{#3}{}}{\qquad}{\Bg}}\fi
+			\ifnum\Th>0 \quad\fbox{\Ah#2\ifthenelse{\equal{#3}{}}{\qquad}{\Bh}}\fi
+			\ifnum\Ti>0 \quad\fbox{\Ai#2\ifthenelse{\equal{#3}{}}{\qquad}{\Bi}}\fi
+			\ifnum\Tj>0 \quad\fbox{\Aj#2\ifthenelse{\equal{#3}{}}{\qquad}{\Bj}}\fi%
+		}{%
+			\ifnum\Ta>0 	 \squareEX{\Aa#2\ifthenelse{\equal{#3}{}}{\qquad}{\Ba}}\fi
+			\ifnum\Tb>0 \quad\squareEX{\Ab#2\ifthenelse{\equal{#3}{}}{\qquad}{\Bb}}\fi
+			\ifnum\Tc>0 \quad\squareEX{\Ac#2\ifthenelse{\equal{#3}{}}{\qquad}{\Bc}}\fi
+			\ifnum\Td>0 \quad\squareEX{\Ad#2\ifthenelse{\equal{#3}{}}{\qquad}{\Bd}}\fi
+			\ifnum\Te>0 \quad\squareEX{\Ae#2\ifthenelse{\equal{#3}{}}{\qquad}{\Be}}\fi
+			\ifnum\Tf>0 \quad\squareEX{\Af#2\ifthenelse{\equal{#3}{}}{\qquad}{\Bf}}\fi
+			\ifnum\Tg>0 \quad\squareEX{\Ag#2\ifthenelse{\equal{#3}{}}{\qquad}{\Bg}}\fi
+			\ifnum\Th>0 \quad\squareEX{\Ah#2\ifthenelse{\equal{#3}{}}{\qquad}{\Bh}}\fi
+			\ifnum\Ti>0 \quad\squareEX{\Ai#2\ifthenelse{\equal{#3}{}}{\qquad}{\Bi}}\fi
+			\ifnum\Tj>0 \quad\squareEX{\Aj#2\ifthenelse{\equal{#3}{}}{\qquad}{\Bj}}\fi%
+		}
+}
+%%Môi trường gõ Lời giải theo từng ý cho câu nhiều ý
+\makeatletter
+\newcommand{\gandeTFaddanswers}[1]{%
+	\ifnum\addquestions=1%
+			 \ifnum\thedapan=1 \gdef\deA{#1}\xdef\addques{\addques\string\def\string\deA{\detokenize{#1}}}%
+		\else\ifnum\thedapan=2 \gdef\deB{#1}\xdef\addques{\addques\string\def\string\deB{\detokenize{#1}}}%
+		\else\ifnum\thedapan=3 \gdef\deC{#1}\xdef\addques{\addques\string\def\string\deC{\detokenize{#1}}}%
+		\else\ifnum\thedapan=4 \gdef\deD{#1}\xdef\addques{\addques\string\def\string\deD{\detokenize{#1}}}%
+		\else\ifnum\thedapan=5 \gdef\deE{#1}\xdef\addques{\addques\string\def\string\deE{\detokenize{#1}}}%
+		\else\ifnum\thedapan=6 \gdef\deF{#1}\xdef\addques{\addques\string\def\string\deF{\detokenize{#1}}}%
+		\else\ifnum\thedapan=7 \gdef\deG{#1}\xdef\addques{\addques\string\def\string\deG{\detokenize{#1}}}%
+		\else\ifnum\thedapan=8 \gdef\deH{#1}\xdef\addques{\addques\string\def\string\deH{\detokenize{#1}}}%
+		\else\ifnum\thedapan=9 \gdef\deI{#1}\xdef\addques{\addques\string\def\string\deI{\detokenize{#1}}}%
+		\else\ifnum\thedapan=10\gdef\deJ{#1}\xdef\addques{\addques\string\def\string\deJ{\detokenize{#1}}}%
+		\fi\fi\fi\fi\fi\fi\fi\fi\fi\fi%
+	\fi%
+}
+\newcommand{\gandaTFaddanswers}[1]{%
+		 \ifnum\thedapan=1 \gdef\daA{#1}\xdef\addans{\addans\string\def\string\daA{\detokenize{#1}}}%
+	\else\ifnum\thedapan=2 \gdef\daB{#1}\xdef\addans{\addans\string\def\string\daB{\detokenize{#1}}}%
+	\else\ifnum\thedapan=3 \gdef\daC{#1}\xdef\addans{\addans\string\def\string\daC{\detokenize{#1}}}%
+	\else\ifnum\thedapan=4 \gdef\daD{#1}\xdef\addans{\addans\string\def\string\daD{\detokenize{#1}}}%
+	\else\ifnum\thedapan=5 \gdef\daE{#1}\xdef\addans{\addans\string\def\string\daE{\detokenize{#1}}}%
+	\else\ifnum\thedapan=6 \gdef\daF{#1}\xdef\addans{\addans\string\def\string\daF{\detokenize{#1}}}%
+	\else\ifnum\thedapan=7 \gdef\daG{#1}\xdef\addans{\addans\string\def\string\daG{\detokenize{#1}}}%
+	\else\ifnum\thedapan=8 \gdef\daH{#1}\xdef\addans{\addans\string\def\string\daH{\detokenize{#1}}}%
+	\else\ifnum\thedapan=9 \gdef\daI{#1}\xdef\addans{\addans\string\def\string\daI{\detokenize{#1}}}%
+	\else\ifnum\thedapan=10\gdef\daJ{#1}\xdef\addans{\addans\string\def\string\daJ{\detokenize{#1}}}%
+	\fi\fi\fi\fi\fi\fi\fi\fi\fi\fi%
+}
+\newcommand{\addclause}{%
+	\ifnum\addquestions=1\gdef\lienket{\;>>>>\;}%
+	\else\gdef\lienket{}\fi%
+	\appto{\itemch}{%
+			 \ifnum\the\value{enumi}=1 {\deA}{\Large\color{red}\lienket}{\bfseries\daA}%
+		\else\ifnum\the\value{enumi}=2 {\deB}{\Large\color{red}\lienket}{\bfseries\daB}%
+		\else\ifnum\the\value{enumi}=3 {\deC}{\Large\color{red}\lienket}{\bfseries\daC}%
+		\else\ifnum\the\value{enumi}=4 {\deD}{\Large\color{red}\lienket}{\bfseries\daD}%
+		\else\ifnum\the\value{enumi}=5 {\deE}{\Large\color{red}\lienket}{\bfseries\daE}%
+		\else\ifnum\the\value{enumi}=6 {\deF}{\Large\color{red}\lienket}{\bfseries\daF}%
+		\else\ifnum\the\value{enumi}=7 {\deG}{\Large\color{red}\lienket}{\bfseries\daG}%
+		\else\ifnum\the\value{enumi}=8 {\deH}{\Large\color{red}\lienket}{\bfseries\daH}%
+		\else\ifnum\the\value{enumi}=9 {\deI}{\Large\color{red}\lienket}{\bfseries\daI}%
+		\else\ifnum\the\value{enumi}=10{\deJ}{\Large\color{red}\lienket}{\bfseries\daJ}%
+		\fi\fi\fi\fi\fi\fi\fi\fi\fi\fi%
+	}%
+}
+\newcommand{\savekinditch}{% lưu \kinditch dùng cho itemchoice
+	\ifnum\chType=1\relax\gdef\kinditch{\dapanTF}%
+	\else\ifnum\chType=-2\relax\gdef\kinditch{\debaiMW}%
+	\else\ifnum\chType=2\relax\gdef\kinditch{\dapanN}%
+	\else\gdef\kinditch{A}\fi\fi\fi%
+}
+			
+\newenvironment{itemchoice}[1][]
+	{\newcommand{\Eitem}{\itemch {\bfseries\color{blue}\mbox{\boldmath $\leftarrow$} Chỗ này gõ {\Large\color{red}$\backslash$itemch} mới đúng, thiếu chữ {\LARGE\color{red}ch} rồi thầy cô!\\}}%
+		\newcommand{\Esubitemch}{\item {\bfseries\color{blue}\mbox{\boldmath $\leftarrow$} Chỗ này gõ {\Large\color{red}$\backslash$item} mới đúng, dư chữ {\LARGE\color{red}ch} kìa thầy cô!\\}}%
+		\let\itemch\item\let\item\Eitem%
+		\makeatletter%
+		\begin{enumerate}
+			\ifthenelse{\equal{#1}{}}{}{\gdef\kinditch{}}%
+			\ifthenelse{\equal{\kinditch}{a} \OR \equal{#1}{a)} \OR \equal{#1}{a}}
+				{\renewcommand{\labelenumi}{\bfseries\alph{enumi})}}
+				{\ifthenelse{\equal{\kinditch}{A} \OR \equal{#1}{A.} \OR \equal{#1}{A}}
+					{\renewcommand{\labelenumi}{\bfseries\Alph{enumi}.}}
+					{\ifthenelse{\equal{\kinditch}{1} \OR \equal{#1}{1)} \OR \equal{#1}{1}}
+						{\renewcommand{\labelenumi}{\bfseries\arabic{enumi})}}
+						{\renewcommand{\labelenumi}{\bfseries#1}}}}%
+		\delError{itemize,enumerate,enumEX,listEX,center}%
+		\ifnum\addanswers=1\relax\addclause\fi%
+	}
+	{\AtBeginEnvironment{enumerate}{\let\itemch\item\let\item\Eitem}%
+		\end{enumerate}%
+	}
+\AtBeginEnvironment{enumerate}{\let\Eitem\item}
+\let\itemT\item
+\newcommand{\delError}[1]{%
+	\foreach \xEnvN in {#1} {%
+		\AtBeginEnvironment{\xEnvN}{%
+			\let\item\itemT\let\itemch\Esubitemch%
+		}%
+	}
+}
+%%=====================================
+\DeclareOption{solcolor}{
+	\renewcommand{\TF}[1]{\EXboxTF{\textbf{\colorEX#1}}}
+	\renewcommand{\boxEX}[2][9pt]{%
+		\setbox1=\hbox{#2}%
+		\def\sizeboxEX{#1}%
+		\ \EXbox{#2}\ %
+	}
+	\renewcommand{\sh}[1]{\text{#1}}
+	\makeatletter
+	\def\applykindSA{0} % Để huỷ áp dụng \kindSA
+	\def\colorEX{\color{red}}
+	\renewcommand{\TrueTF}{\stepcounter{dapan}\squareEX{\bfseries\DapAnTF}\ignorespaces}
+	\renewcommand{\TrueEX}{\stepcounter{dapan}\squareEX{\bfseries\Alph{dapan}}\ignorespaces}
+	\renewcommand{\TrueEXn}{\stepcounter{dapan}\squareEX{\bfseries\DapAnN}\ignorespaces}
+	\renewcommand{\TrueUn}{\squareEX{\bfseries\Alph{dapan}}}
+	\renewcommand{\True}{%
+		\ifnum\cotDS=1\gdef\TrueX{\squareEX{Đ}}\else\gdef\TrueX{\circEX{\tickT}}\fi\gdef\FalseX{}%
+		\leavevmode\colorEX%
+	}
+	%\choiceTF
+	\renewcommand{\writekeyTFone}{\ifnum\cotDS=1\gdef\TrueX{S}\else\gdef\TrueX{}\fi\gdef\FalseX{\tickF}}
+	\renewcommand{\writekeyTF}{%
+		\ifthenelse{\equal{\cotDS}{2}}
+		{&\vspace{-1pt}\centering\leavevmode\TrueX%
+			&\vspace{-3pt}\parbox[t]{\linewidth}{\centering\leavevmode\FalseX}%
+				\gdef\TrueX{}\gdef\FalseX{\tickF}}
+		{\ifthenelse{\equal{\cotDS}{1}}
+		{& \parbox[t]{\linewidth}{\centering\leavevmode\TrueX}\gdef\TrueX{S}}
+		{}}%
+	}
+	%\shortans
+	\def\kindSA{ShowSAKeyColor}
+	%%=================
+	%% match
+	%%=================
+	\renewcommand{\ansmatch}{\viewansmatch{squareEX}{\;>>>>\;}{cotII}}
+	\showanswers
+	%Xuất hiện chữ Lời giải trong môi trường onlysolution
+	\renewcommand{\do@onlysolution}[1]{%
+		\par\noindent\textbf{\loigiaiEX}%
+		\ifshowanswers
+		 \@ifnextchar\immini
+		{}
+		{ \@ifnextchar\begin
+		{}
+		{\par\noindent}
+		}
+		#1%
+		\fi
+		\ifthenelse{\equal{\keyEX}{}}{}
+				{\leavevmode\unskip\textchoice\ignorespaces\xdef\keyEX{}}%
+	}
+	\renewcommand{\loigiai}[1]{%
+		\labelex\gdef\labelex{}%
+		\ifInTcolorbox\ifdef{\endbox}{\endbox\gdef\endbox{}}{}\fi%
+		\begin{onlysolution}
+		#1
+		\end{onlysolution}
+	}
+	\renewcommand{\exitshowansEX}[1]{%
+		\AtBeginEnvironment{#1}{%
+			\renewcommand{\ansmatch}{\viewansmatch{squareEX}{\;>>>>\;}{cotII}}%
+		}
+	}
+	\renewcommand{\exithideansEX}[1]{%
+		\makeatletter
+		\AtBeginEnvironment{#1}{%
+			\def\kindSA{ShowSAKeyColor}%
+			\def\colorEX{\color{red}}%
+			\renewcommand{\TrueTF} {\stepcounter{dapan}\squareEX{\bfseries\DapAnTF}\ignorespaces}
+			\renewcommand{\TrueEX} {\stepcounter{dapan}\squareEX{\bfseries\Alph{dapan}}\ignorespaces}
+			\renewcommand{\TrueEXn}{\stepcounter{dapan}\squareEX{\bfseries\DapAnN}\ignorespaces}
+			\renewcommand{\TrueUn}{\squareEX{\bfseries\Alph{dapan}}}
+			\renewcommand{\writekeyTFone}{\ifnum\cotDS=1\gdef\TrueX{S}\else\gdef\TrueX{}\fi\gdef\FalseX{\tickF}}
+			\renewcommand{\writekeyTF}{%
+				\ifthenelse{\equal{\cotDS}{2}}
+				{&\vspace{-1pt}\centering\leavevmode\TrueX%
+					&\vspace{-3pt}\parbox[t]{\linewidth}{\centering\leavevmode\FalseX}%
+						\gdef\TrueX{}\gdef\FalseX{\tickF}}
+				{\ifthenelse{\equal{\cotDS}{1}}
+				{& \parbox[t]{\linewidth}{\centering\leavevmode\TrueX}\gdef\TrueX{S}}
+				{}}%
+			}
+			\renewcommand{\ansmatch}{\viewansmatch{squareEX}{\;>>>>\;}{cotII}}
+			\renewcommand{\loigiai}[1]{%
+				\labelex\gdef\labelex{}%
+				\ifInTcolorbox\ifdef{\endbox}{\endbox\gdef\endbox{}}{}\fi%
+				\begin{onlysolution}
+				##1
+				\end{onlysolution}
+			}
+		}
+	}
+}
+
+%%=====================================
+\DeclareOption{loigiai}{
+	\makeatletter
+	\def\applykindSA{0} % Để huỷ áp dụng \kindSA
+	\renewcommand{\TF}[1]{\EXboxTF{\textbf{\colorEX#1}}}
+	\renewcommand{\boxEX}[2][9pt]{%
+		\setbox1=\hbox{#2}%
+		\def\sizeboxEX{#1}%
+		\ \EXbox{#2}\ %
+	}
+	\renewcommand{\sh}[1]{\text{#1}}
+	\showanswers
+	%Xuất hiện chữ Lời giải trong môi trường onlysolution
+	\makeatletter
+	\renewcommand{\do@onlysolution}[1]{%
+		\par\noindent\textbf{\loigiaiEX}%
+		\ifshowanswers
+		 \@ifnextchar\immini
+		{}
+		{ \@ifnextchar\begin
+		{}
+		{\par\noindent}
+		}
+		#1%
+		\fi
+		\ifthenelse{\equal{\keyEX}{}}{}
+				{\leavevmode\unskip\textchoice\ignorespaces\xdef\keyEX{}}%
+	}
+	\renewcommand{\loigiai}[1]{%
+		\labelex\gdef\labelex{}%
+		\ifInTcolorbox\ifdef{\endbox}{\endbox\gdef\endbox{}}{}\fi%
+		\begin{onlysolution}
+			#1
+		\end{onlysolution}
+	}
+	\renewcommand{\True}{%
+		\ifnum\cotDS=1\gdef\TrueX{Đ}\else\gdef\TrueX{\tickT}\fi\gdef\FalseX{}%
+	}
+	%\choiceTF
+	\renewcommand{\writekeyTFone}{\ifnum\cotDS=1\gdef\TrueX{S}\else\gdef\TrueX{}\fi\gdef\FalseX{\tickF}}
+	\renewcommand{\writekeyTF}{%
+		\ifthenelse{\equal{\cotDS}{2}}
+		{&\vspace{-1pt}\centering\leavevmode\TrueX%
+			&\vspace{-3pt}\parbox[t]{\linewidth}{\centering\leavevmode\FalseX}%
+				\gdef\TrueX{}\gdef\FalseX{\tickF}}
+		{\ifthenelse{\equal{\cotDS}{1}}
+		{& \parbox[t]{\linewidth}{\centering\leavevmode\TrueX}\gdef\TrueX{S}}
+		{}}%
+	}
+	%\shortans
+	\def\kindSA{ShowSAKeyLG}
+	%%=================
+	%% match
+	%%=================
+	\renewcommand{\ansmatch}{\viewansmatch{fbox}{\;>>>>\;}{cotII}}
+	\renewcommand{\exithideansEX}[1]{%
+		\makeatletter
+		\AtBeginEnvironment{#1}{%
+			\def\kindSA{ShowSAKeyLG}%
+			\renewcommand{\writekeyTFone}{\ifnum\cotDS=1\gdef\TrueX{S}\else\gdef\TrueX{}\fi\gdef\FalseX{\tickF}}
+			\renewcommand{\writekeyTF}{%
+				\ifthenelse{\equal{\cotDS}{2}}
+				{&\vspace{-1pt}\centering\leavevmode\TrueX%
+					&\vspace{-3pt}\parbox[t]{\linewidth}{\centering\leavevmode\FalseX}%
+						\gdef\TrueX{}\gdef\FalseX{\tickF}}
+				{\ifthenelse{\equal{\cotDS}{1}}
+				{& \parbox[t]{\linewidth}{\centering\leavevmode\TrueX}\gdef\TrueX{S}}
+				{}}%
+			}
+			\renewcommand{\ansmatch}{\viewansmatch{fbox}{\;>>>>\;}{cotII}}
+			\renewcommand{\loigiai}[1]{%
+				\labelex\gdef\labelex{}%
+				\ifInTcolorbox\ifdef{\endbox}{\endbox\gdef\endbox{}}{}\fi%
+				\begin{onlysolution}
+				##1
+				\end{onlysolution}
+			}
+		}
+	}
+}
+
+%%=====================================
+\DeclareOption{color}{
+	\makeatletter
+	\def\applykindSA{0} % Để huỷ áp dụng \kindSA
+	\def\colorEX{\color{red}}
+	\renewcommand{\TrueTF} {\stepcounter{dapan}\squareEX{\bfseries\DapAnTF}\ignorespaces}
+	\renewcommand{\TrueEX} {\stepcounter{dapan}\squareEX{\bfseries\Alph{dapan}}\ignorespaces}
+	\renewcommand{\TrueEXn}{\stepcounter{dapan}\squareEX{\bfseries\DapAnN}\ignorespaces}
+	\renewcommand{\TrueUn}{\squareEX{\bfseries\Alph{dapan}}}
+	\renewcommand{\True}{%
+		\ifnum\cotDS=1\gdef\TrueX{\squareEX{Đ}}\else\gdef\TrueX{\circEX{\tickT}}\fi\gdef\FalseX{}%
+		\leavevmode\colorEX%
+	}
+	%\choiceTF
+	\renewcommand{\writekeyTFone}{\ifnum\cotDS=1\gdef\TrueX{S}\else\gdef\TrueX{}\fi\gdef\FalseX{\tickF}}
+	\renewcommand{\writekeyTF}{%
+		\ifthenelse{\equal{\cotDS}{2}}
+		{&\vspace{-1pt}\centering\leavevmode\TrueX%
+			&\vspace{-3pt}\parbox[t]{\linewidth}{\centering\leavevmode\FalseX}%
+				\gdef\TrueX{}\gdef\FalseX{\tickF}}
+		{\ifthenelse{\equal{\cotDS}{1}}
+		{& \parbox[t]{\linewidth}{\centering\leavevmode\TrueX}\gdef\TrueX{S}}
+		{}}%
+	}
+	%\shortans
+	\def\kindSA{ShowSAKeyColor}
+	%=============
+	%% match
+	%=============
+	\renewcommand{\ansmatch}{\viewansmatch{squareEX}{\;>>>>\;}{cotII}}
+	\renewcommand{\exitshowansEX}[1]{
+		\AtBeginEnvironment{#1}{
+			\renewcommand{\ansmatch}{\viewansmatch{squareEX}{\;>>>>\;}{cotII}}
+		}
+	}
+	\renewcommand{\exithideansEX}[1]{%
+		\makeatletter
+		\AtBeginEnvironment{#1}{%
+			\def\kindSA{ShowSAKeyColor}%
+			\def\colorEX{\color{red}}%
+			\renewcommand{\TrueTF}{\stepcounter{dapan}\squareEX{\bfseries\DapAnTF}\ignorespaces}
+			\renewcommand{\TrueEX}{\stepcounter{dapan}\squareEX{\bfseries\Alph{dapan}}\ignorespaces}
+			\renewcommand{\TrueEXn}{\stepcounter{dapan}\squareEX{\bfseries\DapAnN}\ignorespaces}
+			\renewcommand{\TrueUn}{\squareEX{\bfseries\Alph{dapan}}}
+			\renewcommand{\writekeyTFone}{\ifnum\cotDS=1\gdef\TrueX{S}\else\gdef\TrueX{}\fi\gdef\FalseX{\tickF}}
+			\renewcommand{\writekeyTF}{%
+				\ifthenelse{\equal{\cotDS}{2}}
+				{&\vspace{-1pt}\centering\leavevmode\TrueX%
+					&\vspace{-3pt}\parbox[t]{\linewidth}{\centering\leavevmode\FalseX}%
+						\gdef\TrueX{}\gdef\FalseX{\tickF}}
+				{\ifthenelse{\equal{\cotDS}{1}}
+				{& \parbox[t]{\linewidth}{\centering\leavevmode\TrueX}\gdef\TrueX{S}}
+				{}}%
+			}
+			\renewcommand{\ansmatch}{\viewansmatch{squareEX}{\;>>>>\;}{cotII}}
+		}
+	}
+}
+
+%%=====================================
+\DeclareOption{book}{
+	\makeatletter
+	\showanswers
+	\renewcommand{\loigiai}[1]{%
+		\labelex\gdef\labelex{}%
+		\writeansbook{#1}%
+	}
+	\AtBeginEnvironment{chc}{%
+		\renewcommand{\loigiai}[1]{%
+			\labelex\gdef\labelex{}%
+			\ifnum\DGNL=0\ifdef{\labelthmex}{\let\labelthm\labelthmex}{\gdef\labelthm{\nameex}}\fi%
+			\writeansbook{#1}%
+		}
+	}
+	\renewcommand{\writeansbook}[1]{%
+		\ifthenelse{\equal{\detokenize\expandafter{\addques}}{}}{}
+			{\Writetofile{ansbook}{\detokenize\expandafter{\addques}}}%
+		\ifthenelse{\equal{\detokenize\expandafter{\addans}}{}}{}
+			{\Writetofile{ansbook}{\detokenize\expandafter{\addans}}}%
+		\Writetofile{ansbook}{\string\def\string\namebook{\detokenize\expandafter{\labelthm}}\string\def\string\kinditch{\kinditch}^^J\string\begin{Solbook}{\Currentlabel}}%
+		\ifthenelse{\equal{\saveFileAns}{}}{}{%
+			\ifnum\chType=0
+				\Writetofile{ansbook}{\detokenize\expandafter{\selectchoice}\ \string\circEX{\saveFileAns}}%
+			\else\ifnum\chType=2
+				\Writetofile{ansbook}{\detokenize\expandafter{\selectchoice}\ \string\fbox{\saveFileAns}}%
+			\else\ifnum\chType=1
+				\Writetofile{ansbook}{\detokenize\expandafter{\selectchoiceTF}: \string\Fullcirc\saveFileAns}%
+			\else\ifnum\chType=-2
+				\Writetofile{ansbook}{\detokenize\expandafter{\selectchoiceTF}: \saveFileAns}%
+			\else\ifnum\chType=-1
+				\Writetofile{ansbook}{\detokenize\expandafter{\selectshortans} \saveKQ.}%
+			\fi\fi\fi\fi\fi%
+		}%
+		\Writetofile{ansbook}{\string\par\string\noindent^^J\detokenize{#1}^^J\string\end{Solbook}^^J}%
+	}
+}
+\renewcommand{\exithideansEX}[1]{%
+	\AtBeginEnvironment{#1}{%
+		\renewcommand{\loigiai}[1]{%
+			\labelex\gdef\labelex{}%
+			\writeansbook{##1}%
+		}%
+	}%
+}
+
+%%=====================================
+\DeclareOption{dethi}{
+	\makeatletter
+	\renewcommand{\TF}[1]{\EXboxTF{}}
+	\renewcommand{\boxEX}[2][9pt]{%
+		\def\sizeboxEX{#1}%
+		\setbox1=\hbox{#2}%
+		\ \EXbox{}\ %
+	}
+}
+
+\ExecuteOptions{dethi}
+\ProcessOptions
+%Nội dung gói ex_test
+\theorempreskipamount0.1\baselineskip
+\theorempostskipamount0.2\baselineskip
+\newlength\dorongfix
+\dorongfix=\linewidth
+\newlength\dorong
+\dorong=\linewidth
+\newcommand{\reducedstrut}{\vrule width 0pt height .9\ht\strutbox depth .9\dp\strutbox\relax}
+\def\hfillenum{\hfill}
+\makeatletter
+\def\labelthmfull{}
+\def\labelthm{}
+\def\sublabelthm{}
+\newtheoremstyle{immini}%
+	{\item[\hskip\labelsep \theorem@headerfont ##1\ ##2\theorem@separator]%
+		\def\thindent{%
+			\setbox0\vbox{\hbox{\leavevmode\unskip\theorem@headerfont ##1\ ##2\theorem@separator\ignorespaces}}%
+			\hspace*{\wd0}%
+		}%
+		\gdef\labelthm{##1}%
+		\gdef\labelthmfull{\mbox{\theorem@headerfont ##1\ ##2\theorem@separator\,\ }}%
+	}%
+	{%
+		\ifnum\exbreak=0\relax
+			\ifnum\explain=0\relax%
+				\setbox1\vbox{\hbox{\theorem@headerfont ##1\ ##2\ (##3)\theorem@separator\ignorespaces}}%	
+				\ifdim\wd1>0.6\linewidth\relax%
+					\item\hbox to \linewidth{\theorem@headerfont ##1\ ##2\ (##3)\theorem@separator\hfill}%
+					\def\hfillenum{}%
+					\def\thindent{}%
+					\gdef\labelthmfull{}%
+				\else
+					\item[\hskip\labelsep \theorem@headerfont ##1\ ##2\ (##3)\theorem@separator]
+					\def\hfillenum{\hfill}%
+					\def\thindent{%
+						\setbox0\vbox{\hbox{\leavevmode\unskip\theorem@headerfont ##1\ ##2\ (##3)\theorem@separator\ignorespaces}}%
+						\hspace*{\wd0}%
+					}%
+					\gdef\labelthmfull{\mbox{\theorem@headerfont ##1\ ##2\ (##3)\theorem@separator\,\ }}%
+				\fi%
+				\gdef\labelex{}%
+			\else
+				\item[\hskip\labelsep \theorem@headerfont ##1\ ##2\theorem@separator]
+				\def\hfillenum{\hfill}%
+				\def\thindent{%
+					\setbox0\vbox{\hbox{\leavevmode\unskip\theorem@headerfont ##1\ ##2\theorem@separator\ignorespaces}}%
+					\hspace*{\wd0}%
+				}%
+				\gdef\labelthmfull{\mbox{\theorem@headerfont ##1\ ##2\theorem@separator\,\ }}%
+				\gdef\labelex{%
+					\begin{flushright}
+					\vspace*{-5pt}
+					\textit{\color{red}\textbf{(##3)}}
+					\vspace*{-5pt}
+					\end{flushright}}%
+			\fi%
+		\else
+			\ifnum\explain=0\relax%
+				\item\hbox to \linewidth{\theorem@headerfont ##1\ ##2\ (##3)\theorem@separator\hfill}%
+				\gdef\labelex{}%
+			\else
+				\item[\hskip\labelsep \theorem@headerfont ##1\ ##2\theorem@separator]%
+				\gdef\labelex{%
+					\begin{flushright}
+					\vspace*{-5pt}
+					\textit{\color{red}\textbf{(##3)}}
+					\vspace*{-5pt}
+					\end{flushright}}%
+			\fi
+			\def\hfillenum{}%
+			\def\thindent{}%
+			\gdef\labelthmfull{}%
+		\fi%
+		\gdef\labelthm{##1}%
+	}
+\newtheoremstyle{inboxtitle}%
+	{\item[]\gdef\labelthm{##1}\gdef\sublabelthm{}\gdef\labelthmfull{}}%
+	{\item[]\gdef\labelthm{##1}\gdef\sublabelthm{##3}\gdef\labelthmfull{}%
+		\ifnum\explain=0\relax\gdef\labelex{}%
+		\else\gdef\sublabelthm{}\gdef\labelex{%
+			\begin{flushright}
+			\vspace*{-5pt}
+			\textit{\color{red}\textbf{(##3)}}
+			\vspace*{-5pt}
+			\end{flushright}}\fi}
+\newtheoremstyle{exbreak}%
+  {\item[\hskip\labelsep \theorem@headerfont ##1\ ##2\theorem@separator]}%
+  {\item\hbox to \linewidth{\theorem@headerfont ##1\ ##2 (##3)\theorem@separator\hfill}}
+\newtheoremstyle{explain}%
+  {\item[\hskip\labelsep \theorem@headerfont ##1\ ##2\theorem@separator]}%
+  {\item[\hskip\labelsep \theorem@headerfont ##1\ ##2\theorem@separator]\def\labelex{
+\begin{flushright}
+\vspace*{-5pt}
+\textit{\textbf{(##3)}}
+\vspace*{-5pt}
+\end{flushright}}}
+%Danh sách môi trường trích dẫn nguồn câu hỏi
+\newcommand{\listtheorem}[1]{
+	\foreach \x in {#1} {%môi trường
+	\AtEndEnvironment{\x}{%
+	\labelex
+	}}%
+}
+\makeatother
+\theoremstyle{immini}
+\theoremseparator{.}
+\theorembodyfont{\rm}
+\newtheorem{ex}{\nameex}
+\newtheorem{chc}{}[ex]
+\newtheorem{printex}{\nameprintex}
+\Newassociation{EXsol}{Solution}{ans}
+\Newassociation{sol}{Solution}{ans_old}
+\Newassociation{solbook}{Solbook}{ansbook}
+\renewcommand{\Solbooklabel}[1]{\textbf{\namebook\ #1.}}
+\newtheorem{vdex}{Ví dụ}
+\AtBeginEnvironment{vdex}{\def\dotEX{.}}
+%-----------------------
+%Câu hỏi có giả thiết chung%
+\xdef\DGNL{0}
+\def\fromchc{Dựa vào thông tin dưới đây để trả lời các câu từ}
+\def\tochc{ đến }\def\parchc{\par}%
+\newcommand{\sochc}[2][]{}
+\AtBeginEnvironment{ex}{%
+	\xdef\DGNL{0}%
+	\renewcommand{\sochc}[2][\fromchc]{%
+		\savebox{\imboxtext}{\vbox{#2}}\noindent%
+		\xdef\DGNL{1}%
+		\pgfmathsetmacro{\endchcs}{int(#2+\theex-1)}%
+		\xdef\numendchc{\endchcs}%
+		\gdef\numchc{#2}%
+	%	\let\chc\ex%
+		\vspace{-0.5\baselineskip}\par\noindent%
+		\textbf{#1 \theex\tochc\numendchc.}\ %
+		\vspace{0.3\baselineskip}\parchc\noindent\ignorespaces%
+		\addtocounter{ex}{-1}\ignorespaces%
+	}
+	\ifnum\value{ifex}>1{\noindent\large\bfseries\color{magenta}Câu dưới này dùng môi trường \{chc\} mới đúng!}\color{blue}\fi%
+}
+\BeforeBeginEnvironment{chc}{%
+	\let\labelthmex\labelthm%
+	\ifnum\DGNL=0\relax
+		\renewcommand{\thechc}{\theex\alph{chc}}%
+	\else
+		\let\chc\ex%
+		\renewcommand{\thechc}{\theex}%
+	\fi%
+}
+\AtBeginEnvironment{chc}{%
+	\ifInex%
+		\ifnum\DGNL=1\relax
+			\ifnum\numexpr\theex+1\relax>\numendchc\relax%
+				{\noindent\large\bfseries\color{blue}Câu dưới đây bị dư so với số lượng \numchc\ câu đã khai báo!}%
+			\fi%
+		\fi%
+	\else%
+		{\noindent\large\bfseries\color{blue}Môi trường \{chc\} được xây dựng để chỉ gõ bên trong \{ex\}!}%
+	\fi%
+}
+\AfterEndEnvironment{chc}{\let\labelthm\labelthmex}
+%Các phương pháp đưa hình vào văn bản
+\def\vspaceIM{\vspace{-0.6\baselineskip}}
+\def\breakIM{\filbreak}
+\def\numpicinpar{0}
+\newdimen\heightline
+\newdimen\widthimmini
+\newdimen\heightimmini
+\newdimen\heighttextimmini
+\newdimen\himmini
+\newdimen\spaceleft
+\newbox\imbox
+\newbox\imboxtext
+\newcommand{\hspaceIM}[1]{
+	\def\hspaceIMEX{\hspace{#1\linewidth}}
+	\def\hspaceEXIM{#1\linewidth}
+}
+\newcommand{\IMleftright}[3]{
+	\par\noindent
+	\begin{minipage}[t][][t]{\dimexpr\linewidth-\widthimmini-4\fboxsep-#1\linewidth\relax}
+		#2
+	\end{minipage}%
+	\hspace{\dimexpr#1\linewidth+2\fboxsep\relax}%
+	\begin{minipage}[t][][b]{\widthimmini}\vspaceIM%
+		#3
+	\centering \IMname\IMlabel%
+	\end{minipage}
+	\par\nointerlineskip
+}
+\newcommand{\IMrightleft}[3]{
+	\par\noindent%
+	\begin{minipage}[t][][b]{\widthimmini}\vspaceIM
+		#3
+	\centering \IMname\IMlabel
+	\end{minipage}
+	\hspace{\dimexpr#1\linewidth+2\fboxsep\relax}%
+	\begin{minipage}[t][][t]{\dimexpr\linewidth-\widthimmini-4\fboxsep-#1\linewidth\relax}
+		#2
+	\end{minipage}
+	\par\nointerlineskip
+}
+\newcommand{\immini}[3][]{}
+\newcommand{\imminiL}[3][]{}
+\newcommand{\oldimmini}{%
+	\renewcommand{\immini}[3][0]{%
+		\savebox{\imbox}{##3}%
+		\widthimmini=\wd\imbox%
+		\heightimmini=\ht\imbox%
+		\ifthenelse{\equal{##1}{thm}}
+		{\savebox{\imboxtext}{\vbox{##2}}%
+			\xdef\saveFileAns{}\xdef\keyEX{}\setcounter{dapan}{0}%
+			\hfill\vspace{-0.3\baselineskip\relax}%
+			\IMleftright{0}{\protect\leavevmode\mbox{\labelthmfull}\ignorespaces##2}{##3}%
+		}{\hfill\IMleftright{##1}{##2}{##3}}%
+	}%
+	\renewcommand{\imminiL}[3][0]{%
+		\savebox{\imbox}{##3}%
+		\widthimmini=\wd\imbox%
+		\heightimmini=\ht\imbox%
+		\ifthenelse{\equal{##1}{thm}}
+		{\savebox{\imboxtext}{\vbox{##2}}%
+			\xdef\saveFileAns{}\xdef\keyEX{}\setcounter{dapan}{0}%
+			\hfill\vspace{-0.3\baselineskip\relax}%
+			\IMrightleft{0}{\protect\leavevmode\mbox{\labelthmfull}\ignorespaces##2}{##3}%
+		}{\hfill\IMrightleft{##1}{##2}{##3}}%
+	}%
+}
+\newcommand{\fiximmini}[2][]{}% Huỷ bỏ lệnh \fiximmini của phiên bản trước.
+%%===================================
+% Khai báo swr dụng lệnh immini mới hoặc cũ
+\makeatletter
+\newcommand{\beginboxI}{%
+	\begin{tcolorbox}[%
+		enhanced jigsaw, breakable, pad at break*=1mm,%
+		before skip=2mm, after skip=3mm,%
+		left=2mm, right=2mm, top=2pt, bottom=2mm,%
+		drop fuzzy shadow southeast,colframe=black,%
+		colback=green!10, boxrule=0.4mm,opacityback=0.5,%
+		colframe=black, colback=green!10, boxrule=0.6pt]%
+}
+\makeatletter
+\newcommand{\beginboxII}{%
+	\begin{tcolorbox}[%
+		before skip=4mm,after skip=4mm,enhanced,breakable,skin=enhancedlast jigsaw,
+		attach boxed title to top left={xshift=-4mm,yshift=-0.5mm},colback=white,
+		varwidth boxed title=0.7\linewidth,
+		colbacktitle=blue!45!white,colframe=red!50!black,
+		interior style={top color=blue!0!white,bottom color=green!0!white},
+		boxed title style={empty,arc=0pt,outer arc=0pt,boxrule=0pt},
+		underlay boxed title={
+			\fill[blue!75!black] (title.north west) -- (title.north east)
+			-- +(\tcboxedtitleheight-1mm,-\tcboxedtitleheight+1mm)
+			-- ([xshift=4mm,yshift=0.5mm]frame.north east) -- +(0mm,-1mm)
+			-- (title.south west) -- cycle;
+			\fill[blue!35!white!50!black] ([yshift=-0.5mm]frame.north west)
+			-- +(-0.4,0) -- +(0,-0.3) -- cycle;
+			\fill[blue!35!white!50!black] ([yshift=-0.5mm]frame.north east)
+			-- +(0,-0.3) -- +(0.4,0) -- cycle;
+			\ifthenelse{\equal{\sublabelthm}{}}{}
+			{\node at ($(frame.north east)!1/2!(title.north east)$){\fontfamily{qag}\bfseries\selectfont(\sublabelthm)};}},
+	]%
+}
+\makeatletter
+\newcommand{\bgBOX}{%
+	\begin{tcolorbox}[%
+		enhanced,breakable,drop fuzzy shadow southeast,before skip=4mm,after skip=4mm,
+		colback=yellow!7,colframe=red!50!black,boxrule=1pt,
+		attach boxed title to top left={xshift=1cm,yshift*=1mm-\tcboxedtitleheight},
+		varwidth boxed title*=-3cm,
+		boxed title style={frame code={
+			\path[fill=red!30!black]
+			([yshift=-1mm,xshift=-1mm]frame.north west)
+			arc[start angle=0,end angle=180,radius=1mm]
+			([yshift=-1mm,xshift=1mm]frame.north east)
+			arc[start angle=180,end angle=0,radius=1mm];
+			\path[left color=red!60!black,right color=red!60!black,
+			middle color=red!85!black]
+			([xshift=-2mm]frame.north west) -- ([xshift=2mm]frame.north east)
+			[rounded corners=1mm]-- ([xshift=1mm,yshift=-1mm]frame.north east)
+			-- (frame.south east) -- (frame.south west)
+			-- ([xshift=-1mm,yshift=-1mm]frame.north west)
+			[sharp corners]-- cycle;
+			},interior engine=empty},
+		fonttitle=\fontfamily{qag}\bfseries\selectfont,
+		title={\labelthm\ \Currentlabel}
+	]
+}
+\makeatletter
+\def\IMheight{2mm}
+%Lệnh \immini theo khai báo của thầy Trần Lê Nam
+	\renewcommand{\immini}[3][]{%
+		\savebox{\imbox}{#3}
+		\ifthenelse{\equal{#1}{thm}}
+			{\savebox{\imboxtext}{\vbox{#2}}\def\title{\protect\leavevmode\mbox{\labelthmfull}}
+				\xdef\saveFileAns{}\xdef\keyEX{}\setcounter{dapan}{0}}
+			{\par\noindent\def\title{}%
+				\ifthenelse{\equal{#1}{}}{}
+					{\def\IMheight{#1\linewidth}}}
+		\tcbset{before={\parindent=0pt},before skip=\baselineskip-6pt}%
+		\tcbsidebyside[blanker, sidebyside adapt=right,
+		sidebyside align=top seam, sidebyside gap=\IMheight,
+		top=-5pt,left=0pt,right=0pt,bottom=-4pt,
+		]{{\ignorespaces\title}\ignorespaces#2}{\usebox{\imbox}}%
+	}%
+	\renewcommand{\imminiL}[3][0]{%
+		\savebox{\imbox}{#3}%
+		\ifthenelse{\equal{#1}{thm}}
+			{\savebox{\imboxtext}{\vbox{#2}}\def\title{\protect\leavevmode\mbox{\labelthmfull}}%
+				\xdef\saveFileAns{}\xdef\keyEX{}\setcounter{dapan}{0}}
+			{\par\noindent\def\title{}%
+				\ifthenelse{\equal{#1}{}}{}
+					{\def\IMheight{#1\linewidth}}}%
+		\tcbset{before={\parindent=0pt},before skip=\baselineskip-6pt}%
+		\tcbsidebyside[blanker, sidebyside adapt=left,
+		sidebyside align=top seam, sidebyside gap=\IMheight,
+		top=-5pt,left=0pt,right=0pt,bottom=-4pt,
+		]{\usebox{\imbox}}{{\ignorespaces\title}\ignorespaces#2}%
+	}%
+	\NewDocumentCommand{\createbox}{o m o}{%
+		\IfNoValueTF{#1}{}
+			{\theoremstyle{inboxtitle}\theorembodyfont{\normalfont}\renewtheorem{#2}{#1}%
+			 \AtBeginEnvironment{#2}{\tcbset{%,
+				attach boxed title to top left={xshift=0mm,yshift=-\tcboxedtitleheight},
+				fonttitle=\fontfamily{qag}\bfseries\selectfont,
+				title={\labelthm\ \Currentlabel}}}}%
+		\AtBeginEnvironment{#2}{%
+			\refstepcounter{#2}\addtocounter{#2}{-1}%
+			\renewcommand{\Currentlabel}{\@currentlabel}%
+			\IfNoValueTF{#1}{}{\gdef\labelthm{#1}}
+			\IfNoValueTF{#3}{\IfNoValueTF{#1}{\beginboxI}{\beginboxII}}{#3}
+			\makeatletter%
+			\tikzset{node style/.append style = {fill=tcbcolback,opacity=1}}%
+			\tikzset{double style/.append style={double distance=1.6pt,double=tcbcolback}}%
+			\def\endbox{\end{tcolorbox}}%
+		}%
+		\AtEndEnvironment{#2}{\endbox\IfNoValueTF{#1}{}{}}%
+		\ifthenelse{\equal{#2}{ex}}
+			{\BeforeBeginEnvironment{chc}{%
+				\ifInTcolorbox\endbox\def\endbox{}\fi%
+				\ifnum\DGNL=0\relax
+					\renewcommand{\thechc}{\theex\alph{chc}}%
+					\gdef\labelthm{}%
+				\else
+					\let\chc\ex%
+					\gdef\labelthm{#1}%
+				\fi%
+			 }%
+			\AfterEndEnvironment{chc}{%
+				\ifInTcolorbox\endbox\def\endbox{}\fi%
+			}%
+			\AtBeginEnvironment{chc}{\refstepcounter{chc}%
+				\renewcommand{\Currentlabel}{\@currentlabel}%
+				\IfNoValueTF{#1}{\addtocounter{chc}{-1}}{%
+					\theoremstyle{inboxtitle}\renewtheorem{chc}{#1}%
+					\ifnum\DGNL=1\relax
+						\gdef\labelthm{#1}%
+						\addtocounter{ex}{1}\renewcommand{\Currentlabel}{\theex}%
+					\else
+						\gdef\labelthm{}%
+						\renewcommand{\Currentlabel}{\theex.\alph{chc}}%
+					\fi%
+					%
+				}
+				\IfNoValueTF{#3}{\IfNoValueTF{#1}{\beginboxI}{\beginboxII}}{#3}%
+				\IfNoValueTF{#1}{}{\addtocounter{chc}{-1}}%
+				\makeatletter%
+				\tikzset{node style/.append style = {fill=tcbcolback,opacity=1}}%
+				\tikzset{double style/.append style={double distance=1.6pt,double=tcbcolback}}%
+				\def\endbox{\end{tcolorbox}}}%
+			\AtEndEnvironment{chc}{\endbox}}{}%
+	}
+%%===================================
+%-- Hết lệnh \immini và \imminiL mới
+\newcommand{\impicinpar}[2]{
+\begin{window}[\numpicinpar,r,{
+#2
+}, {}]
+\begin{flushleft}
+#1
+\end{flushleft}
+\end{window}
+}
+%Hết cách đưa hình vào văn bản
+
+% Biểu diễn khoảng, đoạn trên trục số
+\usetikzlibrary{decorations.pathreplacing,decorations.markings,patterns}
+\def\colorInterval{black}
+\def\skipInterval{0.4cm}
+\newcommand{\Interval}[4]{%
+        \coordinate [label={center:$#1$},label=below:$\rule{0pt}{\skipInterval}#2$] (a) at (#2,0); 
+        \coordinate [label={center:$#3$},label=below:$\rule{0pt}{\skipInterval}#4$] (b) at (#4,0); 
+        \draw[color=\colorInterval] decorate[decoration={ticks,amplitude=3pt,segment length=1mm}] {(a)--(b)};
+}
+\newcommand{\IntervalR}[4]{%
+        \coordinate [label={center:$#1$},label=below:$\rule{0pt}{\skipInterval}#2$] (a) at (#2,0); 
+        \coordinate [label={center:$#3$},label=below:$\rule{0pt}{\skipInterval}#4$] (b) at (#4,0); 
+        \draw decorate[decoration={markings,mark=% actually add a mark
+      between positions 0 and 1 step 1mm
+      with
+      {
+\draw[color=\colorInterval] (-3pt,-3pt) -- (3pt,3pt);
+      }}] {(a)--(b)};
+}
+\newcommand{\IntervalL}[4]{%
+        \coordinate [label={center:$#1$},label=below:$\rule{0pt}{\skipInterval}#2$] (a) at (#2,0); 
+        \coordinate [label={center:$#3$},label=below:$\rule{0pt}{\skipInterval}#4$] (b) at (#4,0); 
+        \draw decorate[decoration={
+		markings,
+		mark=between positions 0 and 1 step 1mm
+      	with
+      	{
+		\draw[color=\colorInterval] (-3pt,3pt) -- (3pt,-3pt);
+      	}
+		}
+		] {(a)--(b)};
+}
+\newcommand{\IntervalLF}[4]{%
+        \coordinate [label={center:$#1$},label=below:$\rule{0pt}{\skipInterval}#2$] (a) at (#2,0); 
+        \coordinate [label={center:$#3$},label=below:$\rule{0pt}{\skipInterval}#4$] (b) at (#4,0); 
+   		\fill[pattern=north west lines,pattern color=\colorInterval](#2,-3pt)rectangle(#4,3pt);
+}
+\newcommand{\IntervalRF}[4]{%
+        \coordinate [label={center:$#1$},label=below:$\rule{0pt}{\skipInterval}#2$] (a) at (#2,0); 
+        \coordinate [label={center:$#3$},label=below:$\rule{0pt}{\skipInterval}#4$] (b) at (#4,0); 
+   		\fill[pattern=north east lines,pattern color=\colorInterval](#2,-3pt)rectangle(#4,3pt);
+}
+\def\pre{0}
+\def\next{2}
+\newcommand{\IntervalLR}[2]{
+\def\pre{#1}
+\def\next{#2}
+}
+\newcommand{\IntervalG}[4]{%
+        \coordinate [label={center:$#1$},label=below:$\rule{0pt}{\skipInterval}#2$] (a) at (\pre,0); 
+        \coordinate [label={center:$#3$},label=below:$\rule{0pt}{\skipInterval}#4$] (b) at (\next,0); 
+       \draw[color=\colorInterval] decorate[decoration={ticks,amplitude=3pt,segment length=1mm}] {(a)--(b)};
+}
+\newcommand{\IntervalGL}[4]{%
+        \coordinate [label={center:$#1$},label=below:$\rule{0pt}{\skipInterval}#2$] (a) at (\pre,0); 
+        \coordinate [label={center:$#3$},label=below:$\rule{0pt}{\skipInterval}#4$] (b) at (\next,0); 
+        \draw decorate[decoration={markings,mark=% actually add a mark
+      between positions 0 and 1 step 1mm
+      with
+      {
+\draw[color=\colorInterval] (-3pt,3pt) -- (3pt,-3pt);
+      }}] {(a)--(b)};
+}
+\newcommand{\IntervalGR}[4]{%
+        \coordinate [label={center:$#1$},label=below:$\rule{0pt}{\skipInterval}#2$] (a) at (\pre,0); 
+        \coordinate [label={center:$#3$},label=below:$\rule{0pt}{\skipInterval}#4$] (b) at (\next,0); 
+        \draw decorate[decoration={markings,mark=% actually add a mark
+      between positions 0 and 1 step 1mm
+      with
+      {
+\draw[color=\colorInterval] (-3pt,-3pt) -- (3pt,3pt);
+      }}] {(a)--(b)};
+}
+
+\newcommand{\IntervalGLF}[4]{%
+        \coordinate [label={center:$#1$},label=below:$\rule{0pt}{\skipInterval}#2$] (a) at (\pre,0); 
+        \coordinate [label={center:$#3$},label=below:$\rule{0pt}{\skipInterval}#4$] (b) at (\next,0); 
+        \fill[pattern=north west lines,pattern color=\colorInterval](\pre,-3pt)rectangle(\next,3pt);
+}
+\newcommand{\IntervalGRF}[4]{%
+        \coordinate [label={center:$#1$},label=below:$\rule{0pt}{\skipInterval}#2$] (a) at (\pre,0); 
+        \coordinate [label={center:$#3$},label=below:$\rule{0pt}{\skipInterval}#4$] (b) at (\next,0); 
+        \fill[pattern=north east lines,pattern color=\colorInterval](\pre,-3pt)rectangle(\next,3pt);
+}
+%Định nghĩa dots fill
+\define@key{dloptn}{dotcolor}{\def\dotcolor{#1}}
+\define@key{dloptn}{dotsize}{\def\dotsize{#1}}
+\define@key{dloptn}{linespacing}{\def\linespacing{#1}}
+\define@key{dloptn}{linebetween}{\def\linebetween{#1}}
+\define@key{dloptn}{linebetweencolor}{\def\linebetweencolor{#1}}
+\newcommand{\dotlineOPTN}[1]{\setkeys{dloptn}{#1}}
+\dotlineOPTN{dotsize=10pt,dotcolor=black,linespacing=1,linebetween=0.5pt,linebetweencolor=black}
+\xdef\blskip{\the\baselineskip}
+\xdef\pskip{\the\parskip}
+\newcommand{\dotlineEXb}[2][1]{%
+	\baselineskip=\numexpr\linespacing*22\relax pt%
+	\setlength{\parskip}{0pt}%
+	\xdef\numlinedot{\the\numexpr#2*#1}%
+	\ifnum#1=1%
+		\par\foreach \dotline in {1,...,#2}
+			{\noindent{\fontsize{\dotsize}{0pt}\selectfont\color{\dotcolor}\dotfill}\par}%
+	\else%
+		\xdef\mtcs{\the\multicolsep}%
+		\xdef\csr{\the\columnseprule}%
+		\setlength{\multicolsep}{1pt}%
+		\setlength{\columnseprule}{\linebetween}%
+		\def\columnseprulecolor{\color{\linebetweencolor}}%
+		\begin{multicols}{#1}%
+			\foreach \dotline in {1,...,\numlinedot}
+				{\noindent{\fontsize{\dotsize}{0pt}\selectfont\color{\dotcolor}\dotfill}\par}%
+		\end{multicols}%
+		\setlength{\columnseprule}{\csr}%
+		\setlength{\multicolsep}{\mtcs}%
+	\fi%
+	\vspace{5pt}\noindent%
+	\setlength{\parskip}{\pskip}%
+	\baselineskip=\blskip%
+}
+\newcommand{\dotlineEX}[2][1]{\dotlineEXb[#1]{#2}}
+\newcommand{\hidedotlineEX}{\renewcommand{\dotlineEX}[2][1]{}}
+%Liệt kê danh sách đáp án
+\newsavebox{\myboxans}
+\newcommand{\boxans}
+{
+\renewenvironment{Solution}[2][]
+{\begin{lrbox}{\myboxans}\begin{minipage}{\dimexpr0.1\linewidth-4\fboxsep\relax}
+				\parbox[b]{0.55\linewidth}{\color{blue}##2.}
+				\color{violet}
+}
+{\end{minipage}\end{lrbox}\fbox{\usebox{\myboxans}}}
+}
+\newcommand{\listans}
+{
+\renewenvironment{Solution}[2][]
+{{\color{blue}##2}\hspace*{-4pt}}
+{\hspace*{-5pt}}
+}
+\newcommand{\tabans}[1]
+{
+	\renewenvironment{Solution}[2][]
+	{\begin{minipage}{\dimexpr\linewidth/#1-1.2\fboxsep\relax}
+			\parbox[b]{0.45\linewidth}{
+			\raggedleft\color{blue}##2.
+			}
+			\color{violet}
+		}
+		{\end{minipage}}
+}
+\newcommand{\rowans}
+{
+	\renewenvironment{Solution}[2][]
+	{\begin{minipage}{\dimexpr0.1\linewidth-1.2\fboxsep\relax}
+			\parbox[b]{0.45\linewidth}{
+			\raggedleft\color{blue}##2.
+			}
+			\color{violet}
+		}
+		{\end{minipage}}
+}
+\makeatletter
+\def\nameans{\nameex}	%Từ xuất hiện ở bảng đáp án câu TF và SA
+\newcommand{\findkindans}[1]{%
+	\def\kindans{0}%CHanswer
+	\def\str{\detokenize\expandafter{#1}}%
+	\StrLen{\str}[\lengthstr]%
+	\StrSubstitute{\str}{\detokenize{dapsoTL}}{}[\nstr]%
+	\StrLen{\nstr}[\lengthnstr]%
+	\ifnum\lengthnstr<\lengthstr \def\kindans{10}% TLanswer
+	\else%
+		\StrSubstitute{\str}{\detokenize{dapsoSA}}{}[\nstr]%
+		\StrLen{\nstr}[\lengthnstr]%
+		\ifnum\lengthnstr<\lengthstr \def\kindans{-1}% SAanswer
+		\else%
+			\StrSubstitute{\str}{\detokenize{circT}}{}[\nstr]%
+			\StrSubstitute{\nstr}{\detokenize{circF}}{}[\nstr]%
+			\StrLen{\nstr}[\lengthnstr]%
+			\ifnum\lengthnstr<\lengthstr \def\kindans{1}% TFanswer
+			\else%
+				\StrSubstitute{\str}{\detokenize{circEX}}{}[\nstr]%
+				\StrLen{\nstr}[\lengthnstr]%
+				\ifnum\lengthnstr<\lengthstr \def\kindans{-2}\fi% MWanswer
+			\fi%
+		\fi%
+	\fi%
+}
+\def\firstofthreeaux#1,#2,#3{#1}
+\def\secondofthreeaux#1,#2,#3{#2}
+\def\thirdofthreeaux#1,#2,#3{#3}
+%
+\newlength\dorongANS
+\newcommand{\dapsoTL}[2][]{%
+	\begin{lrbox}{\myboxans}%
+		\begin{minipage}{\dorongANS}%
+			\ifthenelse{\equal{#1}{}}{%
+				\ifnum\nobox=1
+					\parbox[b]{8mm}{\raggedleft\color{blue}\SttANS.}\;\color{violet}#2
+				 \else{\color{blue}\;\nameans\ \SttANS.}\;\,\ {\color{violet}#2}\fi}
+				{\ifnum\nobox=1\parbox[b]{8mm}{\raggedleft\color{blue}\SttANS#1.}\;\color{violet}#2
+				 \else{\color{blue}\;\nameans\ \SttANS#1.}\ {\color{violet}#2}\fi}%
+		\end{minipage}%
+	\end{lrbox}%
+	\noindent\usebox{\myboxans}
+}
+\newcommand{\dapsoSA}[2][]{%
+	\begin{lrbox}{\myboxans}
+		\begin{minipage}{\dorongANS}
+			\ifthenelse{\equal{#1}{}}{%
+				\ifnum\nobox=1
+					\parbox[b]{8mm}{\raggedleft\color{blue}\SttANS.}\;\color{violet}#2
+				 \else\parbox[b]{15mm}{\color{blue}\nameans~\SttANS.}\hfill\color{violet}\ifnum\runTachO=1\relax\Split{#2}\else#2\fi\fi}%
+			    {\ifnum\nobox=1\parbox[b]{8mm}{\raggedleft\color{blue}\SttANS#1.}\;\color{violet}#2
+				 \else\parbox[b]{15mm}{\color{blue}\nameans~\SttANS#1.}\hfill\color{violet}\ifnum\runTachO=1\relax\Split{#2}\else#2\fi\fi}%
+		\end{minipage}%
+	 \end{lrbox}%
+	 \ifnum\nobox=1
+		\noindent\usebox{\myboxans}\;\vspace{0.15mm}
+	 \else
+		\noindent\fbox{\usebox{\myboxans}}\;\vspace{0.15mm}
+	 \fi%
+}
+%
+\newcommand{\inputans}[3][]{%
+	\ifthenelse{\equal{#1}{0}}{\Onlycirc}
+	{\ifthenelse{\equal{#1}{1}}{\Fullcirc}{\Returncirc}}%
+	\IfSubStr{#2}{,}
+	{\def\numABCD{\expandafter\firstofthreeaux#2\relax}%
+		\def\numTF{\expandafter\secondofthreeaux#2\relax}%
+		\def\numSA{\expandafter\thirdofthreeaux#2\relax}%
+		\Onlycirc}%
+	{\def\numABCD{#2}\def\numTF{#2}\def\numSA{#2}}%
+	{\fontfamily{qcs}\small\selectfont%
+	\RenewEnviron{Solution}[2][]{%
+		\findkindans{\BODY}%xác định loại ans
+		\def\SttANS{##2}\def\nobox{1}%
+		\ifthenelse{\equal{##1}{}}{}{\def\nameans{##1}}%
+		\ifnum\kindans=10%
+			\setlength{\dorongANS}{\dimexpr\linewidth/#2-2\fboxsep\relax}%
+			\BODY%
+		\else\ifnum\kindans=-1%
+				\setlength{\dorongANS}{\dimexpr\linewidth/\numSA-4.28\fboxsep\relax}%
+				\BODY%
+			\else%
+				\begin{lrbox}{\myboxans}
+					\ifnum\kindans=-2
+						\begin{minipage}{\dimexpr\linewidth/\numTF-4.28\fboxsep\relax}
+						\parbox[b]{8mm}{\raggedleft\color{blue}\nameans\ ##2.}\;\color{violet}\BODY%
+					\else%
+						\ifnum\kindans=1
+							\begin{minipage}{\dimexpr\linewidth/\numTF-4.28\fboxsep\relax}
+						\else%
+							\begin{minipage}{\dimexpr\linewidth/\numABCD-4.28\fboxsep\relax}
+						\fi%
+						\parbox[b]{8mm}{\raggedleft\color{blue}##2.}\;\color{violet}\BODY%
+					\fi%
+					\end{minipage}
+				\end{lrbox}\noindent\usebox{\myboxans}\;\vspace{0.15mm}
+			\fi%
+		\fi%
+	}%
+	\begin{flushleft}%
+		\foreach \file in {#3}{% Nếu muốn giữa 2 file được nhập có xuống dòng thì gõ file1 ,, file 2
+			\IfStrEq{\file}{}{\vspace{0.3mm}\par}{\input{\file}}%
+    }
+	\end{flushleft}
+}}
+%
+\newcommand{\inputanstab}[3][1]{\IfInteger{#1}{\ifnum#1>0\relax%
+	\renewcommand{\dapsoSA}[2][]{##2}%
+	\renewcommand{\circT}[2][]{\refstepcounter{dapan}%
+		\draw (2*\SttANS-2*#1,0.7-0.7*\thedapan) rectangle (2*\SttANS-2*#1+2,-0.7*\thedapan);
+		\node at (2*\SttANS-2*#1+1,0.35-0.7*\thedapan){##2) Đ};
+	}%
+	\renewcommand{\circF}[2][]{\refstepcounter{dapan}%
+		\draw (2*\SttANS-2*#1,0.7-0.7*\thedapan) rectangle (2*\SttANS-2*#1+2,-0.7*\thedapan);
+		\node at (2*\SttANS-2*#1+1,0.35-0.7*\thedapan){##2) S};
+	}%
+	\RenewEnviron{Solution}[2][]{%
+		\findkindans{\BODY}%xác định loại ans
+		\gdef\SttANS{##2}%
+		\pgfmathsetmacro{\sttTAB}{ceil((##2-#1+1)/#2)-1}%
+		\setcounter{dapan}{0}%
+		\ifnum\kindans=0%
+			\begin{scope}[shift={(0,-2*\sttTAB)}]
+				\draw[xstep=2,ystep=0.7] (-2,-0.7) grid (0,0.7);
+				\node at (-1,0.4)[fill=white,inner sep=0.3pt]{\bfseries Câu};
+				\node at (-1,-0.35)[fill=white,inner sep=0.3pt]{\bfseries Chọn};
+				\draw[ystep=0.7] (0,0.7) grid (#2,-0.7);
+				\node at (##2-#1+0.5-\sttTAB*#2,0.35){##2};
+				\node at (##2-#1+0.5-\sttTAB*#2,-0.35){\BODY};
+			\end{scope}%
+		\fi%
+		\ifnum\kindans=-1%
+			\draw[xstep=2,ystep=0.7] (-2,-0.7) grid (0,0.7);
+			\node at (-1,0.4)[fill=white,inner sep=0.3pt]{\bfseries Câu};
+			\node at (-1,-0.35)[fill=white,inner sep=0.3pt]{\bfseries Chọn};
+			\draw (1.4*##2-1.4*#1,0.7) rectangle (1.4*##2-1.4*#1+1.4,-0.7);
+			\draw (1.4*##2-1.4*#1,0)--(1.4*##2-1.4*#1+1.4,0);
+			\node at (1.4*##2-1.4*#1+0.7,0.35){##2};
+			\node at (1.4*##2-1.4*#1+0.7,-0.35){\BODY};
+		\fi%
+		\ifnum\kindans=1%
+			\draw (2*##2-2*#1,0.7) rectangle (2*##2-2*#1+2,-0.7);
+			\node at (2*##2-2*#1+1,0.4){\bfseries Câu ##2.};
+			\BODY
+		\fi%
+	}
+	\begin{center}
+		\begin{tikzpicture}[xscale=0.9]
+			\input{#3}
+		\end{tikzpicture}
+	\end{center}
+\fi}{}}
+\def\runTachO{1}
+\newcommand{\inputansbox}[3][]{%
+	\ifthenelse{\equal{#1}{0}}{\Onlycirc\gdef\runTachO{0}}
+	{\gdef\runTachO{1}%
+	\ifthenelse{\equal{#1}{1}}{\Fullcirc}{\Returncirc}}%
+	\IfSubStr{#2}{,}
+	{\def\numABCD{\expandafter\firstofthreeaux#2\relax}%
+		\def\numTF{\expandafter\secondofthreeaux#2\relax}%
+		\def\numSA{\expandafter\thirdofthreeaux#2\relax}%
+		\Onlycirc}%
+	{\def\numABCD{#2}\def\numTF{#2}\def\numSA{#2}}%
+	{\fontfamily{qcs}\small\selectfont%
+	\RenewEnviron{Solution}[2][]{%
+		\findkindans{\BODY}%xác định loại ans
+		\def\SttANS{##2}\def\nobox{0}%
+		\ifthenelse{\equal{##1}{}}{}{\def\nameans{##1}}%
+		\ifnum\kindans=10%
+			\setlength{\dorongANS}{\dimexpr\linewidth/#2-3.9\fboxsep\relax}%
+			\BODY%
+		\else\ifnum\kindans=-1%
+				\setlength{\dorongANS}{\dimexpr\linewidth/\numSA-4.2\fboxsep\relax}%
+				\BODY%
+			\else%
+				\begin{lrbox}{\myboxans}
+					\ifnum\kindans=-2%
+						\begin{minipage}{\dimexpr\linewidth/\numTF-4.2\fboxsep\relax}
+							\parbox[b]{15mm}{\color{blue}\nameans~##2.}
+							\hfill\color{violet}\mbox{\BODY}%
+						\end{minipage}
+					\else%
+						\ifnum\kindans=1%
+							\begin{minipage}{\dimexpr\linewidth/\numTF-3.9\fboxsep\relax}
+								\parbox[b]{15mm}{\color{blue}\nameans~##2.}
+								\hfill\color{violet}\BODY%
+							\end{minipage}
+						\else%
+							\begin{minipage}{\dimexpr\linewidth/\numABCD-4.2\fboxsep\relax}
+								\color{blue}##2.
+								\hfill\color{violet}\BODY%
+							\end{minipage}
+						\fi%
+					\fi%
+				\end{lrbox}\noindent\fbox{\usebox{\myboxans}}\;\vspace{0.15mm}
+			\fi%
+		\fi%
+	}%
+	\begin{flushleft}%
+		\foreach \file in {#3}{% Nếu muốn giữa 2 file được nhập có xuống dòng thì gõ file1 ,, file 2
+			\IfStrEq{\file}{}{\vspace{0.3mm}\par}{\input{\file}}%
+    }
+	\end{flushleft}
+}}
+\newcommand{\inputansTF}[3][2]{\inputans[#1]{#2}{#3}}
+\newcommand{\inputansSA}[3][2]{\inputans[#1]{#2}{#3}}
+\newcommand{\inputansboxTF}[3][2]{\inputansbox[#1]{#2}{#3}}
+\newcommand{\inputansboxSA}[3][2]{\inputansbox[#1]{#2}{#3}}
+\makeatletter
+\@ifclasswith{article}{a5paper}
+{%
+	\renewcommand{\rowans}
+	{
+		\renewenvironment{Solution}[1]
+		{\begin{minipage}{\dimexpr0.2\linewidth-1.2\fboxsep\relax}
+				\parbox[b]{0.45\linewidth}{\color{blue}##1.}
+				\color{violet}
+			}
+			{\end{minipage}}
+	}
+}{%
+}
+\@ifclasswith{book}{a5paper}
+{%
+	\renewcommand{\rowans}
+	{
+		\renewenvironment{Solution}[1]
+		{\begin{minipage}{\dimexpr0.2\linewidth-1.2\fboxsep\relax}
+				\parbox[b]{0.45\linewidth}{\color{blue}##1.}
+				\color{violet}
+			}
+			{\end{minipage}}
+	}
+}{%
+}
+\makeatother
+\def\hideans{
+\renewcommand{\inputansbox}[2]{%
+}%
+\renewcommand{\inputans}[2]{%
+}%
+\renewcommand{\tabans}[1]{%
+}%
+}
+%Hỗ trợ gói ex_test_rd
+\newenvironment{fileEX}{\filecontents}{\endfilecontents}
+\newcommand{\bankEX}[2]{
+\input{#1}
+}
+\newtheorem{exrd}{Câu}
+\def\listfile{
+\bankEX{onefile.tex}{50}
+}
+\def\testname{
+\begin{center}
+\textbf{ĐỀ THI MẪU}
+\end{center}
+\rightline{
+\setlength\fboxrule{2pt} 
+\setlength\fboxsep{5pt} 
+\fbox{\textbf{Mã đề thi\ \x}}
+}
+}
+\newcommand{\randombank}[1]{
+%\testname
+\begin{center}
+\textbf{
+\color{red}
+Bạn đang chạy bằng gói ex\_test xuất ra MỌI CÂU HỎI của ngân hàng nhằm soát lỗi.\\
+Khi mọi thứ đã OK, hãy thay khai báo gói ex\_test  bằng gói ex\_test\_rd
+}
+\end{center}
+\Opensolutionfile{ans}[ans/ans_ex_test]
+\listfile
+\Closesolutionfile{ans}
+}
+\newcommand{\showansfull}{\par Các mã đề: }
+\newcommand{\showans}{\par Các mã đề: }
+%Đường tròn LG
+\usetikzlibrary{plotmarks}
+\newcommand{\trucLG}{
+\draw[->] (0,-1.3) -- (0,1.3) node[left] {$\sin$};
+\draw[->] (-1.3,0) -- (1.3,0) node[below] {$\cos$};
+\draw (0,0) circle (1cm);
+}
+\newcommand{\pointLG}[4]
+{
+\foreach \i in {0,...,#2}
+{
+ \draw[color=#4]
+      plot[mark=#3] coordinates {({#1+\i*360/#2}:1)};
+}
+}
+\makeatletter
+\def\sizeboxEX{9pt}
+\def\EXbox#1{%
+	\begingroup%
+	\setlength{\fboxsep}{0.3ex}%
+	\setlength{\@tempdima}{\sizeboxEX}%
+	\setlength{\@tempdimb}{(\@tempdima-\ht1+\dp1)/2}%
+	\raise-\@tempdimb\hbox{\fbox{\vbox to \@tempdima{%
+				\vfil\hbox to \@tempdima{\hfil#1\hfil}\vfil}}}%
+	\endgroup%
+}
+\def\EXboxTF#1{%
+	\begingroup%
+	\setlength{\fboxsep}{0.3ex}%
+	\setbox1=\hbox{#1}%
+	\setlength{\@tempdima}{\sizeboxEX}%
+	\fbox{\vbox to \@tempdima{%
+				\vfil\hbox to \@tempdima{\hfil\copy1\hfil}\vfil}}%
+	\endgroup%
+}
+\makeatother
+% Môi trường liệt kê dàn theo nhiều dòng khác nhau
+\ExplSyntaxOn
+% variants of kernel functions:
+\cs_generate_variant:Nn \tl_if_eq:nnTF { V }
+\cs_generate_variant:Nn \tl_if_eq:nnT  { V }
+
+% --------------------------------------------------------------------------
+% variables:
+\seq_new:N    \l__listsEX_seq
+
+\int_new:N    \l__listsEX_depth_int
+\int_new:N    \g__listsEX_int
+\int_new:N    \g__listsEX_total_items_int
+\int_new:N    \l__listsEX_columns_int
+\int_new:N    \l__listsEX_rows_int
+\int_new:N    \g__listsEX_current_col_num_int
+\int_new:N    \g__listsEX_current_row_num_int
+\int_new:N    \l__listsEX_item_columns_int
+
+\bool_new:N   \l__listsEX_enumerate_bool
+\bool_new:N   \l__listsEX_resume_bool
+\bool_new:N   \l__listsEX_load_listsEX_bool
+\bool_new:N   \l__listsEX_label_width_bool
+\bool_new:N   \l__listsEX_item_indent_bool
+\bool_new:N   \l__listsEX_label_offset_bool
+\bool_new:N   \l__listsEX_custom_label_bool
+\bool_new:N   \l__listsEX_custom_after_item_skip_bool
+\bool_new:N   \l__listsEX_debug_bool
+\bool_new:N   \l__listsEX_item_full_line_bool
+\bool_new:N   \l__listsEX_item_rest_of_line_bool
+
+\tl_new:N     \l__listsEX_instance_tl
+\tl_new:N     \l__listsEX_label_tl
+\tl_new:N     \l__listsEX_custom_label_tl
+\tl_new:N     \l__listsEX_label_pattern_tl
+\tl_new:N     \l__listsEX_custom_label_pattern_tl
+\tl_new:N     \l__listsEX_label_format_tl
+\tl_new:N     \l__listsEX_custom_label_format_tl
+\tl_new:N     \l__listsEX_item_format_tl
+\tl_new:N     \l__listsEX_custom_item_format_tl
+\tl_new:N     \l__listsEX_item_fill_left_tl
+\tl_new:N     \l__listsEX_item_fill_right_tl
+\tl_new:N     \l__listsEX_label_align_tl
+% \tl_new:N     \listEX
+\tl_new:N     \l__listsEX_item_tl
+\tl_new:N     \l__listsEX_tmp_label_tl
+
+\dim_new:N    \l__listsEX_item_indent_dim
+\dim_new:N    \l__listsEX_item_default_indent_dim
+\dim_new:N    \l__listsEX_item_width_dim
+\dim_new:N    \l__listsEX_label_width_dim
+\dim_new:N    \l__listsEX_label_default_width_dim
+\dim_new:N    \l__listsEX_label_offset_dim
+\dim_new:N    \l__listsEX_label_default_offset_dim
+\dim_new:N    \l__listsEX_column_sep_dim
+
+\skip_new:N   \l__listsEX_after_item_skip
+\skip_new:N   \l__listsEX_custom_after_item_skip
+\skip_new:N   \l__listsEX_before_list_skip
+\skip_new:N   \l__listsEX_after_list_skip
+
+\coffin_new:N \l__listsEX_item_coffin
+\coffin_new:N \l__listsEX_label_coffin
+
+\NewCounterPattern* [ listsEX ] { listEX } { tsk }
+\ReadCounterFrom [ listsEX ] { listEX } \g__listsEX_int
+
+% temporary variables:
+\int_new:N    \l__listsEX_tmpa_int
+\int_new:N    \l__listsEX_tmpb_int
+\tl_new:N     \l__listsEX_tmpa_tl
+\coffin_new:N \l__listsEX_tmpa_coffin
+
+\cs_new:Npn \__listsEX_debug:n #1
+  {
+    \bool_if:NTF \l__listsEX_debug_bool
+      { \fbox {#1} }
+      { \use:n {#1} }
+  }
+
+% --------------------------------------------------------------------------
+% collect the listsEX:
+\cs_new_protected:Npn \__listsEX_collect_listsEX:nww #1#2 \end #3
+  {
+    \tl_put_right:Nn \l__listsEX_body_tl {#1}
+    \end {#3}
+    \tl_if_eq:nnF {#1} {#3}
+      { \__listsEX_collect_listsEX:nww {#1} }
+  }
+
+%  #1: instance
+%  #2: number of columns
+%  #3: item separator
+%  #4: environment body
+\cs_new_protected:Npn \__listsEX:nnnn #1#2#3#4
+  {
+    \bool_if:NT \l__listsEX_debug_bool { \dim_set:Nn \fboxsep {0pt} }
+    \seq_set_split:Nnn \l__listsEX_seq {#3} {#4}
+    % remove the first (empty) item:
+    \seq_pop_left:NN \l__listsEX_seq \l__listsEX_tmpa_tl
+    \tl_if_blank:VF \l__listsEX_tmpa_tl { \@noitemerr }
+    \int_gset:Nn \g__listsEX_total_items_int
+      { \seq_count:N \l__listsEX_seq }
+    \UseInstance {listsEX} {#1}
+      { \g__listsEX_total_items_int }
+      {#2}
+      { \l__listsEX_custom_label_pattern_tl }
+    % just to be sure:
+    \seq_clear:N \l__listsEX_seq
+  }
+\cs_generate_variant:Nn \__listsEX:nnnn { VnnV }
+
+% #1: label
+% #2: item format
+% #3: item
+\cs_new_protected:Npn \__listsEX_listEX:nnn #1#2#3
+  {
+    % start a new item line if \l__listsEX_item_full_line_bool
+    \bool_if:NT \l__listsEX_item_full_line_bool
+      {
+        % add skip if we were in the middle of a line, i.e., in horizontal
+        % mode:
+        \mode_if_horizontal:T
+          { \skip_vertical:N \l__listsEX_after_item_skip }
+        \listsEX_new_row:
+      }
+    % step column position:
+    \int_gincr:N \g__listsEX_current_col_num_int
+    \dim_set:Nn \l__listsEX_item_width_dim
+      {
+        \bool_if:NTF \l__listsEX_item_full_line_bool
+          { \linewidth }
+          {
+            (
+              \linewidth
+			  -\fboxsep	
+              - \l__listsEX_columns_int \l__listsEX_column_sep_dim
+              + \l__listsEX_column_sep_dim
+            ) / \l__listsEX_columns_int
+          }
+        - \l__listsEX_depth_int \l__listsEX_item_indent_dim
+        \bool_if:NT \l__listsEX_debug_bool { -2\fboxrule }
+      }
+    \__listsEX_gset_rows_num:NN
+      \g__listsEX_total_items_int
+      \l__listsEX_columns_int
+    % set \g__listsEX_current_col_num_int to 1 if at the start of a row,
+    % then also step \g__listsEX_current_row_num_int :
+    \int_compare:nNnT
+      { \g__listsEX_current_col_num_int } > { \l__listsEX_columns_int }
+      {
+        \int_gset:Nn \g__listsEX_current_col_num_int { 1 }
+        \int_incr:N \g__listsEX_current_row_num_int
+      }
+    \bool_if:NT \l__listsEX_item_rest_of_line_bool
+      {
+        \int_set:Nn \l__listsEX_tmpa_int
+          { \l__listsEX_columns_int - \g__listsEX_current_col_num_int + 1 }
+        \int_compare:nNnTF { \l__listsEX_item_columns_int } = { 0 }
+          {
+            \int_set:Nn \l__listsEX_tmpb_int { \l__listsEX_tmpa_int - 1 } % 8
+          }
+          {
+            \int_compare:nNnTF
+              { \l__listsEX_tmpa_int } > { \l__listsEX_item_columns_int }
+              { \int_set_eq:NN \l__listsEX_tmpa_int \l__listsEX_item_columns_int }
+              { \int_zero:N \l__listsEX_item_columns_int }
+            \bool_if:nT
+              {
+                \l__listsEX_item_rest_of_line_bool &&
+                !\int_compare_p:nNn { \l__listsEX_item_columns_int} = { 0 }
+              }
+              {
+                \int_gadd:Nn \g__listsEX_current_col_num_int
+                  { \l__listsEX_item_columns_int -1 }
+                \int_gadd:Nn \g__listsEX_total_items_int
+                  { \l__listsEX_item_columns_int -1 }
+              }
+            \int_set:Nn \l__listsEX_tmpb_int { \l__listsEX_tmpa_int -1 }
+          }
+        \dim_set:Nn \l__listsEX_item_width_dim
+          {
+            \l__listsEX_tmpa_int \l__listsEX_item_width_dim
+            + \l__listsEX_tmpb_int \l__listsEX_column_sep_dim
+            + \l__listsEX_tmpb_int \l__listsEX_item_indent_dim
+            \bool_if:NT \l__listsEX_debug_bool
+              { + \int_eval:n { \l__listsEX_tmpb_int * 2 } \fboxrule }
+          }
+      }
+    % set the item box:
+    \hcoffin_set:Nn \l__listsEX_item_coffin
+      {
+        \vcoffin_set:Nnn \l__listsEX_tmpa_coffin
+          { \l__listsEX_item_width_dim }
+          { \__listsEX_setup: #2 {#3} \strut }
+        \__listsEX_debug:n
+          {
+            \coffin_typeset:Nnnnn \l__listsEX_tmpa_coffin
+              {l} {T} {0pt} {0pt}
+          }
+      }
+    % set the label box:
+    \hcoffin_set:Nn \l__listsEX_label_coffin
+      {
+        \vcoffin_set:Nnn \l__listsEX_tmpa_coffin
+          {
+            \l__listsEX_label_width_dim
+            \bool_if:NT \l__listsEX_debug_bool {-2\fboxrule }
+          }
+          {
+            \noindent
+            \tl_use:N \l__listsEX_item_fill_left_tl
+            \strut #1
+            \tl_use:N \l__listsEX_item_fill_right_tl
+          }
+        \__listsEX_debug:n
+          {
+            \coffin_typeset:Nnnnn \l__listsEX_tmpa_coffin
+              {l} {T} {0pt} {0pt}
+          }
+      }
+    % attach the label box at the left of the item box, shifted by
+    % \l__listsEX_label_offset_dim :
+    \coffin_attach:NnnNnnnn
+      \l__listsEX_item_coffin  {l} {T}
+      \l__listsEX_label_coffin {l} {T}
+      {
+        \dim_compare:nNnTF
+          { \l__listsEX_item_indent_dim }
+          <
+          { \l__listsEX_label_offset_dim + \l__listsEX_label_width_dim }
+          {0pt}
+          { - \l__listsEX_label_width_dim - \l__listsEX_label_offset_dim }
+      } { 0pt }
+    % when a new row starts enter vertical mode:
+    \int_compare:nNnT { \g__listsEX_current_col_num_int } = { 1 }
+      { \skip_vertical:N \c_zero_skip }
+    % skip horizontally by \l__listsEX_item_indent_dim
+    \noindent
+    \skip_horizontal:N \l__listsEX_item_indent_dim
+    % typeset the item (with the attached label protruding to the left):
+    \coffin_typeset:Nnnnn \l__listsEX_item_coffin
+      {l}
+      {T}
+      {0pt}
+      {0pt}
+    \bool_if:nT
+      {
+        \l__listsEX_item_full_line_bool ||
+        (
+          \l__listsEX_item_rest_of_line_bool &&
+          \int_compare_p:nNn { \l__listsEX_item_columns_int } = { 0 }
+        )
+      }
+      { \listsEX_new_row: }
+    % are we between items in a row? The skip by \l__listsEX_column_sep_dim :
+    \int_compare:nNnT
+      { \g__listsEX_current_col_num_int } < { \l__listsEX_columns_int }
+      { \skip_horizontal:N \l__listsEX_column_sep_dim }
+    % if we ended a row and a new row is still to come skip vertically by
+    % \l__listsEX_after_item_skip :
+    \bool_if:nT
+      {
+        ( \int_compare_p:nNn { \g__listsEX_current_col_num_int } = { \l__listsEX_columns_int } )
+        &&
+        ( \int_compare_p:n { \g__listsEX_current_row_num_int != \l__listsEX_rows_int } )
+      }
+      { \skip_vertical:N \l__listsEX_after_item_skip }
+    % clean up:
+    \coffin_clear:N \l__listsEX_item_coffin
+    \coffin_clear:N \l__listsEX_label_coffin
+    \coffin_clear:N \l__listsEX_tmpa_coffin
+    \bool_set_false:N \l__listsEX_item_full_line_bool
+    \bool_set_false:N \l__listsEX_item_rest_of_line_bool
+  }
+\cs_generate_variant:Nn \__listsEX_listEX:nnn { VVV }
+
+\cs_new_protected:Npn \__listsEX_setup:
+  {
+    \dim_set:Nn \parskip { 0pt }
+    \skip_set:Nn \parfillskip { 0pt plus 1fil }
+    \dim_set_eq:NN \parskip \parsep
+    \dim_set_eq:NN \parindent \listparindent
+    \noindent
+    \dim_compare:nNnT
+      { \l__listsEX_item_indent_dim }
+       <
+      { \l__listsEX_label_offset_dim + \l__listsEX_label_width_dim }
+      {
+        \skip_horizontal:n
+          {
+            \l__listsEX_label_offset_dim
+            + \l__listsEX_label_width_dim
+            - \l__listsEX_item_indent_dim
+          }
+      }
+    \strut
+  }
+
+\cs_new_protected:Npn \__listsEX_gset_rows_num:NN #1#2
+  {
+    \int_gset:Nn \l__listsEX_rows_int { \int_div_truncate:nn {#1} {#2} }
+    \int_compare:nNnT { \int_mod:nn {#1} {#2} } > { 0 }
+      { \int_gincr:N \l__listsEX_rows_int }
+  }
+
+\cs_new_protected:Npn \__listsEX_label_align:n #1
+  {
+    \str_case:nnF {#1}
+      {
+        {left}
+          {
+            \tl_clear:N   \l__listsEX_item_fill_left_tl
+            \tl_set_eq:NN \l__listsEX_item_fill_right_tl \hfill
+          }
+        {right}
+          {
+            \tl_set_eq:NN \l__listsEX_item_fill_left_tl \hfill
+            \tl_clear:N   \l__listsEX_item_fill_right_tl
+          }
+        {center}
+          {
+            \tl_set_eq:NN \l__listsEX_item_fill_left_tl  \hfill
+            \tl_set_eq:NN \l__listsEX_item_fill_right_tl \hfill
+          }
+      }
+      {
+        \tl_clear:N   \l__listsEX_item_fill_left_tl
+        \tl_set_eq:NN \l__listsEX_item_fill_right_tl \hfill
+      }
+  }
+\cs_generate_variant:Nn \__listsEX_label_align:n { V }
+\__listsEX_label_align:n {left}
+
+% --------------------------------------------------------------------------
+% the `listsEX' object:
+%   #1: number of items
+%   #2: number of columns
+%   #3: label-format
+\DeclareObjectType {listsEX} {3}
+% the `default' template interface:
+\DeclareTemplateInterface {listsEX} {default} {3}
+  {
+    enumerate       : boolean   = true    ,
+    label           : tokenlist           ,
+    indent          : length    = 2.5em   ,
+    counter-format  : tokenlist = tsk[a]) ,
+    label-format    : tokenlist ,
+    label-width     : length    = 1em     ,
+    label-offset    : length    = .3333em ,
+    item-format     : tokenlist ,
+    after-item-skip : skip      = 1ex plus 1ex minus 1ex
+  }
+
+% in the next three commands we want a really unlikely to occur marker; for
+% this we use $ with unusual catcode in ``$listsEX$default$label$'':
+\cs_set:Nx \__listsEX_restore_dollar:
+  { \char_set_catcode:nn {36} { \char_value_catcode:n {36} } }
+\char_set_catcode_alignment:N \$
+
+% the `default' template code:
+\DeclareTemplateCode {listsEX} {default} {3}
+  {
+    enumerate       = \l__listsEX_enumerate_bool           ,
+    label           = \l__listsEX_label_tl                 ,
+    indent          = \l__listsEX_item_default_indent_dim  ,
+    counter-format  = \l__listsEX_label_pattern_tl         ,
+    label-format    = \l__listsEX_label_format_tl          ,
+    label-width     = \l__listsEX_label_default_width_dim  ,
+    label-offset    = \l__listsEX_label_default_offset_dim ,
+    item-format     = \l__listsEX_item_format_tl           ,
+    after-item-skip = \l__listsEX_after_item_skip
+  }
+  {
+    \AssignTemplateKeys
+    \bool_if:NF \l__listsEX_label_width_bool
+      {
+        \dim_set_eq:NN
+          \l__listsEX_label_width_dim
+          \l__listsEX_label_default_width_dim
+      }
+    \bool_if:NF \l__listsEX_item_indent_bool
+      {
+        \dim_set_eq:NN
+          \l__listsEX_item_indent_dim
+          \l__listsEX_item_default_indent_dim
+      }
+    \bool_if:NF \l__listsEX_label_offset_bool
+      {
+        \dim_set_eq:NN
+          \l__listsEX_label_offset_dim
+          \l__listsEX_label_default_offset_dim
+      }
+    \bool_if:NT \l__listsEX_custom_after_item_skip_bool
+      {
+        \skip_set_eq:NN
+          \l__listsEX_after_item_skip
+          \l__listsEX_custom_after_item_skip
+      }
+    \bool_if:NT \l__listsEX_custom_label_bool
+      {
+        \tl_set_eq:NN
+          \l__listsEX_label_tl
+          \l__listsEX_custom_label_tl
+        \bool_set_false:N \l__listsEX_enumerate_bool
+      }
+    \__listsEX_label_align:V \l__listsEX_label_align_tl
+    % need this for enumerate list:
+    \bool_if:nT { !\l__listsEX_resume_bool && \l__listsEX_enumerate_bool }
+      { \int_gzero:N \g__listsEX_int }
+    \int_set:Nn \l__listsEX_columns_int {#2}
+    % set all the items in their own coffins and join with the ground:
+    \int_gzero:N \g__listsEX_current_col_num_int
+    \int_set:Nn \g__listsEX_current_row_num_int {1}
+    \tl_if_blank:VF \l__listsEX_custom_label_pattern_tl
+      {
+        \tl_set_eq:NN
+          \l__listsEX_label_pattern_tl
+          \l__listsEX_custom_label_pattern_tl
+      }
+    \tl_if_blank:VF \l__listsEX_custom_label_format_tl
+      {
+        \tl_set_eq:NN
+          \l__listsEX_label_format_tl
+          \l__listsEX_custom_label_format_tl
+      }
+    \tl_if_blank:VF \l__listsEX_custom_item_format_tl
+      {
+        \tl_set_eq:NN
+          \l__listsEX_item_format_tl
+          \l__listsEX_custom_item_format_tl
+      }
+    \seq_map_inline:Nn \l__listsEX_seq
+      {
+        \__listsEX_read_item:www ##1 \q_stop
+        \bool_if:NTF \l__listsEX_enumerate_bool
+          {
+            \tl_if_eq:VnT \l__listsEX_tmp_label_tl { $listsEX$default$label$ }
+              {
+                \int_gincr:N \g__listsEX_int
+                \SaveCounterPatternFrom [listsEX]
+                  \l__listsEX_tmpa_tl
+                  \l__listsEX_label_tl
+                  \l__listsEX_label_pattern_tl
+              }
+          }
+          {
+            \tl_if_blank:VT \l__listsEX_label_tl
+              { \tl_set_eq:NN \l__listsEX_label_tl \labelitemi }
+          }
+        \tl_put_left:NV \l__listsEX_label_tl \l__listsEX_label_format_tl
+        % \tl_put_left:NV \l__listsEX_item_tl \l__listsEX_item_format_tl
+        \tl_if_eq:VnTF \l__listsEX_tmp_label_tl { $listsEX$default$label$ }
+          {
+            \__listsEX_listEX:VVV
+              \l__listsEX_label_tl
+              \l__listsEX_item_format_tl
+              \l__listsEX_item_tl
+          }
+          {
+            \__listsEX_listEX:VVV
+              \l__listsEX_tmp_label_tl
+              \l__listsEX_item_format_tl
+              \l__listsEX_item_tl
+            \tl_clear:N \l__listsEX_tmp_label_tl
+          }
+      }
+  }
+
+\cs_new_protected:Npn \__listsEX_read_item:www
+  {
+    \peek_meaning_remove:NTF !
+      {
+        \bool_set_true:N \l__listsEX_item_full_line_bool
+        \__listsEX_read_item_aux:ww
+      }
+      {
+        \peek_meaning_remove:NTF *
+          {
+            \bool_set_true:N \l__listsEX_item_rest_of_line_bool
+            \__listsEX_read_item_rest_of_line:ww
+          }
+          { \__listsEX_read_item_aux:ww }
+      }
+  }
+
+\cs_new_protected:Npn \__listsEX_read_item_rest_of_line:ww
+  {
+    \peek_meaning:NTF ( % )
+      { \__listsEX_read_item_rest_of_line_aux:ww }
+      { \__listsEX_read_item_rest_of_line_aux:ww (0) }
+  }
+
+\cs_new_protected:Npn \__listsEX_read_item_rest_of_line_aux:ww (#1)
+  {
+    \int_set:Nn \l__listsEX_item_columns_int {#1}
+    \__listsEX_read_item_aux:ww
+  }
+
+\cs_new_protected:Npn \__listsEX_read_item_aux:ww
+  {
+    \peek_meaning:NTF [ % ]
+      { \__listsEX_read_item_aux_ii:ww }
+      { \__listsEX_read_item_aux_ii:ww [$listsEX$default$label$] }
+  }
+  
+\cs_new_protected:Npn \__listsEX_read_item_aux_ii:ww [#1]#2 \q_stop
+  {
+    \tl_set:Nn \l__listsEX_tmp_label_tl {#1}
+    \tl_if_eq:nnF { #1 } { $listsEX$default$label$ }
+      { \tl_put_left:NV \l__listsEX_tmp_label_tl \l__listsEX_label_format_tl }
+    \tl_set:Nx \l__listsEX_item_tl { \tl_trim_spaces:n {#2} }
+  }
+
+\__listsEX_restore_dollar:
+
+% --------------------------------------------------------------------------
+% choice box:
+\bool_new:N \l__listsEX_choice_checked_bool
+\dim_new:N  \l__listsEX_choice_width_dim
+\dim_set:Nn \l__listsEX_choice_width_dim { 1.25ex }
+\dim_new:N  \l__listsEX_choice_linewidth_dim
+\dim_set:Nn \l__listsEX_choice_linewidth_dim { .3pt }
+\dim_new:N  \l__listsEX_choice_checkwidth_dim
+\dim_set:Nn \l__listsEX_choice_checkwidth_dim { .5pt }
+\dim_new:N  \l__listsEX_choice_raise_dim
+\dim_set:Nn \l__listsEX_choice_raise_dim { .1ex }
+
+\cs_new_protected:Npn \listsEX_choice:
+  {
+    \leavevmode
+    \group_begin:
+      \bool_set_false:N \l__listsEX_choice_checked_bool
+      \box_move_up:nn
+        { \l__listsEX_choice_raise_dim }
+        { \hbox:n { \__listsEX_choice: } }
+    \group_end:
+  }
+
+\cs_new_protected:Npn \listsEX_choice_checked:
+  {
+    \leavevmode
+    \group_begin:
+      \bool_set_true:N \l__listsEX_choice_checked_bool
+      \box_move_up:nn
+        { \l__listsEX_choice_raise_dim }
+        { \hbox:n { \__listsEX_choice: } }
+    \group_end:
+  }
+
+\cs_new_protected:Npn \__listsEX_choice:
+  {%
+    \dim_set:Nn \unitlength { .1\l__listsEX_choice_width_dim }
+    \begin{picture}(10,0)
+      \linethickness \l__listsEX_choice_linewidth_dim
+      \drawline(0,0)(0,10)(10,10)(10,0)(0,0)
+      \linethickness \l__listsEX_choice_checkwidth_dim
+      \bool_if:NT \l__listsEX_choice_checked_bool
+        {
+          \drawline(2,2)(8,8)
+          \drawline(2,8)(8,2)
+        }
+    \end{picture}%
+  }
+
+\providecommand* \choicebox { \listsEX_choice: }
+\providecommand* \checkedchoicebox { \listsEX_choice_checked: }
+
+% --------------------------------------------------------------------------
+% base instance:
+% ALPHABETIZE: a) b) c)
+\DeclareInstance {listsEX} {alphabetize} {default} { }
+
+\keys_define:nn {listsEX/list}
+  {
+    debug           .bool_set:N = \l__listsEX_debug_bool ,
+    style           .tl_set:N   = \l__listsEX_instance_tl ,
+    style           .initial:n  = alphabetize ,
+    counter-format  .tl_set:N   = \l__listsEX_custom_label_pattern_tl ,
+    label           .code:n     =
+      \bool_set_true:N \l__listsEX_custom_label_bool
+      \tl_set:Nn \l__listsEX_custom_label_tl {#1} ,
+    label-format    .tl_set:N   = \l__listsEX_custom_label_format_tl ,
+    label-width     .code:n     =
+      \dim_set:Nn \l__listsEX_label_width_dim {#1}
+      \bool_set_true:N \l__listsEX_label_width_bool ,
+    label-offset    .code:n     =
+      \dim_set:Nn \l__listsEX_label_offset_dim {#1}
+      \bool_set_true:N \l__listsEX_label_offset_bool ,
+    label-align     .tl_set:N   = \l__listsEX_label_align_tl ,
+    item-format     .tl_set:N   = \l__listsEX_custom_item_format_tl ,
+    item-indent     .code:n     =
+      \dim_set:Nn \l__listsEX_item_indent_dim {#1}
+      \bool_set_true:N \l__listsEX_item_indent_bool ,
+    column-sep      .dim_set:N  = \l__listsEX_column_sep_dim ,
+    before-skip     .skip_set:N = \l__listsEX_before_list_skip ,
+    after-skip      .skip_set:N = \l__listsEX_after_list_skip ,
+    after-item-skip .code:n     =
+      \bool_set_true:N \l__listsEX_custom_after_item_skip_bool
+      \skip_set:Nn \l__listsEX_custom_after_item_skip {#1} ,
+    resume          .bool_set:N = \l__listsEX_resume_bool
+  }
+
+% --------------------------------------------------------------------------
+% the generic environment:
+\NewEnviron {__listsEX_env:} [3]
+  {
+    \if@inlabel
+      \noindent\par\nobreak\vskip-\parskip\vskip-\baselineskip\hrule\@height\z@
+    \fi
+    \dim_compare:nNnF { \l__listsEX_before_list_skip } = { 0pt }
+      { \vspace {\l__listsEX_before_list_skip} }
+    \list {}
+      {
+        \keys_set:nn {listsEX/list} {#2}
+        \dim_set:Nn \leftmargin  {0pt}
+        \dim_set:Nn \rightmargin {0pt}
+      }
+    \item \scan_stop:
+    \int_incr:N \l__listsEX_depth_int
+    \__listsEX:VnnV \l__listsEX_instance_tl {#3} {#1} \BODY
+    \endlist
+    \dim_compare:nNnF { \l__listsEX_after_list_skip } = { 0pt }
+      { \vspace {\l__listsEX_after_list_skip} }
+  }
+
+% --------------------------------------------------------------------------
+% command to start a new row:
+\cs_new_protected:Npn \listsEX_new_row:
+  {
+    \int_gset:Nn \g__listsEX_total_items_int
+      {
+        \g__listsEX_total_items_int +
+        \l__listsEX_columns_int -
+        \g__listsEX_current_col_num_int
+      }
+    \__listsEX_gset_rows_num:NN
+      \g__listsEX_total_items_int
+      \l__listsEX_columns_int
+    \int_gset_eq:NN \g__listsEX_current_col_num_int \l__listsEX_columns_int
+  }
+
+\NewDocumentCommand \startnewitemlineEX {}
+  { \listsEX_new_row: }
+
+% --------------------------------------------------------------------------
+% the user environment:
+\NewDocumentCommand \NewListsEX { O{}mO{\listEX}D(){1} }
+  {
+    \NewDocumentEnvironment {#2} { O{}D(){#4} }
+      { \__listsEX_env: {#3} { #1,##1 } {##2} }
+      { \end__listsEX_env: }
+  }
+
+% --------------------------------------------------------------------------
+% default list:
+\NewListsEX {listsEX}
+
+\file_if_exist:nT {listsEX.cfg} { \file_input:n {listsEX.cfg} }
+
+% --------------------------------------------------------------------------
+% setup:
+\cs_new_protected:Npn \listsEX_setup:n #1
+  { \keys_set:nn {listsEX/list} {#1} }
+
+\NewDocumentCommand \setlistsEX { m }
+  { \listsEX_setup:n {#1} }
+\newcommand{\StartNumber}[1]{
+  \int_gset:Nn \g__listsEX_int {#1}
+}
+%tasks
+\NewListsEX{taskEX}[\item]
+\NewEnviron{listEX}[1][]{%
+	\ifthenelse{\equal{#1}{} \OR \equal{#1}{1}}
+	{\begin{enumerate}%
+		\renewcommand{\labelenumi}{\alph{enumi})}%
+		\BODY%
+		\end{enumerate}%
+	}{%
+		\def\tempbegin{\begin{taskEX}(#1)}%
+		\expandafter\tempbegin\BODY%
+		\end{taskEX}%
+	}%
+}
+\NewEnviron{enumEX}[2][]{%
+	\ifthenelse{\equal{#2}{1}}
+	{\begin{enumerate}%
+		\ifthenelse{\equal{#1}{} \OR \equal{#1}{a)}}
+		{\renewcommand{\labelenumi}{\alph{enumi})}}
+		{\ifthenelse{\equal{#1}{a.}}
+		{\renewcommand{\labelenumi}{\alph{enumi}.}}
+		{\ifthenelse{\equal{#1}{(a)}}
+		{\renewcommand{\labelenumi}{(\alph{enumi})}}
+		{\ifthenelse{\equal{#1}{1)}}
+		{\renewcommand{\labelenumi}{\arabic{enumi})}}
+		{\ifthenelse{\equal{#1}{1.}}
+		{\renewcommand{\labelenumi}{\arabic{enumi}.}}
+		{\ifthenelse{\equal{#1}{(1)}}
+		{\renewcommand{\labelenumi}{(\arabic{enumi})}}
+		{\ifthenelse{\equal{#1}{i)}}
+		{\renewcommand{\labelenumi}{\roman{enumi})}}
+		{\ifthenelse{\equal{#1}{i.}}
+		{\renewcommand{\labelenumi}{\roman{enumi}.}}
+		{\ifthenelse{\equal{#1}{(i)}}
+		{\renewcommand{\labelenumi}{(\roman{enumi})}}
+		{\ifthenelse{\equal{#1}{A)}}
+		{\renewcommand{\labelenumi}{\Alph{enumi})}}
+		{\ifthenelse{\equal{#1}{A.}}
+		{\renewcommand{\labelenumi}{\Alph{enumi}.}}
+		{\ifthenelse{\equal{#1}{(A)}}
+		{\renewcommand{\labelenumi}{(\Alph{enumi})}}
+		{\ifthenelse{\equal{#1}{I)}}
+		{\renewcommand{\labelenumi}{\Roman{enumi})}}
+		{\ifthenelse{\equal{#1}{I.}}
+		{\renewcommand{\labelenumi}{\Roman{enumi}.}}
+		{\ifthenelse{\equal{#1}{(I)}}
+		{\renewcommand{\labelenumi}{(\Roman{enumi})}}
+		{\renewcommand{\labelenumi}{#1}}}}}}}}}}}}}}}}%
+		\BODY%
+	\end{enumerate}%
+	}
+	{%
+	\ifthenelse{\equal{#1}{}}{%
+	\def\tempbegin{\begin{taskEX}[counter-format=tsk[a])](#2)}%
+	}{%
+	\ifthenelse{\equal{#1}{a.}}{%
+	\def\tempbegin{\begin{taskEX}[counter-format=tsk[a].](#2)}%
+	}{
+	\ifthenelse{\equal{#1}{(a)}}{%
+	\def\tempbegin{\begin{taskEX}[counter-format=(tsk[a]),label-width=1.3em](#2)}%
+	}{
+	\ifthenelse{\equal{#1}{a)}}{%
+	\def\tempbegin{\begin{taskEX}[counter-format=tsk[a])](#2)}%
+	}{
+	\ifthenelse{\equal{#1}{A.}}{%
+	\def\tempbegin{\begin{taskEX}[counter-format=tsk[A].](#2)}%
+	}{
+	\ifthenelse{\equal{#1}{(A)}}{%
+	\def\tempbegin{\begin{taskEX}[counter-format=(tsk[A]),label-width=1.3em](#2)}%
+	}{
+	\ifthenelse{\equal{#1}{A)}}{%
+	\def\tempbegin{\begin{taskEX}[counter-format=tsk[A])](#2)}%
+	}{
+	\ifthenelse{\equal{#1}{1.}}{%
+	\def\tempbegin{\begin{taskEX}[counter-format=tsk[1].](#2)}%
+	}{
+	\ifthenelse{\equal{#1}{(1)}}{%
+	\def\tempbegin{\begin{taskEX}[counter-format=(tsk[1]),label-width=1.3em](#2)}%
+	}{
+	\ifthenelse{\equal{#1}{1)}}{%
+	\def\tempbegin{\begin{taskEX}[counter-format=tsk[1])](#2)}%
+	}{
+	\ifthenelse{\equal{#1}{i.}}{%
+	\def\tempbegin{\begin{taskEX}[counter-format=tsk[r].](#2)}%
+	}{
+	\ifthenelse{\equal{#1}{(i)}}{%
+	\def\tempbegin{\begin{taskEX}[counter-format=(tsk[r]),label-width=1.4em](#2)}%
+	}{
+	\ifthenelse{\equal{#1}{i)}}{%
+	\def\tempbegin{\begin{taskEX}[counter-format=tsk[r])](#2)}%
+	}{
+	\ifthenelse{\equal{#1}{I.}}{%
+	\def\tempbegin{\begin{taskEX}[counter-format=tsk[R].,label-width=1.4em](#2)}%
+	}{
+	\ifthenelse{\equal{#1}{(I)}}{%
+	\def\tempbegin{\begin{taskEX}[counter-format=(tsk[R]),label-width=1.6em](#2)}%
+	}{
+	\ifthenelse{\equal{#1}{I)}}{%
+	\def\tempbegin{\begin{taskEX}[counter-format=tsk[R]),label-width=1.4em](#2)}%
+	}{
+	\def\tempbegin{\begin{taskEX}[label=#1](#2)}%
+	}}}}}}}}}}}}}}}
+	}
+	\expandafter\tempbegin\BODY%
+	\end{taskEX}%
+	}%
+}
+\NewEnviron{enumEXV}[2][]{%
+	\begin{enumerate}
+		\begin{multicols}{#2}
+			\ifthenelse{\equal{#1}{} \OR \equal{#1}{a)}}
+			{\renewcommand{\labelenumi}{\alph{enumi})}}
+			{\ifthenelse{\equal{#1}{a.}}
+			{\renewcommand{\labelenumi}{\alph{enumi}.}}
+			{\ifthenelse{\equal{#1}{(a)}}
+			{\renewcommand{\labelenumi}{(\alph{enumi})}}
+			{\ifthenelse{\equal{#1}{1)}}
+			{\renewcommand{\labelenumi}{\arabic{enumi})}}
+			{\ifthenelse{\equal{#1}{1.}}
+			{\renewcommand{\labelenumi}{\arabic{enumi}.}}
+			{\ifthenelse{\equal{#1}{(1)}}
+			{\renewcommand{\labelenumi}{(\arabic{enumi})}}
+			{\ifthenelse{\equal{#1}{i)}}
+			{\renewcommand{\labelenumi}{\roman{enumi})}}
+			{\ifthenelse{\equal{#1}{i.}}
+			{\renewcommand{\labelenumi}{\roman{enumi}.}}
+			{\ifthenelse{\equal{#1}{(i)}}
+			{\renewcommand{\labelenumi}{(\roman{enumi})}}
+			{\ifthenelse{\equal{#1}{A)}}
+			{\renewcommand{\labelenumi}{\Alph{enumi})}}
+			{\ifthenelse{\equal{#1}{A.}}
+			{\renewcommand{\labelenumi}{\Alph{enumi}.}}
+			{\ifthenelse{\equal{#1}{(A)}}
+			{\renewcommand{\labelenumi}{(\Alph{enumi})}}
+			{\ifthenelse{\equal{#1}{I)}}
+			{\renewcommand{\labelenumi}{\Roman{enumi})}}
+			{\ifthenelse{\equal{#1}{I.}}
+			{\renewcommand{\labelenumi}{\Roman{enumi}.}}
+			{\ifthenelse{\equal{#1}{(I)}}
+			{\renewcommand{\labelenumi}{(\Roman{enumi})}}
+			{\renewcommand{\labelenumi}{#1.}}}}}}}}}}}}}}}}%
+			\BODY
+		\end{multicols}%
+	\end{enumerate}%
+}
+%End of file `ex_test.sty'.

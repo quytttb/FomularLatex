@@ -1,0 +1,18 @@
+Bạn là một kỹ sư xây dựng và kiến trúc sư có kinh nghiệm. Tôi đang thiết kế một bài toán thực tế cho học sinh cấp 3 về việc tính chi phí ốp kính cho một cổng chào dạng vòm Parabol.
+
+Cổng chào có các thông số sau:
+- Chiều cao vòm là $H$ (mét).
+- Chiều rộng chân vòm là $W$ (mét).
+- Ở chính giữa cổng có một lối đi hình chữ nhật dành cho người đi bộ, với chiều cao là $H_{walk}$ (mét) và chiều rộng là $W_{walk}$ (mét).
+
+Để bài toán vừa có số liệu tính toán đẹp, vừa mang tính thực tế cao trong xây dựng và kiến trúc, tôi đang dự định giới hạn các tham số này trong các khoảng sau:
+1. Chiều cao vòm $H \in [4, 24]$ mét.
+2. Chiều rộng vòm $W \in [4, 24]$ mét.
+3. Tỉ lệ giữa chiều cao và chiều rộng vòm: $0.5 \le \frac{H}{W} \le 1.5$.
+4. Chiều cao lối đi $H_{walk} \in [2.0, 4.0]$ mét và không vượt quá $75\%$ chiều cao vòm ($H_{walk} \le 0.75 \times H$).
+5. Chiều rộng lối đi $W_{walk} \in [1.5, 4.0]$ mét và không vượt quá $60\%$ chiều rộng vòm ($W_{walk} \le 0.6 \times W$).
+
+Câu hỏi dành cho bạn:
+1. Các giới hạn và tỉ lệ trên đã hợp lý với thực tế thiết kế cổng chào dạng vòm Parabol chưa?
+2. Có cần điều chỉnh lại khoảng giá trị nào (ví dụ: cổng cao 24m có quá phi thực tế không, hay lối đi rộng 1.5m có quá hẹp cho một cổng chào lớn không)?
+3. Xin hãy đề xuất một tập hợp các quy tắc (ràng buộc) tối ưu nhất để đảm bảo 100% các bộ số sinh ra đều là những công trình có thể tồn tại ngoài đời thực và có tính thẩm mỹ cao.
