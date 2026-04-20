@@ -126,23 +126,23 @@ def generate_question(context_idx=None) -> Tuple[str, str, str]:
     if val_d == angle_deg and not d_correct:
         val_d = 64 # để tránh trùng
         
-    stem = f"""Trong không gian với hệ trục tọa độ $Oxyz$ (với đơn vị đo trên các trục tọa độ là ki-lômét). Một {obj} từ vị trí điểm $A{fmt_point(A)}$ {mov} đến vị trí điểm $B{fmt_point(B)}$ hết {t_total} giờ. Biết {sta} đặt ở vị trí gốc tọa độ $O$ {rad_desc} {R} km.
+    stem = rf"""Trong không gian với hệ trục tọa độ $Oxyz$ (với đơn vị đo trên các trục tọa độ là ki-lômét). Một {obj} từ vị trí điểm $A{fmt_point(A)}$ {mov} đến vị trí điểm $B{fmt_point(B)}$ hết {t_total} giờ. Biết {sta} đặt ở vị trí gốc tọa độ $O$ {rad_desc} {R} km.
 
 Xét tính đúng, sai của các phát biểu sau:"""
     
-    stmt_a = f"{'*' if a_correct else ''}a) Vận tốc di chuyển của {obj} trên quỹ đạo $AB$ là ${val_a} \mathrm{{~km/h}}$."
-    stmt_b = f"{'*' if b_correct else ''}b) Trong suốt quá trình di chuyển từ $A$ đến $B$, khoảng cách ngắn nhất từ {obj} đến {sta} $O$ là $d$ (km) và thời gian kể từ khi {sta} bắt đầu phát hiện được đến khi {obj} ra khỏi vùng kiểm soát là $T$ (phút). Khi đó ta có hệ thức: ${stmt_b_eq}$."
-    stmt_c = f"{'*' if c_correct else ''}c) Khoảng thời gian từ lúc {obj} xuất phát ở $A$ cho đến khi lọt vào vùng kiểm soát là $t_1$ (giờ) và vị trí ngay khi ra khỏi vùng kiểm soát là điểm $M(x_M; y_M; z_M)$. Khi đó: $t_1 + 2x_M - y_M + 3z_M = {val_c}$."
-    stmt_d = f"{'*' if d_correct else ''}d) {sta.capitalize()} tại $O$ sử dụng một hệ thống {sensor} để bám sát mục tiêu. Góc quét không gian của {sensor} (góc tạo bởi hướng tia của {sensor} lúc bắt đầu phát hiện và lúc {obj} vượt ra ngoài tầm kiểm soát) xấp xỉ ${val_d}^{{\circ}}$ (làm tròn đến số nguyên gần nhất)."
+    stmt_a = rf"{'*' if a_correct else ''}a) Vận tốc di chuyển của {obj} trên quỹ đạo $AB$ là ${val_a} \mathrm{{~km/h}}$."
+    stmt_b = rf"{'*' if b_correct else ''}b) Trong suốt quá trình di chuyển từ $A$ đến $B$, khoảng cách ngắn nhất từ {obj} đến {sta} $O$ là $d$ (km) và thời gian kể từ khi {sta} bắt đầu phát hiện được đến khi {obj} ra khỏi vùng kiểm soát là $T$ (phút). Khi đó ta có hệ thức: ${stmt_b_eq}$."
+    stmt_c = rf"{'*' if c_correct else ''}c) Khoảng thời gian từ lúc {obj} xuất phát ở $A$ cho đến khi lọt vào vùng kiểm soát là $t_1$ (giờ) và vị trí ngay khi ra khỏi vùng kiểm soát là điểm $M(x_M; y_M; z_M)$. Khi đó: $t_1 + 2x_M - y_M + 3z_M = {val_c}$."
+    stmt_d = rf"{'*' if d_correct else ''}d) {sta.capitalize()} tại $O$ sử dụng một hệ thống {sensor} để bám sát mục tiêu. Góc quét không gian của {sensor} (góc tạo bởi hướng tia của {sensor} lúc bắt đầu phát hiện và lúc {obj} vượt ra ngoài tầm kiểm soát) xấp xỉ ${val_d}^{{\circ}}$ (làm tròn đến số nguyên gần nhất)."
 
     # Lời giải chi tiết
-    sol_a = f"""a) {'Đúng' if a_correct else 'Sai'}.
+    sol_a = rf"""a) {'Đúng' if a_correct else 'Sai'}.
 
 Ta có $\overrightarrow{{AB}} = {fmt_point((int(AB[0]), int(AB[1]), int(AB[2])))} $. Thời gian di chuyển là $t = {t_total}$ giờ.
 Vận tốc di chuyển là vector $\vec{{v}} = \frac{{1}}{{{t_total}}} \overrightarrow{{AB}} = {fmt_point((int(v_vec[0]), int(v_vec[1]), int(v_vec[2])))} \text{{ (km/h)}}$.
 Độ lớn vận tốc: $v = |\vec{{v}}| = \sqrt{{{int(v_vec[0])}^2 + {int(v_vec[1])}^2 + ({int(v_vec[2])})^2}} = \sqrt{{{int(v_sq)}}} \text{{ (km/h)}}$."""
 
-    sol_b = f"""b) {'Đúng' if b_correct else 'Sai'}.
+    sol_b = rf"""b) {'Đúng' if b_correct else 'Sai'}.
 
 Phương trình quỹ đạo chuyển động của {obj}: $\heva{{x &= {A[0]} + {int(v_vec[0])}t \\ y &= {A[1]} + {int(v_vec[1])}t \\ z &= {A[2]} + {int(v_vec[2])}t}} \quad (t \ge 0)$ (với $t$ là số giờ).
 Bình phương khoảng cách từ $O$ đến {obj} tại thời điểm $t$ là $OP^2$:
@@ -155,7 +155,7 @@ Suy ra thời gian nằm trong vùng kiểm soát bằng ${int(t2)} - {int(t1)} 
 Và khoảng cách cực tiểu $d = \sqrt{{{int(d_sq)}}}$.
 Ta có  $d^2 + T = {int(d_sq)} + {int(T_mins)} = {int(d_sq + T_mins)}$."""
 
-    sol_c = f"""c) {'Đúng' if c_correct else 'Sai'}.
+    sol_c = rf"""c) {'Đúng' if c_correct else 'Sai'}.
 
 Theo phân tích trên, thời điểm bắt đầu vào vùng kiểm soát là $t_1 = {int(t1)}$ (giờ).
 Thời điểm ra khỏi vùng kiểm soát là $t_2 = {int(t2)}$ (giờ).
@@ -164,14 +164,14 @@ Thay số vào biểu thức: $t_1 + 2x_M - y_M + 3z_M = {int(t1)} + 2({int(P_ou
 
     cos_val_frac = Fraction(int(P_in[0]*P_out[0] + P_in[1]*P_out[1] + P_in[2]*P_out[2]), R**2)
 
-    sol_d = f"""d) {'Đúng' if d_correct else 'Sai'}.
+    sol_d = rf"""d) {'Đúng' if d_correct else 'Sai'}.
 
 Vị trí bắt đầu phát hiện là $P({int(P_in[0])}; {int(P_in[1])}; {int(P_in[2])})$, tọa độ vector $\overrightarrow{{OP}} = {fmt_point((int(P_in[0]), int(P_in[1]), int(P_in[2])))}$.
 Vị trí lúc mất tín hiệu là $M({int(P_out[0])}; {int(P_out[1])}; {int(P_out[2])})$, tọa độ vector $\overrightarrow{{OM}} = {fmt_point((int(P_out[0]), int(P_out[1]), int(P_out[2])))}$.
 Góc quét không gian $\alpha = (\overrightarrow{{OP}}, \overrightarrow{{OM}})$. Ta có $\cos \alpha = \frac{{\overrightarrow{{OP}} \cdot \overrightarrow{{OM}}}}{{|\overrightarrow{{OP}}| \cdot |\overrightarrow{{OM}}|}}$
 Do $OP = OM = R = {R}$, nên $|\overrightarrow{{OP}}| \cdot |\overrightarrow{{OM}}| = {R}^2 = {R**2}$.
 $\overrightarrow{{OP}} \cdot \overrightarrow{{OM}} = ({int(P_in[0])})({int(P_out[0])}) + ({int(P_in[1])})({int(P_out[1])}) + ({int(P_in[2])})({int(P_out[2])}) = {int(P_in[0]*P_out[0] + P_in[1]*P_out[1] + P_in[2]*P_out[2])}$.
-Suy ra $\cos \alpha = \frac{{{int(P_in[0]*P_out[0] + P_in[1]*P_out[1] + P_in[2]*P_out[2])}}}{{{R**2}}} = {cos_val_frac.numerator if cos_val_frac.denominator==1 else f"\frac{{{cos_val_frac.numerator}}}{{{cos_val_frac.denominator}}}"}$.
+Suy ra $\cos \alpha = \frac{{{int(P_in[0]*P_out[0] + P_in[1]*P_out[1] + P_in[2]*P_out[2])}}}{{{R**2}}} = {cos_val_frac.numerator if cos_val_frac.denominator==1 else rf"\frac{{{cos_val_frac.numerator}}}{{{cos_val_frac.denominator}}}"}$.
 Vậy $\alpha \approx {angle_deg}^{{\circ}}$."""
 
     key_arr = ["Đ" if x else "S" for x in (a_correct, b_correct, c_correct, d_correct)]
@@ -207,7 +207,7 @@ def main():
     for i in range(num_questions):
         q, s, k = generate_question(context_idx)
         keys.append(k)
-        content += f"Câu {i+1}: {q}\n\nLời giải:\n\n{s}\n\nĐáp án: {k}\n\n"
+        content += f"Câu {i+1}: {q}\n\nLời giải:\n\n{s}\n\n"
 
     # LaTeX template
     template = r"""\documentclass[a4paper,12pt]{article}

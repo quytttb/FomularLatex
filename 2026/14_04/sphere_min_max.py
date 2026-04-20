@@ -122,9 +122,13 @@ def generate_type1(seed_val=None) -> Tuple[str, str, str]:
     inv_frac_tex = format_frac_tex(Fraction(1, k**2))
     inv_ratio_tex = format_frac_tex(Fraction(1, k))
     
+    def format_sq(val):
+        if val < 0: return rf"({val})^2"
+        return rf"{val}^2"
+
     solution = rf"""Mặt cầu $(S)$ có tâm $I{I.to_tex()}$ và bán kính $R = \sqrt{{{R2}}} = {R_tex}$.
 Ta tính khoảng cách từ tâm $I$ đến điểm $A$:
-$$\overrightarrow{{IA}} = ({vec_IA.x}; {vec_IA.y}; {vec_IA.z}) \Rightarrow IA = \sqrt{{{vec_IA.x}^2 + ({vec_IA.y})^2 + {vec_IA.z}^2}} = {IA_tex}.$$
+$$\overrightarrow{{IA}} = ({vec_IA.x}; {vec_IA.y}; {vec_IA.z}) \Rightarrow IA = \sqrt{{{format_sq(vec_IA.x)} + {format_sq(vec_IA.y)} + {format_sq(vec_IA.z)}}} = {IA_tex}.$$
 Nhận xét thấy $IA = {k_tex}R$. Biểu thức cần tìm đạt nhỏ nhất là $P = MA + {k_tex}MB = {k_tex}\left(\frac{{1}}{{{k_tex}}}MA + MB\right)$.
 
 Lấy điểm $A'$ nằm trên tia $IA$ sao cho $IA' \cdot IA = R^2 \Rightarrow IA' = \frac{{R^2}}{{IA}} = \frac{{{R2}}}{{{IA_tex}}}$.
