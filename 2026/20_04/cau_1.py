@@ -207,22 +207,26 @@ def main():
     for i in range(num_questions):
         q, s, k = generate_question(context_idx)
         keys.append(k)
-        content += f"\begin{{ex}}%Câu {i+1}\n{q}\n\n\loigiai{{\n{s}\n}}\end{{ex}}\n\n"
+        content += f"Câu {i+1}: {q}\n\nLời giải:\n\n{s}\n\nĐáp án: {k}\n\n"
 
     # LaTeX template
-    template = r"""\documentclass[12pt,a4paper]{article}
-\usepackage{amsmath,amssymb,fancyhdr,longtable}
+    template = r"""\documentclass[a4paper,12pt]{article}
+\usepackage{amsmath, amsfonts, amssymb}
+\usepackage{geometry}
+\geometry{a4paper, margin=1in}
+\usepackage{fontspec}
 \usepackage{polyglossia}
-\setdefaultlanguage{vietnamese}
-\setmainfont{Times New Roman}
+\setmainlanguage{vietnamese}
+% \setmainfont{Times New Roman}
 \usepackage{tikz}
-\usetikzlibrary{angles,patterns,calc,arrows,intersections}
-\usepackage[top=1.5cm, bottom=2cm, left=2cm, right=1.5cm]{geometry}
-\usepackage[solcolor]{../SAMPLE LATEX FILE/ex_test}
+\usetikzlibrary{calc,angles,quotes}
+
 \newcommand{\heva}[1]{\left\{\begin{aligned}#1\end{aligned}\right.}
 
 \begin{document}
+
 #CONTENT#
+
 \end{document}
 """
     tex_content = template.replace("#CONTENT#", content)
