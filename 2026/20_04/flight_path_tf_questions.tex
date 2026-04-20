@@ -1,278 +1,0 @@
-\documentclass[a4paper,12pt]{article}
-\usepackage{amsmath, amsfonts, amssymb}
-\usepackage{geometry}
-\geometry{a4paper, margin=1in}
-\usepackage{fontspec}
-\usepackage{polyglossia}
-\setmainlanguage{vietnamese}
-% \setmainfont{Times New Roman}
-\usepackage{tikz}
-\usetikzlibrary{calc,angles,quotes}
-
-\newcommand{\heva}[1]{\left\{\begin{aligned}#1\end{aligned}\right.}
-
-\begin{document}
-
-Câu 1: Trong không gian với hệ trục tọa độ $Oxyz$ (với đơn vị đo trên các trục tọa độ là ki-lômét). Một robot thám hiểm tự hành từ vị trí điểm $A(-16; -10; 10)$ di chuyển theo một đường thẳng đến vị trí điểm $B(24; 20; 0)$ hết 10 giờ. Biết trạm định vị sóng vô tuyến xuyên đá đặt ở vị trí gốc tọa độ $O$ có khả năng phát hiện các vật thể di chuyển trong bán kính tối đa là 12 km.
-
-Xét tính đúng, sai của các phát biểu sau:
-
-a) Vận tốc di chuyển của robot thám hiểm tự hành trên quỹ đạo $AB$ là $\sqrt{24} \mathrm{~km/h}$.
-
-b) Trong suốt quá trình di chuyển từ $A$ đến $B$, khoảng cách ngắn nhất từ robot thám hiểm tự hành đến trạm định vị sóng vô tuyến xuyên đá $O$ là $d$ (km) và thời gian kể từ khi trạm định vị sóng vô tuyến xuyên đá bắt đầu phát hiện được đến khi robot thám hiểm tự hành ra khỏi vùng kiểm soát là $T$ (phút). Khi đó ta có hệ thức: $d + 2T = 486$.
-
-*c) Khoảng thời gian từ lúc robot thám hiểm tự hành xuất phát ở $A$ cho đến khi lọt vào vùng kiểm soát là $t_1$ (giờ) và vị trí ngay khi ra khỏi vùng kiểm soát là điểm $M(x_M; y_M; z_M)$. Khi đó: $t_1 + 2x_M - y_M + 3z_M = 22$.
-
-*d) Trạm định vị sóng vô tuyến xuyên đá tại $O$ sử dụng một hệ thống tia định vị để bám sát mục tiêu. Góc quét không gian của tia định vị (góc tạo bởi hướng tia của tia định vị lúc bắt đầu phát hiện và lúc robot thám hiểm tự hành vượt ra ngoài tầm kiểm soát) xấp xỉ $116^{\circ}$ (làm tròn đến số nguyên gần nhất).
-
-Lời giải:
-
-a) Sai.
-
-Ta có $\overrightarrow{AB} = (40; 30; -10) $. Thời gian di chuyển là $t = 10$ giờ.
-Vận tốc di chuyển là vector $ec{v} = rac{1}{10} \overrightarrow{AB} = (4; 3; -1) 	ext{ (km/h)}$.
-Độ lớn vận tốc: $v = |ec{v}| = \sqrt{4^2 + 3^2 + (-1)^2} = \sqrt{26} 	ext{ (km/h)}$.
-
-b) Sai.
-
-Phương trình quỹ đạo chuyển động của robot thám hiểm tự hành: $\heva{x &= -16 + 4t \ y &= -10 + 3t \ z &= 10 + -1t} \quad (t \ge 0)$ (với $t$ là số giờ).
-Bình phương khoảng cách từ $O$ đến robot thám hiểm tự hành tại thời điểm $t$ là $OP^2$:
-$$OP^2 = (-16 + 4t)^2 + (-10 + 3t)^2 + (10 + -1t)^2$$
-$$= 26t^2 - 208t + 456 = 26(t - 4)^2 + 40$$
-Khoảng cách ngắn nhất là $d(O, AB) = \sqrt{40}$ km (khi $t = 4$ giờ).
-robot thám hiểm tự hành nằm trong vùng kiểm soát khi $OP^2 \le 12^2 \iff 26(t - 4)^2 + 40 \le 144$
-$\iff 26(t - 4)^2 \le 104 \iff (t - 4)^2 \le 4 \iff 2 \le t \le 6$.
-Suy ra thời gian nằm trong vùng kiểm soát bằng $6 - 2 = 4$ (giờ), đổi ra $T = 4 	imes 60 = 240$ (phút).
-Và khoảng cách cực tiểu $d = \sqrt{40}$.
-Ta có  $d^2 + T = 40 + 240 = 280$.
-
-c) Đúng.
-
-Theo phân tích trên, thời điểm bắt đầu vào vùng kiểm soát là $t_1 = 2$ (giờ).
-Thời điểm ra khỏi vùng kiểm soát là $t_2 = 6$ (giờ).
-Vị trí ngay khi ra khỏi vùng kiểm soát là điểm $M$: thay $t_2 = 6$ vào phương trình quỹ đạo ta được $M(8; 8; 4)$.
-Thay số vào biểu thức: $t_1 + 2x_M - y_M + 3z_M = 2 + 2(8) - 8 + 3(4) = 2 + 16 - 8 + 12 = 22$.
-
-d) Đúng.
-
-Vị trí bắt đầu phát hiện là $P(-8; -4; 8)$, tọa độ vector $\overrightarrow{OP} = (-8; -4; 8)$.
-Vị trí lúc mất tín hiệu là $M(8; 8; 4)$, tọa độ vector $\overrightarrow{OM} = (8; 8; 4)$.
-Góc quét không gian $lpha = (\overrightarrow{OP}, \overrightarrow{OM})$. Ta có $\cos lpha = rac{\overrightarrow{OP} \cdot \overrightarrow{OM}}{|\overrightarrow{OP}| \cdot |\overrightarrow{OM}|}$
-Do $OP = OM = R = 12$, nên $|\overrightarrow{OP}| \cdot |\overrightarrow{OM}| = 12^2 = 144$.
-$\overrightarrow{OP} \cdot \overrightarrow{OM} = (-8)(8) + (-4)(8) + (8)(4) = -64$.
-Suy ra $\cos lpha = rac{-64}{144} = rac{-4}{9}$.
-Vậy $lpha pprox 116^{\circ}$.
-
-Đáp án: S, S, Đ, Đ
-
-Câu 2: Trong không gian với hệ trục tọa độ $Oxyz$ (với đơn vị đo trên các trục tọa độ là ki-lômét). Một khinh khí cầu từ vị trí điểm $A(-16; -10; 10)$ bay thẳng đến vị trí điểm $B(24; 20; 0)$ hết 10 giờ. Biết trạm kiểm soát không lưu đặt ở vị trí gốc tọa độ $O$ kiểm soát được các vật thể cách trạm một khoảng tối đa bằng 12 km.
-
-Xét tính đúng, sai của các phát biểu sau:
-
-a) Vận tốc di chuyển của khinh khí cầu trên quỹ đạo $AB$ là $\sqrt{24} \mathrm{~km/h}$.
-
-*b) Trong suốt quá trình di chuyển từ $A$ đến $B$, khoảng cách ngắn nhất từ khinh khí cầu đến trạm kiểm soát không lưu $O$ là $d$ (km) và thời gian kể từ khi trạm kiểm soát không lưu bắt đầu phát hiện được đến khi khinh khí cầu ra khỏi vùng kiểm soát là $T$ (phút). Khi đó ta có hệ thức: $d^2 + T = 280$.
-
-c) Khoảng thời gian từ lúc khinh khí cầu xuất phát ở $A$ cho đến khi lọt vào vùng kiểm soát là $t_1$ (giờ) và vị trí ngay khi ra khỏi vùng kiểm soát là điểm $M(x_M; y_M; z_M)$. Khi đó: $t_1 + 2x_M - y_M + 3z_M = 12$.
-
-d) Trạm kiểm soát không lưu tại $O$ sử dụng một hệ thống anten để bám sát mục tiêu. Góc quét không gian của anten (góc tạo bởi hướng tia của anten lúc bắt đầu phát hiện và lúc khinh khí cầu vượt ra ngoài tầm kiểm soát) xấp xỉ $64^{\circ}$ (làm tròn đến số nguyên gần nhất).
-
-Lời giải:
-
-a) Sai.
-
-Ta có $\overrightarrow{AB} = (40; 30; -10) $. Thời gian di chuyển là $t = 10$ giờ.
-Vận tốc di chuyển là vector $ec{v} = rac{1}{10} \overrightarrow{AB} = (4; 3; -1) 	ext{ (km/h)}$.
-Độ lớn vận tốc: $v = |ec{v}| = \sqrt{4^2 + 3^2 + (-1)^2} = \sqrt{26} 	ext{ (km/h)}$.
-
-b) Đúng.
-
-Phương trình quỹ đạo chuyển động của khinh khí cầu: $\heva{x &= -16 + 4t \ y &= -10 + 3t \ z &= 10 + -1t} \quad (t \ge 0)$ (với $t$ là số giờ).
-Bình phương khoảng cách từ $O$ đến khinh khí cầu tại thời điểm $t$ là $OP^2$:
-$$OP^2 = (-16 + 4t)^2 + (-10 + 3t)^2 + (10 + -1t)^2$$
-$$= 26t^2 - 208t + 456 = 26(t - 4)^2 + 40$$
-Khoảng cách ngắn nhất là $d(O, AB) = \sqrt{40}$ km (khi $t = 4$ giờ).
-khinh khí cầu nằm trong vùng kiểm soát khi $OP^2 \le 12^2 \iff 26(t - 4)^2 + 40 \le 144$
-$\iff 26(t - 4)^2 \le 104 \iff (t - 4)^2 \le 4 \iff 2 \le t \le 6$.
-Suy ra thời gian nằm trong vùng kiểm soát bằng $6 - 2 = 4$ (giờ), đổi ra $T = 4 	imes 60 = 240$ (phút).
-Và khoảng cách cực tiểu $d = \sqrt{40}$.
-Ta có  $d^2 + T = 40 + 240 = 280$.
-
-c) Sai.
-
-Theo phân tích trên, thời điểm bắt đầu vào vùng kiểm soát là $t_1 = 2$ (giờ).
-Thời điểm ra khỏi vùng kiểm soát là $t_2 = 6$ (giờ).
-Vị trí ngay khi ra khỏi vùng kiểm soát là điểm $M$: thay $t_2 = 6$ vào phương trình quỹ đạo ta được $M(8; 8; 4)$.
-Thay số vào biểu thức: $t_1 + 2x_M - y_M + 3z_M = 2 + 2(8) - 8 + 3(4) = 2 + 16 - 8 + 12 = 22$.
-
-d) Sai.
-
-Vị trí bắt đầu phát hiện là $P(-8; -4; 8)$, tọa độ vector $\overrightarrow{OP} = (-8; -4; 8)$.
-Vị trí lúc mất tín hiệu là $M(8; 8; 4)$, tọa độ vector $\overrightarrow{OM} = (8; 8; 4)$.
-Góc quét không gian $lpha = (\overrightarrow{OP}, \overrightarrow{OM})$. Ta có $\cos lpha = rac{\overrightarrow{OP} \cdot \overrightarrow{OM}}{|\overrightarrow{OP}| \cdot |\overrightarrow{OM}|}$
-Do $OP = OM = R = 12$, nên $|\overrightarrow{OP}| \cdot |\overrightarrow{OM}| = 12^2 = 144$.
-$\overrightarrow{OP} \cdot \overrightarrow{OM} = (-8)(8) + (-4)(8) + (8)(4) = -64$.
-Suy ra $\cos lpha = rac{-64}{144} = rac{-4}{9}$.
-Vậy $lpha pprox 116^{\circ}$.
-
-Đáp án: S, Đ, S, S
-
-Câu 3: Trong không gian với hệ trục tọa độ $Oxyz$ (với đơn vị đo trên các trục tọa độ là ki-lômét). Một robot thám hiểm tự hành từ vị trí điểm $A(-16; -10; 10)$ di chuyển theo một đường thẳng đến vị trí điểm $B(24; 20; 0)$ hết 10 giờ. Biết trạm định vị sóng vô tuyến xuyên đá đặt ở vị trí gốc tọa độ $O$ có khả năng phát hiện các vật thể di chuyển trong bán kính tối đa là 12 km.
-
-Xét tính đúng, sai của các phát biểu sau:
-
-*a) Vận tốc di chuyển của robot thám hiểm tự hành trên quỹ đạo $AB$ là $\sqrt{26} \mathrm{~km/h}$.
-
-*b) Trong suốt quá trình di chuyển từ $A$ đến $B$, khoảng cách ngắn nhất từ robot thám hiểm tự hành đến trạm định vị sóng vô tuyến xuyên đá $O$ là $d$ (km) và thời gian kể từ khi trạm định vị sóng vô tuyến xuyên đá bắt đầu phát hiện được đến khi robot thám hiểm tự hành ra khỏi vùng kiểm soát là $T$ (phút). Khi đó ta có hệ thức: $d^2 + T = 280$.
-
-*c) Khoảng thời gian từ lúc robot thám hiểm tự hành xuất phát ở $A$ cho đến khi lọt vào vùng kiểm soát là $t_1$ (giờ) và vị trí ngay khi ra khỏi vùng kiểm soát là điểm $M(x_M; y_M; z_M)$. Khi đó: $t_1 + 2x_M - y_M + 3z_M = 22$.
-
-d) Trạm định vị sóng vô tuyến xuyên đá tại $O$ sử dụng một hệ thống tia định vị để bám sát mục tiêu. Góc quét không gian của tia định vị (góc tạo bởi hướng tia của tia định vị lúc bắt đầu phát hiện và lúc robot thám hiểm tự hành vượt ra ngoài tầm kiểm soát) xấp xỉ $64^{\circ}$ (làm tròn đến số nguyên gần nhất).
-
-Lời giải:
-
-a) Đúng.
-
-Ta có $\overrightarrow{AB} = (40; 30; -10) $. Thời gian di chuyển là $t = 10$ giờ.
-Vận tốc di chuyển là vector $ec{v} = rac{1}{10} \overrightarrow{AB} = (4; 3; -1) 	ext{ (km/h)}$.
-Độ lớn vận tốc: $v = |ec{v}| = \sqrt{4^2 + 3^2 + (-1)^2} = \sqrt{26} 	ext{ (km/h)}$.
-
-b) Đúng.
-
-Phương trình quỹ đạo chuyển động của robot thám hiểm tự hành: $\heva{x &= -16 + 4t \ y &= -10 + 3t \ z &= 10 + -1t} \quad (t \ge 0)$ (với $t$ là số giờ).
-Bình phương khoảng cách từ $O$ đến robot thám hiểm tự hành tại thời điểm $t$ là $OP^2$:
-$$OP^2 = (-16 + 4t)^2 + (-10 + 3t)^2 + (10 + -1t)^2$$
-$$= 26t^2 - 208t + 456 = 26(t - 4)^2 + 40$$
-Khoảng cách ngắn nhất là $d(O, AB) = \sqrt{40}$ km (khi $t = 4$ giờ).
-robot thám hiểm tự hành nằm trong vùng kiểm soát khi $OP^2 \le 12^2 \iff 26(t - 4)^2 + 40 \le 144$
-$\iff 26(t - 4)^2 \le 104 \iff (t - 4)^2 \le 4 \iff 2 \le t \le 6$.
-Suy ra thời gian nằm trong vùng kiểm soát bằng $6 - 2 = 4$ (giờ), đổi ra $T = 4 	imes 60 = 240$ (phút).
-Và khoảng cách cực tiểu $d = \sqrt{40}$.
-Ta có  $d^2 + T = 40 + 240 = 280$.
-
-c) Đúng.
-
-Theo phân tích trên, thời điểm bắt đầu vào vùng kiểm soát là $t_1 = 2$ (giờ).
-Thời điểm ra khỏi vùng kiểm soát là $t_2 = 6$ (giờ).
-Vị trí ngay khi ra khỏi vùng kiểm soát là điểm $M$: thay $t_2 = 6$ vào phương trình quỹ đạo ta được $M(8; 8; 4)$.
-Thay số vào biểu thức: $t_1 + 2x_M - y_M + 3z_M = 2 + 2(8) - 8 + 3(4) = 2 + 16 - 8 + 12 = 22$.
-
-d) Sai.
-
-Vị trí bắt đầu phát hiện là $P(-8; -4; 8)$, tọa độ vector $\overrightarrow{OP} = (-8; -4; 8)$.
-Vị trí lúc mất tín hiệu là $M(8; 8; 4)$, tọa độ vector $\overrightarrow{OM} = (8; 8; 4)$.
-Góc quét không gian $lpha = (\overrightarrow{OP}, \overrightarrow{OM})$. Ta có $\cos lpha = rac{\overrightarrow{OP} \cdot \overrightarrow{OM}}{|\overrightarrow{OP}| \cdot |\overrightarrow{OM}|}$
-Do $OP = OM = R = 12$, nên $|\overrightarrow{OP}| \cdot |\overrightarrow{OM}| = 12^2 = 144$.
-$\overrightarrow{OP} \cdot \overrightarrow{OM} = (-8)(8) + (-4)(8) + (8)(4) = -64$.
-Suy ra $\cos lpha = rac{-64}{144} = rac{-4}{9}$.
-Vậy $lpha pprox 116^{\circ}$.
-
-Đáp án: Đ, Đ, Đ, S
-
-Câu 4: Trong không gian với hệ trục tọa độ $Oxyz$ (với đơn vị đo trên các trục tọa độ là ki-lômét). Một robot thám hiểm tự hành từ vị trí điểm $A(-16; -10; 10)$ di chuyển theo một đường thẳng đến vị trí điểm $B(24; 20; 0)$ hết 10 giờ. Biết trạm định vị sóng vô tuyến xuyên đá đặt ở vị trí gốc tọa độ $O$ có khả năng phát hiện các vật thể di chuyển trong bán kính tối đa là 12 km.
-
-Xét tính đúng, sai của các phát biểu sau:
-
-*a) Vận tốc di chuyển của robot thám hiểm tự hành trên quỹ đạo $AB$ là $\sqrt{26} \mathrm{~km/h}$.
-
-b) Trong suốt quá trình di chuyển từ $A$ đến $B$, khoảng cách ngắn nhất từ robot thám hiểm tự hành đến trạm định vị sóng vô tuyến xuyên đá $O$ là $d$ (km) và thời gian kể từ khi trạm định vị sóng vô tuyến xuyên đá bắt đầu phát hiện được đến khi robot thám hiểm tự hành ra khỏi vùng kiểm soát là $T$ (phút). Khi đó ta có hệ thức: $d + 2T = 486$.
-
-*c) Khoảng thời gian từ lúc robot thám hiểm tự hành xuất phát ở $A$ cho đến khi lọt vào vùng kiểm soát là $t_1$ (giờ) và vị trí ngay khi ra khỏi vùng kiểm soát là điểm $M(x_M; y_M; z_M)$. Khi đó: $t_1 + 2x_M - y_M + 3z_M = 22$.
-
-*d) Trạm định vị sóng vô tuyến xuyên đá tại $O$ sử dụng một hệ thống tia định vị để bám sát mục tiêu. Góc quét không gian của tia định vị (góc tạo bởi hướng tia của tia định vị lúc bắt đầu phát hiện và lúc robot thám hiểm tự hành vượt ra ngoài tầm kiểm soát) xấp xỉ $116^{\circ}$ (làm tròn đến số nguyên gần nhất).
-
-Lời giải:
-
-a) Đúng.
-
-Ta có $\overrightarrow{AB} = (40; 30; -10) $. Thời gian di chuyển là $t = 10$ giờ.
-Vận tốc di chuyển là vector $ec{v} = rac{1}{10} \overrightarrow{AB} = (4; 3; -1) 	ext{ (km/h)}$.
-Độ lớn vận tốc: $v = |ec{v}| = \sqrt{4^2 + 3^2 + (-1)^2} = \sqrt{26} 	ext{ (km/h)}$.
-
-b) Sai.
-
-Phương trình quỹ đạo chuyển động của robot thám hiểm tự hành: $\heva{x &= -16 + 4t \ y &= -10 + 3t \ z &= 10 + -1t} \quad (t \ge 0)$ (với $t$ là số giờ).
-Bình phương khoảng cách từ $O$ đến robot thám hiểm tự hành tại thời điểm $t$ là $OP^2$:
-$$OP^2 = (-16 + 4t)^2 + (-10 + 3t)^2 + (10 + -1t)^2$$
-$$= 26t^2 - 208t + 456 = 26(t - 4)^2 + 40$$
-Khoảng cách ngắn nhất là $d(O, AB) = \sqrt{40}$ km (khi $t = 4$ giờ).
-robot thám hiểm tự hành nằm trong vùng kiểm soát khi $OP^2 \le 12^2 \iff 26(t - 4)^2 + 40 \le 144$
-$\iff 26(t - 4)^2 \le 104 \iff (t - 4)^2 \le 4 \iff 2 \le t \le 6$.
-Suy ra thời gian nằm trong vùng kiểm soát bằng $6 - 2 = 4$ (giờ), đổi ra $T = 4 	imes 60 = 240$ (phút).
-Và khoảng cách cực tiểu $d = \sqrt{40}$.
-Ta có  $d^2 + T = 40 + 240 = 280$.
-
-c) Đúng.
-
-Theo phân tích trên, thời điểm bắt đầu vào vùng kiểm soát là $t_1 = 2$ (giờ).
-Thời điểm ra khỏi vùng kiểm soát là $t_2 = 6$ (giờ).
-Vị trí ngay khi ra khỏi vùng kiểm soát là điểm $M$: thay $t_2 = 6$ vào phương trình quỹ đạo ta được $M(8; 8; 4)$.
-Thay số vào biểu thức: $t_1 + 2x_M - y_M + 3z_M = 2 + 2(8) - 8 + 3(4) = 2 + 16 - 8 + 12 = 22$.
-
-d) Đúng.
-
-Vị trí bắt đầu phát hiện là $P(-8; -4; 8)$, tọa độ vector $\overrightarrow{OP} = (-8; -4; 8)$.
-Vị trí lúc mất tín hiệu là $M(8; 8; 4)$, tọa độ vector $\overrightarrow{OM} = (8; 8; 4)$.
-Góc quét không gian $lpha = (\overrightarrow{OP}, \overrightarrow{OM})$. Ta có $\cos lpha = rac{\overrightarrow{OP} \cdot \overrightarrow{OM}}{|\overrightarrow{OP}| \cdot |\overrightarrow{OM}|}$
-Do $OP = OM = R = 12$, nên $|\overrightarrow{OP}| \cdot |\overrightarrow{OM}| = 12^2 = 144$.
-$\overrightarrow{OP} \cdot \overrightarrow{OM} = (-8)(8) + (-4)(8) + (8)(4) = -64$.
-Suy ra $\cos lpha = rac{-64}{144} = rac{-4}{9}$.
-Vậy $lpha pprox 116^{\circ}$.
-
-Đáp án: Đ, S, Đ, Đ
-
-Câu 5: Trong không gian với hệ trục tọa độ $Oxyz$ (với đơn vị đo trên các trục tọa độ là ki-lômét). Một thiết bị lặn tự hành (ROV) từ vị trí điểm $A(-16; -10; 10)$ di chuyển thẳng đều đến vị trí điểm $B(24; 20; 0)$ hết 10 giờ. Biết trạm định vị thủy âm (Sonar) đặt ở vị trí gốc tọa độ $O$ có khả năng phát hiện và duy trì tín hiệu với các vật thể dưới nước ở khoảng cách tối đa bằng 12 km.
-
-Xét tính đúng, sai của các phát biểu sau:
-
-a) Vận tốc di chuyển của thiết bị lặn tự hành (ROV) trên quỹ đạo $AB$ là $\sqrt{24} \mathrm{~km/h}$.
-
-b) Trong suốt quá trình di chuyển từ $A$ đến $B$, khoảng cách ngắn nhất từ thiết bị lặn tự hành (ROV) đến trạm định vị thủy âm (Sonar) $O$ là $d$ (km) và thời gian kể từ khi trạm định vị thủy âm (Sonar) bắt đầu phát hiện được đến khi thiết bị lặn tự hành (ROV) ra khỏi vùng kiểm soát là $T$ (phút). Khi đó ta có hệ thức: $d + 2T = 486$.
-
-c) Khoảng thời gian từ lúc thiết bị lặn tự hành (ROV) xuất phát ở $A$ cho đến khi lọt vào vùng kiểm soát là $t_1$ (giờ) và vị trí ngay khi ra khỏi vùng kiểm soát là điểm $M(x_M; y_M; z_M)$. Khi đó: $t_1 + 2x_M - y_M + 3z_M = 27$.
-
-*d) Trạm định vị thủy âm (sonar) tại $O$ sử dụng một hệ thống đầu dò định hướng để bám sát mục tiêu. Góc quét không gian của đầu dò định hướng (góc tạo bởi hướng tia của đầu dò định hướng lúc bắt đầu phát hiện và lúc thiết bị lặn tự hành (ROV) vượt ra ngoài tầm kiểm soát) xấp xỉ $116^{\circ}$ (làm tròn đến số nguyên gần nhất).
-
-Lời giải:
-
-a) Sai.
-
-Ta có $\overrightarrow{AB} = (40; 30; -10) $. Thời gian di chuyển là $t = 10$ giờ.
-Vận tốc di chuyển là vector $ec{v} = rac{1}{10} \overrightarrow{AB} = (4; 3; -1) 	ext{ (km/h)}$.
-Độ lớn vận tốc: $v = |ec{v}| = \sqrt{4^2 + 3^2 + (-1)^2} = \sqrt{26} 	ext{ (km/h)}$.
-
-b) Sai.
-
-Phương trình quỹ đạo chuyển động của thiết bị lặn tự hành (ROV): $\heva{x &= -16 + 4t \ y &= -10 + 3t \ z &= 10 + -1t} \quad (t \ge 0)$ (với $t$ là số giờ).
-Bình phương khoảng cách từ $O$ đến thiết bị lặn tự hành (ROV) tại thời điểm $t$ là $OP^2$:
-$$OP^2 = (-16 + 4t)^2 + (-10 + 3t)^2 + (10 + -1t)^2$$
-$$= 26t^2 - 208t + 456 = 26(t - 4)^2 + 40$$
-Khoảng cách ngắn nhất là $d(O, AB) = \sqrt{40}$ km (khi $t = 4$ giờ).
-thiết bị lặn tự hành (ROV) nằm trong vùng kiểm soát khi $OP^2 \le 12^2 \iff 26(t - 4)^2 + 40 \le 144$
-$\iff 26(t - 4)^2 \le 104 \iff (t - 4)^2 \le 4 \iff 2 \le t \le 6$.
-Suy ra thời gian nằm trong vùng kiểm soát bằng $6 - 2 = 4$ (giờ), đổi ra $T = 4 	imes 60 = 240$ (phút).
-Và khoảng cách cực tiểu $d = \sqrt{40}$.
-Ta có  $d^2 + T = 40 + 240 = 280$.
-
-c) Sai.
-
-Theo phân tích trên, thời điểm bắt đầu vào vùng kiểm soát là $t_1 = 2$ (giờ).
-Thời điểm ra khỏi vùng kiểm soát là $t_2 = 6$ (giờ).
-Vị trí ngay khi ra khỏi vùng kiểm soát là điểm $M$: thay $t_2 = 6$ vào phương trình quỹ đạo ta được $M(8; 8; 4)$.
-Thay số vào biểu thức: $t_1 + 2x_M - y_M + 3z_M = 2 + 2(8) - 8 + 3(4) = 2 + 16 - 8 + 12 = 22$.
-
-d) Đúng.
-
-Vị trí bắt đầu phát hiện là $P(-8; -4; 8)$, tọa độ vector $\overrightarrow{OP} = (-8; -4; 8)$.
-Vị trí lúc mất tín hiệu là $M(8; 8; 4)$, tọa độ vector $\overrightarrow{OM} = (8; 8; 4)$.
-Góc quét không gian $lpha = (\overrightarrow{OP}, \overrightarrow{OM})$. Ta có $\cos lpha = rac{\overrightarrow{OP} \cdot \overrightarrow{OM}}{|\overrightarrow{OP}| \cdot |\overrightarrow{OM}|}$
-Do $OP = OM = R = 12$, nên $|\overrightarrow{OP}| \cdot |\overrightarrow{OM}| = 12^2 = 144$.
-$\overrightarrow{OP} \cdot \overrightarrow{OM} = (-8)(8) + (-4)(8) + (8)(4) = -64$.
-Suy ra $\cos lpha = rac{-64}{144} = rac{-4}{9}$.
-Vậy $lpha pprox 116^{\circ}$.
-
-Đáp án: S, S, S, Đ
-
-
-
-\end{document}
