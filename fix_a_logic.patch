@@ -1,0 +1,18 @@
+--- 2026/16_01/bai_toan_game_3d.py
++++ 2026/16_01/bai_toan_game_3d.1.py
+@@ -765,11 +765,10 @@
+         tv = self.true_values
+         R = tv['R']
+         
+-        # A: No intersection - this is boolean, distort by negating statement
+-        if random.random() < 0.5:
+-            self.res_a = tv['no_intersection']
+-        else:
+-            self.res_a = not tv['no_intersection']
++        # A: No intersection - statement is fixed, so the result must reflect the truth
++        self.res_a = tv['no_intersection']
++        # However, to distort statement a, we need to change the text.
++        # Since text is hardcoded, res_a must always be identical to no_intersection.
+         
+         # B: Distance from I to line
+         dist_true = tv['dist_I_to_line']

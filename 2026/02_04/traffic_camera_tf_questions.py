@@ -483,7 +483,6 @@ def main():
 \\usepackage{{amsmath,amssymb,fancyhdr,longtable}}
 \\usepackage{{polyglossia}}
 \\setdefaultlanguage{{vietnamese}}
-% \\setmainfont{{Times New Roman}}
 \\usepackage{{tikz}}
 \\usetikzlibrary{{angles,patterns,calc,arrows,intersections}}
 \\usepackage[top=1.5cm, bottom=2cm, left=2cm, right=1.5cm]{{geometry}}

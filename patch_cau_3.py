@@ -1,175 +1,69 @@
-import math
-import os
-import sys
-import random
-from fractions import Fraction
-from typing import Tuple
+import re
 
-CONTEXTS = [
-    {
-        "space": r"Trung tâm TED",
-        "A_desc": r"học sinh học tập",
-        "S_desc": r"mái nhà",
-        "I_desc": r"hộp điện",
-        "plane_desc": r"mặt phẳng",
-        "a_stmt": r"Đáy của mái nhà nằm trên mặt phẳng $z - 2 = 0$.",
-        "b_stmt": r"Tọa độ đỉnh chóp của mái nhà là $S(5; 4; 5)$.",
-        "c_stmt": r"Ông Tâm muốn một mắc hai dây đèn led một dây LED xanh nối từ $A$ đến $D^\prime$ một dây nối đỏ từ $C$ đến $B^\prime$. Trong cùng một dây hai dây đèn từ $A$ đến $D^\prime$ và từ $C$ đến $B^\prime$ phát ra hai tia sáng với tốc độ lần lượt là $1.5cm/s$ và $3cm/s$. Khi đó, khoảng cách ngắn nhất giữa hai tia sáng là $2m$ (làm tròn đến hàng phần chục).",
-        "d_stmt": r"Ông Tâm có mua một cây thông cao $10m$ và trồng ở vị trí $(-8; -8; 0)$ để trang trí cho trung tâm trong dịp giáng sinh sắp tới. Biết rằng để kéo điện thắp sáng ngôi sao trên đỉnh có chữ TED (rất đẹp), ông Tâm phải đục một lỗ nhỏ trên mái nhà và kéo điện từ hộp điện nằm ở tâm của xà nhà lên đỉnh của ngôi sao đó. Ngoài ra để cho không khí thêm ấm cúng, ông Tâm mua một dây LED cắm từ hộp điện đến một điểm $M$ cách $D$ $0.5m$ rồi từ đó cuốn quanh tất cả các bức tường và lại quay trở lại $M$. Độ dài tối thiểu của dây điện và dây đèn cần dùng là làm tròn đến hàng phần trăm"
-    }
-]
+with open("2026/20_04/cau_3.py", "r", encoding="utf-8") as f:
+    content = f.read()
 
-def fmt_point(p):
-    return f"({p[0]}; {p[1]}; {p[2]})"
-
-def generate_question(context_idx=None) -> Tuple[str, str, str]:
-    if context_idx is None:
-        context = random.choice(CONTEXTS)
-    else:
-        context = CONTEXTS[context_idx % len(CONTEXTS)]
-        
-    A = (6, 4, 2)
-    B = (6, 6, 2)
-    C = (4, 6, 2)
-    D = (4, 4, 2)
-    
-    stem = r'''Trung tâm TED mới xây một ngôi nhà mới để cho học sinh học tập trải nghiệm có mái nhà là hình chóp tứ giác đều $S.ABCD$ có chiều cao là 2 mét. Trong hệ tọa độ $Oxyz$ (đơn vị đo trên các trục tính bằng mét), với các điểm ở đáy là $A(6; 4; 2)$, $B(6; 6; 2)$, $C(4; 6; 2)$, $D(4; 4; 2)$ và $S$ là đỉnh của mái nhà. Xét tính đúng/sai của các mệnh đề sau:
+stem_text = r"""stem = r'''Trung tâm TED mới xây một ngôi nhà mới để cho học sinh học tập trải nghiệm có mái nhà là hình chóp tứ giác đều $S.ABCD$ có chiều cao là 2 mét. Trong hệ tọa độ $Oxyz$ (đơn vị đo trên các trục tính bằng mét), với các điểm ở đáy là $A(6; 4; 2)$, $B(6; 6; 2)$, $C(4; 6; 2)$, $D(4; 4; 2)$ và $S$ là đỉnh của mái nhà. Xét tính đúng/sai của các mệnh đề sau:
 
 \begin{center}
-\begin{tikzpicture}[line join = round, line cap=round,>=stealth,font=\footnotesize,scale=1]
+\begin{tikzpicture}[line join = round, line cap=round,>=stealth,font=\footnotesize,scale=.8]
    \coordinate (S') at (-1.8,3.9);
    \coordinate (B') at (-3.2,-1.9);
    \coordinate (C') at (-0.7,0.7);
-   \coordinate (D) at (3.2,-0.2);
+   \coordinate (P9) at (3.2,-0.2);
    \coordinate (P11) at (4.1,-3.0);
    \coordinate (P15) at (7.0,-2.8);
    \coordinate (L) at (7.0,-0.4);
-   \coordinate (L1) at (7.0,2);
-   \coordinate (O) at (1,0.0);
-   \coordinate (x) at (-2,-3.3);
-   \coordinate (y) at (9.5,-0.0);
-   \coordinate (z) at (01,5.0);
-   \coordinate (C) at ($(L)!0.1!(C')$);
-   \coordinate (B) at ($(L)!0.285!(B')+(0,-1)$);
+   \coordinate (O) at (0.0,-0.0);
+   \coordinate (x) at (-2.9,-3.3);
+   \coordinate (y) at (8.4,-0.0);
+   \coordinate (z) at (0.0,5.0);
+   \coordinate (G) at ($(L)!0.233!(C')$);
+   \coordinate (B) at ($(L)!0.285!(B')$);
    \coordinate (S) at ($(L)!0.374!(S')$);
-   \coordinate (A) at ($(B) + (D) - (C)$);
+   \coordinate (A) at ($(B) + (P9) - (G)$);
    \coordinate (D12) at ($(A) + (P11) - (B)$);
-   \coordinate (D13) at ($(P11) + (C) - (B)$);
+   \coordinate (D13) at ($(P11) + (G) - (B)$);
    \coordinate (D14) at ($(D12) + (D13) - (P11)$);
-   \coordinate (O') at ($(A)!1/2!(C)$);
-   
-   \draw[black] (S) -- (C) -- (D13) coordinate (C') -- (P11) coordinate (B')-- (D12) coordinate (A')-- (A) -- (S);
+   % --- Vẽ các đối tượng ---
+   \draw[blue] (L) -- (B');
+   \draw[blue] (L) -- (S');
+   \draw[blue,dashed] (L) -- (C');
    %%%%%%%%%%%%%%%%%
-   \draw[black] (A) -- (B) -- (C) (S)--(B) (B) -- (P11);
+   \draw[black] (S) -- (G) -- (D13) -- (P11) -- (D12) -- (A) -- (S);
    %%%%%%%%%%%%%%%%%
-   \draw[black,dashed] (A) -- (D) -- (C);
+   \draw[black] (A) -- (B) -- (G) (S)--(B) (B) -- (P11);
+   %%%%%%%%%%%%%%%%%
+   \draw[black,dashed] (A) -- (P9) -- (G);
    %%%%%%%%%%%%%%%%%
    \draw[black,dashed] (D12) -- (D14) -- (D13);
    %%%%%%%%%%%%%%%%%
-   \draw[black,dashed] (D14)coordinate (D') -- (D) -- (S);
+   \draw[black,dashed] (D14) -- (P9) -- (S);
    %%%%%%%%%%%%%%%%%
-   % \draw[black,line width=4pt] (L1) -- (P15);
+   \draw[black,pattern=north west lines] (S') -- (B') -- (C') -- (S');
+   \draw[black,line width=4pt] (L) -- (P15);
    %%%%%%%%%%%%%%%%%
-   \draw[dashed] (O')--($(O')!0.2!(L1)+(0,0.75)$);
-   \draw  
-   ($(O')!0.2!(L1)+(0,0.75)$)--(8,2)
-   (O') coordinate (I) ;
-   \begin{scope}[red,line width=0.6pt]
-    \draw[dashed] (I) -- ($(D)!0.1!(C)$) coordinate (M)-- ($(D)!0.6!(A)$) --($(D')!1/2!(A')$)
-    --($(B')!1/2!(A')$)
-    ($(B)!0.2!(A)$)--($(B)!0.2!(C)$)
-    ($(B')!1/2!(C')$)--($(D')!0.75!(C')$)
-    --($(D)!0.1!(C)$)
-    ;
-    \draw ($(B')!1/2!(A')$)--($(B)!0.2!(A)$)
-    ($(B)!0.2!(C)$)--($(B')!1/2!(C')$)
-    ;
-   \end{scope}
-   \foreach \p/\r in {A/180,B/-40,C/-45,S/90,D/140,I/0,M/60}
+   \draw[blue,->] (O) -- (x);
+   \draw[blue,->,dashed] (O) -- (y);
+   \draw[blue,->] (O) -- (z);
+   \path (L)--(S) node[pos=0.5,sloped]{\textbf{<<}};
+   \path (L)--(B) node[pos=0.5,sloped]{\textbf{<<}};
+   \foreach \p/\r in {B'/-120,A/180,B/90,G/-45,L/0,S'/90,C'/40,O/-90,S/90}
    \fill (\p) circle (1.2pt) node[shift={(\r:3mm)}]{$\p$};
-   \tikzset{
-    thong/.pic={ 
-     \begin{scope}[transparency group, opacity=0.1]
-      \fill[black, shift={(0.1,-0.1)}] (1,-2)--(-1,-2)--(-1.2,-1)--(-0.8,-1)--(-0.8,-0.2) to [bend left =30] (-3.1,-0.5)--(-2.6,-0.2) to [bend left =15] (-4,0) to [bend right =20] (-2.25,1.25) to [bend left =10] (-3.5,1.4) to [bend right =20] (-1.3,3) to [bend left =15] (-2,2.8)to [bend right =10] (0,5) to [bend right =10] (2,2.2) to [bend left =15] (1.3,3) to [bend right =20] (3.5,1.4) to [bend left =10] (2.25,1.25) to [bend right =20] (4,0) to [bend left =15] (2.6,-0.2) --(3.1,-0.5) to [bend left =30] (0.8,-0.2)--(0.8,-1)--(1.2,-1)--(1,-2);
-     \end{scope}
-     \shade[left color=green!40!black, right color=green!40!black, middle color=green!60!yellow]
-     (1,-2)--(-1,-2)--(-1.2,-1)--(-0.8,-1)--(-0.8,-0.2) to [bend left =30] (-3.1,-0.5)--(-2.6,-0.2) to [bend left =15] (-4,0) to [bend right =20] (-2.25,1.25) to [bend left =10] (-3.5,1.4) to [bend right =20] (-1.3,3) to [bend left =15] (-2,2.8)to [bend right =10] (0,5) to [bend right =10] (2,2.2) to [bend left =15] (1.3,3) to [bend right =20] (3.5,1.4) to [bend left =10] (2.25,1.25) to [bend right =20] (4,0) to [bend left =15] (2.6,-0.2) --(3.1,-0.5) to [bend left =30] (0.8,-0.2)--(0.8,-1)--(1.2,-1)--(1,-2);
-    }
-   }
-   \shade[left color=brown!40!black, right color=brown!40!black, middle color=brown!80!orange] 
-   (7.9,-1) -- (8.1,-1) -- (8.3,-3) -- (7.7,-3) -- cycle;
-   % --- VẼ CÁC TẦNG LÁ ---
-   % Vẽ từ dưới lên trên (x từ -2 đến 0) để lớp trên đè lên lớp dưới
-   \foreach \x in {-2, -1.75, ..., 0} {
-    \path (8,1+\x-0.5) pic[scale=0.2]{thong};
-   }
-   
-   % 2. Các quả châu (Balls) - Rải ngẫu nhiên màu sắc
-   \foreach \h/\pos in {0.8/0.3, 0.5/-0.2, 0.2/0.4, -0.2/-0.4, -0.5/0.5, -0.8/-0.3, 0.0/0.0, -0.9/0.6, 0.4/-0.5} {
-    \shade[ball color=red] (8+\pos, 0.25+\h) circle (1.5pt);
-    \shade[ball color=yellow!90!black] (8-\pos*0.8, 0.45+\h) circle (1.5pt);
-    \shade[ball color=blue] (8+\pos*0.5, -0.2+\h) circle (1.5pt);
-   }
-   \node[star, star points=5, star point ratio=2.25, fill=yellow, draw=orange, line width=0.5pt, inner sep=3.5pt] 
-   at (8, 1.6) {};
-   \draw (8,1.6) node[scale=0.5]{\textbf{\color{red}TED}};
-   
-   
+   \draw (x) node[shift={(0:3mm)}]{$x$};
+   \draw (y) node[shift={(0:3mm)}]{$y$};
+   \draw (z) node[shift={(0:3mm)}]{$z$};
 \end{tikzpicture}
-\end{center}'''
-    
-    # Mệnh đề A
-    a_correct = random.choice([True, False])
-    stmt_a_text = context['a_stmt']
-    if not a_correct:
-        stmt_a_text = stmt_a_text.replace("z - 2 = 0", "z - 4 = 0")
-    stmt_a = rf"{'*' if a_correct else ''}a) {stmt_a_text}"
-        
-    sol_a = rf"""a) {'Đúng' if a_correct else 'Sai'}.
-Ta có các điểm ở đáy mái nhà: $A(6;4;2)$, $B(6;6;2)$, $C(4;6;2)$, $D(4;4;2)$.
-Nhận thấy tọa độ z của cả bốn điểm đều bằng 2, do đó các điểm $A$, $B$, $C$, $D$ cùng nằm trên mặt phẳng $z=2$ hay $z-2=0$."""
-    
-    # Mệnh đề B
-    b_correct = random.choice([True, False])
-    stmt_b_text = context['b_stmt']
-    if b_correct:
-         stmt_b_text = stmt_b_text.replace("S(5; 4; 5)", "S(5; 5; 4)")
-    stmt_b = rf"{'*' if b_correct else ''}b) {stmt_b_text}"
+\end{center}'''"""
 
-    sol_b = rf"""b) {'Đúng' if b_correct else 'Sai'}.
-Tâm của hình chữ nhật $ABCD$ là $O(\frac{{6+4}}{{2}};\frac{{4+6}}{{2}};2)=(5;5;2)$.
-Do mái nhà là hình chóp có chiều cao bằng 2 và đỉnh $S$ nằm trên đường thẳng vuông góc với mặt phẳng đáy tại $O$, nên tọa độ đỉnh chóp là $S(5;5;4)$.
-{'Trong khi đó mệnh đề cho rằng $S(5;4;5)$ là tọa độ đỉnh chóp, điều này không đúng.' if not b_correct else 'Điều này khớp với mệnh đề.'}"""
-    
-    # Mệnh đề C
-    c_correct = random.choice([True, False])
-    stmt_c_text = context['c_stmt']
-    if c_correct:
-        stmt_c_text = stmt_c_text.replace("2m", "2.8m")
-    stmt_c = rf"{'*' if c_correct else ''}c) {stmt_c_text}"
+content = re.sub(
+    r'stem \= rf"Trung tâm TED mới xây một ngôi nhà mới.*?Xét tính đúng/sai của các mệnh đề sau:"',
+    stem_text,
+    content,
+    flags=re.DOTALL
+)
 
-    sol_c = rf"""c) {'Đúng' if c_correct else 'Sai'}.
-Giả sử các bức tường của ngôi nhà vuông góc với mặt đất $z=0$. Lấy các điểm $A^{{\prime}}$, $B^{{\prime}}$, $C^{{\prime}}$, $D^{{\prime}}$ lần lượt là các hình chiếu vuông góc của $A$, $B$, $C$, $D$ xuống mặt phẳng $z=0$.
-Ta có $A(6;4;2)$, $C(4;6;2)$, $D^{{\prime}}(4;4;0)$, $B^{{\prime}}(6;6;0)$.
-$\overrightarrow{{AD^{{\prime}}}}=(-2;0;-2)$.
-$|\overrightarrow{{AD^{{\prime}}}}|=2\sqrt{{2}} \Rightarrow \vec{{u}}_{{1}}=(-\frac{{1}}{{\sqrt{{2}}}};0;-\frac{{1}}{{\sqrt{{2}}}})$.
-Vì $AQ=0,015t$ nên $Q(6-\frac{{0,015t}}{{\sqrt{{2}}}};4;2-\frac{{0,015t}}{{\sqrt{{2}}}})$.
-$\overrightarrow{{CB^{{\prime}}}}=(2;0;-2)$, $|\overrightarrow{{CB^{{\prime}}}}|=2\sqrt{{2}} \Rightarrow \vec{{u}}_{{2}}=(\frac{{1}}{{\sqrt{{2}}}};0;-\frac{{1}}{{\sqrt{{2}}}})$.
-$CR=0,03t$ nên $R(4+\frac{{0,03t}}{{\sqrt{{2}}}};6;2-\frac{{0,03t}}{{\sqrt{{2}}}})$.
-$QR^2=(-2-\frac{{0,045t}}{{\sqrt{{2}}}})^2+(-2)^2+(\frac{{0,015t}}{{\sqrt{{2}}}})^2=8+\frac{{0,18}}{{\sqrt{{2}}}}t+0,001125t^2$.
-$(QR^2)^{{\prime}}=\frac{{0,18}}{{\sqrt{{2}}}}+0,00225t>0 \ (t\ge0) \Rightarrow QR_{{\text{{min}}}}=QR(0)=\sqrt{{8}}=2\sqrt{{2}}\approx 2,8$ m.
-{'Khoảng cách ngắn nhất khác 2m nên mệnh đề sai.' if not c_correct else 'Khoảng cách xấp xỉ 2,8m nên mệnh đề đúng.'}"""
-    
-    # Mệnh đề D
-    d_correct = random.choice([True, False])
-    stmt_d_text = context['d_stmt']
-    if d_correct:
-         stmt_d_text = stmt_d_text + " là $32,55$ m."
-    else:
-         stmt_d_text = stmt_d_text + " là $30,00$ m."
-    stmt_d = rf"{'*' if d_correct else ''}d) {stmt_d_text}"
-
-    sol_d_text = r"""Phần dây điện thắp sáng ngôi sao:
+sol_d_text = r"""sol_d_text = r'''\textbf{Phần dây điện thắp sáng ngôi sao:}
 
 Hộp điện đặt tại tâm xà nhà (đáy nhà) $I(5;5;2).$
 
@@ -177,7 +71,7 @@ Cây thông ở vị trí $(-8;-8;0)$, cao $10\,\text{m}$ nên đỉnh cây thô
 
 Độ dài dây điện cần dùng là $\displaystyle IT = \sqrt{(-8-5)^2+(-8-5)^2+(10-2)^2} \approx 20{,}05\,\text{m}.$
 
-Phần dây đèn LED:
+\hspace{0,7cm}\textbf{Phần dây đèn LED:}
 
 Phần dây đèn LED chia làm 2 phần: phần 1 là đoạn nối từ hộp điện đến điểm $M$ và phần 2 từ $M$ cuốn quanh các bức tường.
 
@@ -187,7 +81,8 @@ Suy ra $IM=\sqrt{(4-5)^2+(4,5-5)^2+(2-2)^2} =\sqrt{1+0,25} =\sqrt{1,25}\approx 1
 
 Áp dụng phương pháp trải phẳng hình ta có hình sau, khi đó bài toán trở thành tìm độ dài ngắn nhất nối $M$ và $M'$ nằm trong các ô vuông:
 \begin{center}
-\begin{tikzpicture}[x=0.75pt,y=0.75pt,yscale=-1,xscale=1,line width=0.75pt]
+\tikzset{every picture/.style={line width=0.75pt}}       
+\begin{tikzpicture}[x=0.75pt,y=0.75pt,yscale=-1,xscale=1]
 \draw   (313.14,161) -- (376.43,161) -- (376.43,223.96) -- (313.14,223.96) -- cycle ;
 \draw   (376.43,161) -- (439.71,161) -- (439.71,223.96) -- (376.43,223.96) -- cycle ;
 \draw   (249.86,161) -- (313.14,161) -- (313.14,223.96) -- (249.86,223.96) -- cycle ;
@@ -223,7 +118,8 @@ Suy ra $IM=\sqrt{(4-5)^2+(4,5-5)^2+(2-2)^2} =\sqrt{1+0,25} =\sqrt{1,25}\approx 1
 
 Ta nối M và M' bằng đường màu đỏ, được hình sau:
 \begin{center}
-\begin{tikzpicture}[x=0.75pt,y=0.75pt,yscale=-1,xscale=1,line width=0.75pt]
+\tikzset{every picture/.style={line width=0.75pt}}       
+\begin{tikzpicture}[x=0.75pt,y=0.75pt,yscale=-1,xscale=1]
 \draw   (313.14,161) -- (376.43,161) -- (376.43,223.96) -- (313.14,223.96) -- cycle ;
 \draw   (376.43,161) -- (439.71,161) -- (439.71,223.96) -- (376.43,223.96) -- cycle ;
 \draw   (249.86,161) -- (313.14,161) -- (313.14,223.96) -- (249.86,223.96) -- cycle ;
@@ -261,7 +157,8 @@ Ta nối M và M' bằng đường màu đỏ, được hình sau:
 Ta có thể quan sát được đường màu đỏ là đường ngắn nhất nối $M$ và $M'$, tuy nhiên đường màu đỏ đi ra ngoài phạm vi các ô vuông. Từ đó, ta có thể tìm các đường nối $M$ và $M'$ gần với đường màu đỏ nhất. Ta dễ dàng xác định được đường màu xanh thỏa như sau:
 
 \begin{center}
-\begin{tikzpicture}[x=0.75pt,y=0.75pt,yscale=-1,xscale=1,line width=0.75pt]
+\tikzset{every picture/.style={line width=0.75pt}}       
+\begin{tikzpicture}[x=0.75pt,y=0.75pt,yscale=-1,xscale=1]
 \draw   (313.14,161) -- (376.43,161) -- (376.43,223.96) -- (313.14,223.96) -- cycle ;
 \draw   (376.43,161) -- (439.71,161) -- (439.71,223.96) -- (376.43,223.96) -- cycle ;
 \draw   (249.86,161) -- (313.14,161) -- (313.14,223.96) -- (249.86,223.96) -- cycle ;
@@ -301,81 +198,21 @@ Bằng định lý Pytago, ta có thể tính được độ dài các đoạn m
 
 Do đó độ dài đường ngắn nhất của dây đèn LED là $11,385+1,118=12,503$\,m.
 
-Vậy tổng độ dài phần dây điện và phần đèn LED là $12,503+20,05=32,553$\,m.
-"""
-    sol_d = f"d) {'Đúng' if d_correct else 'Sai'}.\n{sol_d_text}"
+Vậy tổng độ dài phân dây điện và phần đèn LED là $12,503+20,05=32,553$\,m.
+'''
 
-    question = rf"""{stem}
-
-{stmt_a}
-
-{stmt_b}
-
-{stmt_c}
-
-{stmt_d}"""
-
-    solution = rf"""{sol_a}
-
-{sol_b}
-
-{sol_c}
-
-{sol_d}"""
-
-    key = ", ".join(["Đ" if x else "S" for x in [a_correct, b_correct, c_correct, d_correct]])
-    
-    return question, solution, key
-
-def main():
-    num_questions = 1
-    if len(sys.argv) > 1:
-        num_questions = int(sys.argv[1])
-        
-    out_dir = os.path.dirname(os.path.abspath(__file__))
-    
-    content = ""
-    keys = []
-    
-    for i in range(num_questions):
-        q, s, k = generate_question(i % len(CONTEXTS))
-        keys.append(k)
-        content += rf"""Câu {i+1}: {q}
-
-Lời giải:
-
-{s}
-
+sol_d_format = f"d) {'Đúng' if d_correct else 'Sai'}.\n{sol_d_text}"
 """
 
-    template = r"""\documentclass[a4paper,12pt]{article}
-\usepackage{amsmath, amsfonts, amssymb}
-\usepackage{geometry}
-\geometry{a4paper, margin=1in}
-\usepackage{fontspec}
-\usepackage{polyglossia}
-\setmainlanguage{vietnamese}
-\usepackage{tikz}
-\usetikzlibrary{calc,angles,quotes,patterns,shapes.geometric}
+content = re.sub(
+    r'sol_d \= rf"""d\) \{\'Đúng\' if d_correct else \'Sai\'\}\..*?Vậy tổng độ dài phần dây điện và phần đèn LED là \$12,503 \+ 20,05 \= 32,553\$ m\."""',
+    sol_d_text + '\n    sol_d = f"""d) {{\'Đúng\' if d_correct else \'Sai\'}}.\n{sol_d_text}"""',
+    content,
+    flags=re.DOTALL
+)
 
-\newcommand{\heva}[1]{\left\{\begin{aligned}#1\end{aligned}\right.}
+content = content.replace(r"\usetikzlibrary{calc,angles,quotes}", r"\usetikzlibrary{calc,angles,quotes,patterns}")
 
-\begin{document}
-
-#CONTENT#
-
-\end{document}
-"""
-    tex_content = template.replace("#CONTENT#", content)
-
-    out_path = os.path.join(out_dir, "cau_3_questions.tex")
-    
-    with open(out_path, "w", encoding="utf-8") as f:
-        f.write(tex_content)
-
-    print(f"Đã tạo {num_questions} câu và lưu: {out_path}")
-    for i, k in enumerate(keys):
-        print(f"Câu {i+1}: {k}")
-
-if __name__ == "__main__":
-    main()
+with open("2026/20_04/cau_3.py", "w", encoding="utf-8") as f:
+    f.write(content)
+print("done")

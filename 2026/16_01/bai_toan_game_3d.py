@@ -71,6 +71,9 @@ def format_sqrt(n: int) -> str:
 
 def format_frac_sqrt(num_coef: int, num_sqrt: int, denom: int) -> str:
     """Format (num_coef * sqrt(num_sqrt)) / denom in LaTeX."""
+    if num_coef == 0 or num_sqrt == 0:
+        return "0"
+        
     from math import gcd
     
     # Simplify the sqrt first
@@ -282,7 +285,7 @@ def create_latex_document(content: str) -> str:
 \geometry{a4paper, margin=1in}
 \usepackage{polyglossia}
 \setmainlanguage{vietnamese}
-\setmainfont{Times New Roman}
+%\setmainfont{Times New Roman}
 \usepackage{enumitem}
 \usepackage{tikz}
 \usetikzlibrary{calc,angles,quotes,intersections}
@@ -341,7 +344,7 @@ PRESET_4 = {
     'plane': (2, -1, 2, -10),
     'sphere_center': (1, 0, 1),
     'sphere_radius_sq': 1,
-    'direction': (1, 2, 0),
+    'direction': (0, 1, 1),
     'context': 'bắn tia laser vào khiên năng lượng'
 }
 
@@ -350,7 +353,7 @@ PRESET_5 = {
     'plane': (1, 1, 1, -6),
     'sphere_center': (1, 1, 1),
     'sphere_radius_sq': 1,
-    'direction': (1, -1, 0),
+    'direction': (0, 1, 1),
     'context': 'phóng tên lửa vào mục tiêu'
 }
 
@@ -388,7 +391,7 @@ PRESET_9 = {
     'plane': (1, 2, -2, -3),
     'sphere_center': (1, 0, 2),
     'sphere_radius_sq': 1,
-    'direction': (2, 0, 1),
+    'direction': (1, 1, 0),
     'context': 'bắn pháo sáng vào vùng tối'
 }
 
@@ -413,9 +416,9 @@ PRESET_11 = {
 }
 
 # Preset 12: I=(1,0,1), P: 2x-2y+z-5=0 => d=|2-0+1-5|/3 = 2/3 < R=1... bad
-# Try P: 2x-2y+z-9=0 => d=|2-0+1-9|/3 = 6/3 = 2 > R=1 ✓
+# Try P: 2x-2y+z-10=0 => d=|2-0+1-10|/3 = 7/3 > R=1 ✓
 PRESET_12 = {
-    'plane': (2, -2, 1, -9),
+    'plane': (2, -2, 1, -10),
     'sphere_center': (1, 0, 1),
     'sphere_radius_sq': 1,
     'direction': (1, 1, 2),
@@ -438,7 +441,7 @@ PRESET_14 = {
     'plane': (2, 1, 1, -10),
     'sphere_center': (1, 1, 1),
     'sphere_radius_sq': 1,
-    'direction': (0, 1, -1),
+    'direction': (0, 1, 1),
     'context': 'phóng tia đông lạnh'
 }
 
@@ -448,7 +451,7 @@ PRESET_15 = {
     'plane': (1, -1, -1, 7),
     'sphere_center': (0, 0, 1),
     'sphere_radius_sq': 1,
-    'direction': (1, 1, 0),
+    'direction': (1, -1, 0),
     'context': 'bắn pháo hoa vào bầu trời'
 }
 
@@ -488,7 +491,7 @@ PRESET_19 = {
     'plane': (1, 1, 2, -14),
     'sphere_center': (2, 2, 1),
     'sphere_radius_sq': 1,
-    'direction': (1, -1, 0),
+    'direction': (0, 1, 1),
     'context': 'bắn đạn xuyên giáp'
 }
 
@@ -498,7 +501,7 @@ PRESET_20 = {
     'plane': (2, 1, -1, -10),
     'sphere_center': (1, 1, -1),
     'sphere_radius_sq': 1,
-    'direction': (1, 0, 2),
+    'direction': (1, 0, 1),
     'context': 'phóng lựu đạn vào boongke'
 }
 
@@ -534,7 +537,7 @@ Lời giải:
 
 a) Mệnh đề ${ans_a}.
 
-Ta có \(d(I,(P))=\dfrac{|${dist_numerator}|}{${dist_denom}}=${dist_IP}\); ${dist_compare_text}; do đó \((P)\) và mặt cầu \((S)\) ${intersection_text}.
+Ta có \(d(I,(P))=\dfrac{|${dist_numerator}|}{${dist_denom}}=${dist_IP}\); \(${dist_compare_text}\); do đó \((P)\) và mặt cầu \((S)\) ${intersection_text}.
 
 b) Mệnh đề ${ans_b}.
 
@@ -558,7 +561,7 @@ d) Mệnh đề ${ans_d}.
 
 Gọi giao điểm của \(MN\) với mặt cầu là \(P'\) và \(E\) là trung điểm của \(NP'\).
 
-Ta có: \(\sin\varphi = \cos \widehat{HNM}=\dfrac{NE}{NI}\Rightarrow NE=NI \cdot \cos \widehat{HNM}=${ne_calc}\Rightarrow NP'=${chord_true}\).
+Ta có: \(\sin\varphi = \cos \widehat{HNM}=\dfrac{NE}{NI}\Rightarrow NE=NI \cdot \sin\varphi = ${R_str} \cdot ${sin_phi} = ${ne_calc}\Rightarrow NP'=2 \cdot NE=${chord_true}\).
 
 \begin{center}
 \begin{tikzpicture}[line join=round, line cap=round, >=stealth]
@@ -682,8 +685,13 @@ class Game3DQuestion:
         if a != 0:
             x0 = -d / a
             self.player_pos = (x0, 0, 0)
+        elif b != 0:
+            y0 = -d / b
+            self.player_pos = (0, y0, 0)
+        elif c != 0:
+            z0 = -d / c
+            self.player_pos = (0, 0, z0)
         else:
-            # If a = 0, plane doesn't intersect Ox properly, use default
             self.player_pos = (0, 0, 0)
 
     def solve(self) -> Dict[str, Any]:
@@ -763,11 +771,9 @@ class Game3DQuestion:
         tv = self.true_values
         R = tv['R']
         
-        # A: No intersection - this is boolean, distort by negating statement
-        if random.random() < 0.5:
-            self.res_a = tv['no_intersection']
-        else:
-            self.res_a = not tv['no_intersection']
+        # A: No intersection - this is boolean. The statement text is fixed as "không có điểm chung".
+        # Therefore, the answer must always reflect the truth value of the fixed text.
+        self.res_a = tv['no_intersection']
         
         # B: Distance from I to line
         dist_true = tv['dist_I_to_line']
@@ -781,28 +787,21 @@ class Game3DQuestion:
         if random.random() < 0.5:
             self.res_b = True
             # Format true value
-            self.prop_b_val = format_frac_sqrt(1, int(cross_norm_sq), int(math.sqrt(u_norm_sq))) if u_norm_sq in [1, 4, 9] else format_frac_sqrt(1, int(cross_norm_sq * u_norm_sq), int(u_norm_sq))
             # Simplify: sqrt(cross_norm_sq) / sqrt(u_norm_sq)
-            a_coef, a_sqrt = simplify_sqrt(int(cross_norm_sq))
-            b_coef = int(math.sqrt(u_norm_sq)) if math.sqrt(u_norm_sq) == int(math.sqrt(u_norm_sq)) else 1
-            if b_coef > 0:
-                from math import gcd
-                g = gcd(a_coef, b_coef)
-                self.prop_b_val = format_frac_sqrt(a_coef // g, a_sqrt, b_coef // g)
-            else:
-                self.prop_b_val = format_sqrt(int(cross_norm_sq))
+            num_sq = int(cross_norm_sq) * int(u_norm_sq)
+            denom_val = int(u_norm_sq)
+            a_coef, a_sqrt = simplify_sqrt(num_sq)
+            self.prop_b_val = format_frac_sqrt(a_coef, a_sqrt, denom_val)
         else:
             self.res_b = False
             # Distort by changing numerator or denominator
             fake_cross_sq = int(cross_norm_sq) + random.choice([1, -1, 2, -2, 4])
             if fake_cross_sq <= 0:
                 fake_cross_sq = int(cross_norm_sq) + 4
-            a_coef, a_sqrt = simplify_sqrt(fake_cross_sq)
-            b_coef = int(math.sqrt(u_norm_sq)) if math.sqrt(u_norm_sq) == int(math.sqrt(u_norm_sq)) else 1
-            if b_coef > 0:
-                self.prop_b_val = format_frac_sqrt(a_coef, a_sqrt, b_coef)
-            else:
-                self.prop_b_val = format_sqrt(fake_cross_sq)
+            num_sq = fake_cross_sq * int(u_norm_sq)
+            denom_val = int(u_norm_sq)
+            a_coef, a_sqrt = simplify_sqrt(num_sq)
+            self.prop_b_val = format_frac_sqrt(a_coef, a_sqrt, denom_val)
         
         # C: Minimum distance MN
         MN_min = tv['MN_min']
@@ -826,12 +825,27 @@ class Game3DQuestion:
             if MN_min < 10:
                 # Try to get a nice form
                 mn_sq = MN_min * MN_min
-                if abs(mn_sq - round(mn_sq)) < 0.0001:
+                if abs(mn_sq - round(mn_sq)) < 1e-9:
                     self.prop_c_val = format_sqrt(int(round(mn_sq)))
+                elif MN_min == int(MN_min):
+                    self.prop_c_val = str(int(MN_min))
                 else:
-                    self.prop_c_val = f"{MN_min:.4f}".rstrip('0').rstrip('.')
+                    from fractions import Fraction as Frac3
+                    f3 = Frac3(MN_min).limit_denominator(100)
+                    if abs(float(f3) - MN_min) < 1e-9:
+                        self.prop_c_val = format_fraction(MN_min)
+                    else:
+                        self.prop_c_val = f"{MN_min:.2f}"
             else:
-                self.prop_c_val = f"{MN_min:.2f}"
+                if MN_min == int(MN_min):
+                    self.prop_c_val = str(int(MN_min))
+                else:
+                    from fractions import Fraction as Frac4
+                    f4 = Frac4(MN_min).limit_denominator(100)
+                    if abs(float(f4) - MN_min) < 1e-9:
+                        self.prop_c_val = format_fraction(MN_min)
+                    else:
+                        self.prop_c_val = f"{MN_min:.2f}"
         else:
             self.res_c = False
             # Distort
@@ -839,20 +853,55 @@ class Game3DQuestion:
             fake_sq = fake_MN * fake_MN
             if fake_sq < 10000 and abs(fake_sq - round(fake_sq)) < 0.1:
                 self.prop_c_val = format_sqrt(int(round(fake_sq)))
+            elif fake_MN == int(fake_MN):
+                self.prop_c_val = str(int(fake_MN))
             else:
-                self.prop_c_val = f"{fake_MN:.2f}"
+                from fractions import Fraction as Frac5
+                f5 = Frac5(fake_MN).limit_denominator(100)
+                if abs(float(f5) - fake_MN) < 1e-9:
+                    self.prop_c_val = format_fraction(fake_MN)
+                else:
+                    self.prop_c_val = f"{fake_MN:.2f}"
         
-        # D: Chord length
-        chord = tv['chord_length']
-        R = tv['R']
+        # D: Chord length — use exact symbolic form
+        # chord = 2 * R * sin_phi = 2R * |u·n| / (|u| * |n|)
+        R_val = tv['R']
+        dot_abs_val = abs(int(tv['dot_u_n']))
+        u_norm_sq_val = int(tv['u_norm_sq'])
+        n_norm_sq_val = int(tv['n_norm_sq'])
+        denom_sq_val = u_norm_sq_val * n_norm_sq_val
+        R_int_val = int(round(R_val)) if abs(R_val - round(R_val)) < 0.0001 else None
+        
+        def _format_chord_exact(multiplier: int) -> str:
+            """Format multiplier * R * |u·n| / sqrt(denom_sq_val) exactly."""
+            if R_int_val is not None:
+                num = multiplier * R_int_val * dot_abs_val
+                d_a, d_b = simplify_sqrt(denom_sq_val)
+                if d_b == 1:
+                    from math import gcd
+                    g = gcd(num, d_a)
+                    if d_a // g == 1:
+                        return str(num // g)
+                    else:
+                        return f"\\dfrac{{{num // g}}}{{{d_a // g}}}"
+                else:
+                    new_num = num
+                    new_denom = d_a * d_b
+                    from math import gcd
+                    g = gcd(new_num, new_denom)
+                    return format_frac_sqrt(new_num // g, d_b, new_denom // g)
+            else:
+                chord_val = multiplier * R_val * sin_phi
+                return format_chord_value(chord_val, R_val, sin_phi)
         
         if random.random() < 0.5:
             self.res_d = True
-            self.prop_d_val = format_chord_value(chord, R, sin_phi)
+            self.prop_d_val = _format_chord_exact(2)
         else:
             self.res_d = False
-            fake_chord = chord * random.choice([1.5, 2, 0.5])
-            self.prop_d_val = format_chord_value(fake_chord, R, sin_phi)
+            # Distort by using different multiplier
+            fake_mult = random.choice([1, 3, 4])
+            self.prop_d_val = _format_chord_exact(fake_mult)
 
     @staticmethod
     def label_with_star(letter: str, is_true: bool) -> str:
@@ -889,22 +938,46 @@ class Game3DQuestion:
         n_norm_sq = tv['n_norm_sq']
         dist_I_P = tv['dist_I_P']
         
-        # Format distance from I to P
+        # Format distance from I to P: d = |numerator| / sqrt(n_norm_sq)
         dist_denom = format_sqrt(int(n_norm_sq))
-        if dist_I_P == int(dist_I_P):
-            dist_IP_str = str(int(dist_I_P))
+        abs_num = abs(int(numerator))
+        n_sqrt_int = int(math.sqrt(n_norm_sq)) if math.sqrt(n_norm_sq) == int(math.sqrt(n_norm_sq)) else None
+        
+        if n_sqrt_int is not None:
+            # Rational: dist = abs_num / n_sqrt_int
+            from math import gcd
+            g = gcd(abs_num, n_sqrt_int)
+            num_s = abs_num // g
+            den_s = n_sqrt_int // g
+            if den_s == 1:
+                dist_IP_str = str(num_s)
+            else:
+                dist_IP_str = f"\\dfrac{{{num_s}}}{{{den_s}}}"
         else:
-            dist_IP_str = f"{dist_I_P:.4f}".rstrip('0').rstrip('.')
+            # Irrational: dist = abs_num / sqrt(n_norm_sq), rationalize
+            # = abs_num * sqrt(n_norm_sq) / n_norm_sq
+            da, db = simplify_sqrt(int(n_norm_sq))
+            if db == 1:
+                # n_norm_sq is perfect square (shouldn't reach here)
+                dist_IP_str = f"\\dfrac{{{abs_num}}}{{{da}}}"
+            else:
+                # Rationalize: abs_num / (da * sqrt(db)) = abs_num * sqrt(db) / (da * db)
+                new_num = abs_num
+                new_denom = da * db
+                from math import gcd
+                g = gcd(new_num, new_denom)
+                dist_IP_str = format_frac_sqrt(new_num // g, db, new_denom // g)
         
         # Comparison with R
+        R_str_cmp = str(int(R)) if R == int(R) else format_sqrt(self.sphere_radius_sq)
         if dist_I_P > R:
-            dist_compare = f"{dist_IP_str} > R = {int(R) if R == int(R) else R}"
+            dist_compare = f"{dist_IP_str} > R = {R_str_cmp}"
             intersection_text = "không có điểm chung"
         elif dist_I_P == R:
             dist_compare = f"{dist_IP_str} = R"
             intersection_text = "tiếp xúc nhau"
         else:
-            dist_compare = f"{dist_IP_str} < R = {int(R) if R == int(R) else R}"
+            dist_compare = f"{dist_IP_str} < R = {R_str_cmp}"
             intersection_text = "cắt nhau"
         
         # Format cross product and norms for solution
@@ -915,27 +988,30 @@ class Game3DQuestion:
         u_norm_str = format_sqrt(int(u_norm_sq))
         
         # True distance from I to line
-        a_coef, a_sqrt = simplify_sqrt(int(cross_norm_sq))
-        b_coef = int(math.sqrt(u_norm_sq)) if math.sqrt(u_norm_sq) == int(math.sqrt(u_norm_sq)) else 1
-        if b_coef > 0:
-            from math import gcd
-            g = gcd(a_coef, b_coef)
-            dist_I_to_line_true = format_frac_sqrt(a_coef // g, a_sqrt, b_coef // g)
-        else:
-            dist_I_to_line_true = format_sqrt(int(cross_norm_sq))
+        num_sq = int(cross_norm_sq) * int(u_norm_sq)
+        denom_val = int(u_norm_sq)
+        
+        a_coef, a_sqrt = simplify_sqrt(num_sq)
+        dist_I_to_line_true = format_frac_sqrt(a_coef, a_sqrt, denom_val)
         
         # Sin phi calculation
         dot_u_n = tv['dot_u_n']
         sin_phi = tv['sin_phi']
         
         # Format sin_phi
-        # sin_phi = |dot_u_n| / (sqrt(u_norm_sq) * sqrt(n_norm_sq))
         sin_num = abs(int(dot_u_n))
         sin_denom_sq = int(u_norm_sq * n_norm_sq)
         sin_denom_a, sin_denom_b = simplify_sqrt(sin_denom_sq)
         
         if sin_denom_b == 1:
-            sin_phi_str = f"\\dfrac{{{sin_num}}}{{{sin_denom_a}}}"
+            from math import gcd
+            g = gcd(sin_num, sin_denom_a)
+            sin_num_s = sin_num // g
+            sin_denom_s = sin_denom_a // g
+            if sin_denom_s == 1:
+                sin_phi_str = str(sin_num_s)
+            else:
+                sin_phi_str = f"\\dfrac{{{sin_num_s}}}{{{sin_denom_s}}}"
         else:
             sin_phi_str = f"\\dfrac{{{sin_num}}}{{{sin_denom_a}\\sqrt{{{sin_denom_b}}}}}" if sin_denom_a > 1 else f"\\dfrac{{{sin_num}}}{{\\sqrt{{{sin_denom_b}}}}}"
         
@@ -956,9 +1032,21 @@ class Game3DQuestion:
         else:
             mn_formula = f"\\dfrac{{1}}{{{sin_phi_str}}}"
         
-        # NH_min calculation
+        # NH_min calculation: NH_min = d(I,P) - R
         NH_min = tv['NH_min']
-        nh_min_str = f"{dist_IP_str} - {int(R) if R == int(R) else R} = {NH_min:.4f}".rstrip('0').rstrip('.')
+        R_int_nh = int(round(R)) if abs(R - round(R)) < 0.0001 else None
+        R_display = str(int(R)) if R_int_nh is not None else format_sqrt(self.sphere_radius_sq)
+        # Format NH_min: exact if rational, 2dp if irrational
+        if NH_min == int(NH_min):
+            nh_val_str = str(int(NH_min))
+        else:
+            from fractions import Fraction as Frac
+            f = Frac(NH_min).limit_denominator(100)
+            if abs(float(f) - NH_min) < 1e-9:
+                nh_val_str = format_fraction(NH_min)
+            else:
+                nh_val_str = f"{NH_min:.2f}"
+        nh_min_str = f"{dist_IP_str} - {R_display} = {nh_val_str}"
         
         # Min distance true value
         MN_min = tv['MN_min']
@@ -966,20 +1054,88 @@ class Game3DQuestion:
             min_dist_true = "\\infty"
         else:
             mn_sq = MN_min * MN_min
-            if abs(mn_sq - round(mn_sq)) < 0.0001:
+            if abs(mn_sq - round(mn_sq)) < 1e-9:
                 min_dist_true = format_sqrt(int(round(mn_sq)))
             else:
-                min_dist_true = f"{MN_min:.4f}".rstrip('0').rstrip('.')
+                # Check for simple fraction
+                from fractions import Fraction as Frac2
+                f2 = Frac2(MN_min).limit_denominator(100)
+                if abs(float(f2) - MN_min) < 1e-9:
+                    min_dist_true = format_fraction(MN_min)
+                else:
+                    min_dist_true = f"{MN_min:.2f}"
         
-        # NE and chord calculations
-        NE = tv['NE']
-        chord = tv['chord_length']
+        # NE and chord calculations — use exact symbolic form
+        # NE = R * |u·n| / (|u| * |n|)
+        # NP' = 2 * NE = 2R * |u·n| / (|u| * |n|)
+        # The denominator is |u| * |n| = sqrt(u_norm_sq) * sqrt(n_norm_sq) = sqrt(u_norm_sq * n_norm_sq)
+        dot_abs = abs(int(dot_u_n))
+        denom_sq = int(u_norm_sq * n_norm_sq)
         
-        # Format NE as fraction
-        ne_str = format_fraction(NE)
+        # NE = R * dot_abs / sqrt(denom_sq)  (R is always sqrt(R_sq), here R_sq is integer)
+        # Since R = sqrt(R_sq), NE = sqrt(R_sq) * dot_abs / sqrt(denom_sq)
+        #                         = dot_abs * sqrt(R_sq) / sqrt(denom_sq)
+        #                         = dot_abs / sqrt(denom_sq / R_sq)  if R_sq divides denom_sq
+        # But simpler: NE = dot_abs * sqrt(R_sq) / sqrt(denom_sq)
+        #                 = dot_abs * sqrt(R_sq / gcd_factor) / sqrt(denom_sq / gcd_factor)
+        # Let's just compute: NE_num_coef = dot_abs, NE_num_sqrt = R_sq, NE_denom_sqrt = denom_sq
+        # NE = dot_abs * sqrt(R_sq) / sqrt(denom_sq)
+        # If R_sq is a perfect square (e.g. R_sq=1 => R=1), simplify:
+        R_int = int(round(R)) if abs(R - round(R)) < 0.0001 else None
+        R_str = str(int(self.sphere_radius_sq)) if self.sphere_radius_sq == 1 else format_sqrt(self.sphere_radius_sq)
+        # Actually R = sqrt(R_sq); format R as LaTeX
+        if self.sphere_radius_sq == 1:
+            R_str = "1"
+        else:
+            R_str = format_sqrt(self.sphere_radius_sq)
         
-        # Format chord as fraction or sqrt
-        chord_true = format_chord_value(chord, R, tv['sin_phi'])
+        if R_int is not None:
+            # R is integer, NE = R * dot_abs / sqrt(denom_sq)
+            ne_num = R_int * dot_abs
+            ne_str = format_frac_sqrt(ne_num, 1, 1)  # placeholder
+            # Need: ne_num / sqrt(denom_sq)
+            d_a, d_b = simplify_sqrt(denom_sq)
+            if d_b == 1:
+                # denom is integer d_a
+                from math import gcd
+                g = gcd(ne_num, d_a)
+                if d_a // g == 1:
+                    ne_str = str(ne_num // g)
+                else:
+                    ne_str = f"\\dfrac{{{ne_num // g}}}{{{d_a // g}}}"
+            else:
+                # denom is d_a * sqrt(d_b), rationalize:
+                # ne_num / (d_a * sqrt(d_b)) = ne_num * sqrt(d_b) / (d_a * d_b)
+                new_num = ne_num
+                new_denom = d_a * d_b
+                from math import gcd
+                g = gcd(new_num, new_denom)
+                ne_str = format_frac_sqrt(new_num // g, d_b, new_denom // g)
+        else:
+            # R is irrational sqrt(R_sq)
+            # NE = dot_abs * sqrt(R_sq) / sqrt(denom_sq) = dot_abs * sqrt(R_sq / denom_sq) ... complex
+            # For simplicity, use the float version with format_fraction
+            ne_str = format_fraction(tv['NE'])
+        
+        # Chord = 2 * NE, same structure
+        if R_int is not None:
+            chord_num = 2 * R_int * dot_abs
+            d_a, d_b = simplify_sqrt(denom_sq)
+            if d_b == 1:
+                from math import gcd
+                g = gcd(chord_num, d_a)
+                if d_a // g == 1:
+                    chord_true = str(chord_num // g)
+                else:
+                    chord_true = f"\\dfrac{{{chord_num // g}}}{{{d_a // g}}}"
+            else:
+                new_num = chord_num
+                new_denom = d_a * d_b
+                from math import gcd
+                g = gcd(new_num, new_denom)
+                chord_true = format_frac_sqrt(new_num // g, d_b, new_denom // g)
+        else:
+            chord_true = format_chord_value(tv['chord_length'], R, tv['sin_phi'])
         
         params = {
             'idx': idx,
@@ -1025,6 +1181,7 @@ class Game3DQuestion:
             
             'ne_calc': ne_str,
             'chord_true': chord_true,
+            'R_str': R_str,
         }
         
         question = TEMPLATE_Q.substitute(params)
