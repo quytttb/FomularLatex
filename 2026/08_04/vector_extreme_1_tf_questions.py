@@ -120,8 +120,7 @@ def generate_base_params():
 def format_vector_term(coeff, vec_name):
     if coeff == 1: return rf"\overrightarrow{{{vec_name}}}"
     elif coeff == -1: return rf"-\overrightarrow{{{vec_name}}}"
-    elif coeff > 0: return rf"{coeff}\overrightarrow{{{vec_name}}}"
-    else: return rf"{-coeff}\overrightarrow{{{vec_name}}}"
+    else: return rf"{coeff}\overrightarrow{{{vec_name}}}"
 
 def format_vector_eq(ka, kb, kc):
     parts = []
@@ -201,7 +200,7 @@ def generate_menh_de_a(prob_type, params):
 Suy ra tâm tỉ cự $I({I[0]}; {I[1]}; {I[2]})$. {f"Và lượng hằng số $C_0 = {ka} IA^2 {kb:+} IB^2 {kc:+} IC^2 = {C0}$." if prob_type == 2 else ""}
 Cho mặt phẳng $(P)$ là ${P_str}$. Điểm $M$ thuộc $(P)$ để $P$ đạt GTNN khi $M$ là hình chiếu vuông góc của $I$ lên $(P)$. 
 Tính toán hình chiếu ta được toạ độ $M({M[0]}; {M[1]}; {M[2]})$.
-Khi đó $\min P = m = {int(m_val) if isinstance(m_val, int) or isinstance(m_val, float) and m_val.is_integer() else f"{K}\sqrt{{{dist_sq}}}"}$.
+Khi đó $\min P = m = {int(m_val) if isinstance(m_val, int) or (isinstance(m_val, float) and m_val.is_integer()) else f"{K}\\sqrt{{{dist_sq}}}"}$.
 Với toạ độ $M(x_M; y_M; z_M)$, ta tính được $S = {expr_str} = {true_val:.1f}$.'''
     return stmt, is_true, loigiai
 
@@ -263,7 +262,7 @@ def generate_menh_de_b(prob_type, params):
 Điểm $M \in d$ để $P$ đạt GTNN khi $M$ là hình chiếu vuông góc của $I$ lên $d$.
 Tính toán hình chiếu ta được toạ độ $M({M[0]}; {M[1]}; {M[2]})$.
 Khoảng cách $IM = \sqrt{{{dist_sq}}}$.
-Khi đó $m = {int(m_val) if type(m_val)!=float or m_val.is_integer() else f"{K}\sqrt{{{dist_sq}}}" }$.
+Khi đó $m = {int(m_val) if type(m_val)!=float or m_val.is_integer() else f"{K}\\sqrt{{{dist_sq}}}" }$.
 Với toạ độ $x_M, y_M, z_M$, ta tính được $S = {expr_str} = {true_val:.1f}$.'''
     return stmt, is_true, loigiai
 

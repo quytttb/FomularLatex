@@ -555,7 +555,7 @@ Xét tam giác \(MNH\) vuông tại \(H\), ta có \(\sin \varphi=\dfrac{NH}{MN} 
 
 Dễ thấy \(MN\) nhỏ nhất khi và chỉ khi \(NH\) nhỏ nhất; mà \(NH \leq d(I,(P))-R=${nh_min_calc}\).
 
-Do đó \(MN\) nhỏ nhất bằng \(${min_dist_true}\); khi đó \(N, I, H\) nằm trên đường thẳng vuông góc với \((P)\).
+Do đó \(MN\) nhỏ nhất bằng \(${mn_formula} \cdot ${nh_val_str} = ${min_dist_true}\); khi đó \(N, I, H\) nằm trên đường thẳng vuông góc với \((P)\).
 
 d) Mệnh đề ${ans_d}.
 
@@ -766,6 +766,63 @@ class Game3DQuestion:
         
         return self.true_values
 
+    def _format_mn_symbolic(self, mn_value: float, scale: float = 1.0) -> str:
+        """Format MN_min (or a scaled version) symbolically.
+        
+        When n_sq is a perfect square:
+          MN = (|num| - n_int * R) * sqrt(u_sq) / |dot_u_n|
+          => coef * sqrt(u_sq) / denom, use format_frac_sqrt
+        Otherwise fall back to format_fraction or decimal.
+        """
+        tv = self.true_values
+        n_norm_sq = int(tv['n_norm_sq'])
+        n_norm_int = int(math.sqrt(n_norm_sq))
+        is_perfect_n = (n_norm_int * n_norm_int == n_norm_sq)
+        
+        val = mn_value * scale
+        
+        if is_perfect_n:
+            u_norm_sq = int(tv['u_norm_sq'])
+            dot_abs = abs(int(tv['dot_u_n']))
+            R_int = int(round(tv['R']))
+            abs_num = abs(int(tv['numerator']))
+            # base MN coef = abs_num - n_norm_int * R_int
+            base_coef = abs_num - n_norm_int * R_int
+            if base_coef <= 0:
+                return "0"
+            # Apply scale: if scale is a simple rational (0.5, 1.5, 2, 3, etc.)
+            from fractions import Fraction as _F
+            scale_frac = _F(scale).limit_denominator(10)
+            # coef_num / coef_den * base_coef * sqrt(u_sq) / dot_abs
+            # = (scale_num * base_coef) * sqrt(u_sq) / (scale_den * dot_abs)
+            final_num = int(scale_frac.numerator) * base_coef
+            final_den = int(scale_frac.denominator) * dot_abs
+            from math import gcd
+            # simplify with sqrt first
+            a_s, b_s = simplify_sqrt(u_norm_sq)
+            # result = final_num * a_s * sqrt(b_s) / final_den
+            total_num = final_num * a_s
+            g = gcd(abs(total_num), final_den)
+            total_num //= g
+            final_den //= g
+            if b_s == 1:
+                if final_den == 1:
+                    return str(total_num)
+                return f"\\dfrac{{{total_num}}}{{{final_den}}}"
+            if total_num == 1 and final_den == 1:
+                return f"\\sqrt{{{b_s}}}"
+            if final_den == 1:
+                return f"{total_num}\\sqrt{{{b_s}}}"
+            return format_frac_sqrt(total_num, b_s, final_den)
+        else:
+            # Non-perfect n_sq: use format_fraction or decimal
+            if val == int(val):
+                return str(int(val))
+            frac = Fraction(val).limit_denominator(100)
+            if abs(float(frac) - val) < 1e-6:
+                return format_fraction(val)
+            return f"{val:.2f}"
+
     def distort_and_set_props(self):
         """Set proposition values, with 50% chance of distortion for each."""
         tv = self.true_values
@@ -814,54 +871,11 @@ class Game3DQuestion:
             self.prop_c_val = "\\infty"
         elif random.random() < 0.5:
             self.res_c = True
-            # Calculate exact form: NH_min / sin_phi
-            # sin_phi = |dot_u_n| / (|u| * |n|)
-            # MN_min = NH_min * |u| * |n| / |dot_u_n|
-            dot_val = abs(tv['dot_u_n'])
-            u_n = math.sqrt(tv['u_norm_sq'])
-            n_n = math.sqrt(tv['n_norm_sq'])
-            
-            # MN_min = NH_min / sin_phi = NH_min * u_n * n_n / dot_val
-            if MN_min < 10:
-                # Try to get a nice form
-                mn_sq = MN_min * MN_min
-                if abs(mn_sq - round(mn_sq)) < 1e-9:
-                    self.prop_c_val = format_sqrt(int(round(mn_sq)))
-                elif MN_min == int(MN_min):
-                    self.prop_c_val = str(int(MN_min))
-                else:
-                    from fractions import Fraction as Frac3
-                    f3 = Frac3(MN_min).limit_denominator(100)
-                    if abs(float(f3) - MN_min) < 1e-9:
-                        self.prop_c_val = format_fraction(MN_min)
-                    else:
-                        self.prop_c_val = f"{MN_min:.2f}"
-            else:
-                if MN_min == int(MN_min):
-                    self.prop_c_val = str(int(MN_min))
-                else:
-                    from fractions import Fraction as Frac4
-                    f4 = Frac4(MN_min).limit_denominator(100)
-                    if abs(float(f4) - MN_min) < 1e-9:
-                        self.prop_c_val = format_fraction(MN_min)
-                    else:
-                        self.prop_c_val = f"{MN_min:.2f}"
+            self.prop_c_val = self._format_mn_symbolic(MN_min)
         else:
             self.res_c = False
-            # Distort
-            fake_MN = MN_min * random.choice([1.5, 2, 0.5, 3])
-            fake_sq = fake_MN * fake_MN
-            if fake_sq < 10000 and abs(fake_sq - round(fake_sq)) < 0.1:
-                self.prop_c_val = format_sqrt(int(round(fake_sq)))
-            elif fake_MN == int(fake_MN):
-                self.prop_c_val = str(int(fake_MN))
-            else:
-                from fractions import Fraction as Frac5
-                f5 = Frac5(fake_MN).limit_denominator(100)
-                if abs(float(f5) - fake_MN) < 1e-9:
-                    self.prop_c_val = format_fraction(fake_MN)
-                else:
-                    self.prop_c_val = f"{fake_MN:.2f}"
+            scale = random.choice([1.5, 2, 0.5, 3])
+            self.prop_c_val = self._format_mn_symbolic(MN_min, scale)
         
         # D: Chord length — use exact symbolic form
         # chord = 2 * R * sin_phi = 2R * |u·n| / (|u| * |n|)
@@ -1053,17 +1067,7 @@ class Game3DQuestion:
         if MN_min == float('inf') or MN_min > 10000:
             min_dist_true = "\\infty"
         else:
-            mn_sq = MN_min * MN_min
-            if abs(mn_sq - round(mn_sq)) < 1e-9:
-                min_dist_true = format_sqrt(int(round(mn_sq)))
-            else:
-                # Check for simple fraction
-                from fractions import Fraction as Frac2
-                f2 = Frac2(MN_min).limit_denominator(100)
-                if abs(float(f2) - MN_min) < 1e-9:
-                    min_dist_true = format_fraction(MN_min)
-                else:
-                    min_dist_true = f"{MN_min:.2f}"
+            min_dist_true = self._format_mn_symbolic(MN_min)
         
         # NE and chord calculations — use exact symbolic form
         # NE = R * |u·n| / (|u| * |n|)
@@ -1177,6 +1181,7 @@ class Game3DQuestion:
             'sin_phi': sin_phi_str,
             'mn_formula': mn_formula,
             'nh_min_calc': nh_min_str,
+            'nh_val_str': nh_val_str,
             'min_dist_true': min_dist_true,
             
             'ne_calc': ne_str,

@@ -12,15 +12,14 @@ CONTEXTS = [
         "S_desc": r"mái nhà",
         "I_desc": r"hộp điện",
         "plane_desc": r"mặt phẳng",
-        "a_stmt": r"Đáy của mái nhà nằm trên mặt phẳng $z - 2 = 0$.",
-        "b_stmt": r"Tọa độ đỉnh chóp của mái nhà là $S(5; 4; 5)$.",
-        "c_stmt": r"Ông Tâm muốn một mắc hai dây đèn led một dây LED xanh nối từ $A$ đến $D^\prime$ một dây nối đỏ từ $C$ đến $B^\prime$. Trong cùng một dây hai dây đèn từ $A$ đến $D^\prime$ và từ $C$ đến $B^\prime$ phát ra hai tia sáng với tốc độ lần lượt là $1.5cm/s$ và $3cm/s$. Khi đó, khoảng cách ngắn nhất giữa hai tia sáng là $2m$ (làm tròn đến hàng phần chục).",
-        "d_stmt": r"Ông Tâm có mua một cây thông cao $10m$ và trồng ở vị trí $(-8; -8; 0)$ để trang trí cho trung tâm trong dịp giáng sinh sắp tới. Biết rằng để kéo điện thắp sáng ngôi sao trên đỉnh có chữ TED (rất đẹp), ông Tâm phải đục một lỗ nhỏ trên mái nhà và kéo điện từ hộp điện nằm ở tâm của xà nhà lên đỉnh của ngôi sao đó. Ngoài ra để cho không khí thêm ấm cúng, ông Tâm mua một dây LED cắm từ hộp điện đến một điểm $M$ cách $D$ $0.5m$ rồi từ đó cuốn quanh tất cả các bức tường và lại quay trở lại $M$. Độ dài tối thiểu của dây điện và dây đèn cần dùng là làm tròn đến hàng phần trăm"
     }
 ]
 
 def fmt_point(p):
-    return f"({p[0]}; {p[1]}; {p[2]})"
+    p0 = int(p[0]) if isinstance(p[0], (int, float)) and float(p[0]).is_integer() else p[0]
+    p1 = int(p[1]) if isinstance(p[1], (int, float)) and float(p[1]).is_integer() else p[1]
+    p2 = int(p[2]) if isinstance(p[2], (int, float)) and float(p[2]).is_integer() else p[2]
+    return f"({p0}; {p1}; {p2})"
 
 def generate_question(context_idx=None) -> Tuple[str, str, str]:
     if context_idx is None:
@@ -28,12 +27,29 @@ def generate_question(context_idx=None) -> Tuple[str, str, str]:
     else:
         context = CONTEXTS[context_idx % len(CONTEXTS)]
         
-    A = (6, 4, 2)
-    B = (6, 6, 2)
-    C = (4, 6, 2)
-    D = (4, 4, 2)
+    z0 = random.choice([2, 4])
+    a = random.choice([2, 4, 6])
+    x0 = random.choice([4, 6, 8])
+    y0 = random.choice([4, 6, 8])
     
-    stem = r'''Trung tâm TED mới xây một ngôi nhà mới để cho học sinh học tập trải nghiệm có mái nhà là hình chóp tứ giác đều $S.ABCD$ có chiều cao là 2 mét. Trong hệ tọa độ $Oxyz$ (đơn vị đo trên các trục tính bằng mét), với các điểm ở đáy là $A(6; 4; 2)$, $B(6; 6; 2)$, $C(4; 6; 2)$, $D(4; 4; 2)$ và $S$ là đỉnh của mái nhà. Xét tính đúng/sai của các mệnh đề sau:
+    A = (x0, y0, z0)
+    B = (x0, y0 + a, z0)
+    C = (x0 - a, y0 + a, z0)
+    D = (x0 - a, y0, z0)
+    
+    h = random.choice([2, 3, 4])
+    Ox, Oy = x0 - a/2, y0 + a/2
+    S_correct_pt = (Ox, Oy, z0 + h)
+    
+    Tx = random.choice([-8, -6, -4])
+    Ty = random.choice([-8, -6, -4])
+    Th = random.choice([8, 10, 12])
+    
+    v1 = random.choice([1.5, 2.0, 2.5])
+    v2 = random.choice([3.0, 4.0, 4.5])
+    M_dist = 0.5
+    
+    stem = rf'''Trung tâm TED mới xây một ngôi nhà mới để cho học sinh học tập trải nghiệm có mái nhà là hình chóp tứ giác đều $S.ABCD$ có chiều cao là {h} mét. Trong hệ tọa độ $Oxyz$ (đơn vị đo trên các trục tính bằng mét), với các điểm ở đáy là $A{fmt_point(A)}$, $B{fmt_point(B)}$, $C{fmt_point(C)}$, $D{fmt_point(D)}$ và $S$ là đỉnh của mái nhà. Xét tính đúng/sai của các mệnh đề sau:''' + r'''
 
 \begin{center}
 \begin{tikzpicture}[line join = round, line cap=round,>=stealth,font=\footnotesize,scale=1]
@@ -120,72 +136,92 @@ def generate_question(context_idx=None) -> Tuple[str, str, str]:
     
     # Mệnh đề A
     a_correct = random.choice([True, False])
-    stmt_a_text = context['a_stmt']
-    if not a_correct:
-        stmt_a_text = stmt_a_text.replace("z - 2 = 0", "z - 4 = 0")
+    a_correct_text = rf"z - {z0} = 0"
+    a_wrong_text = rf"z - {z0 + random.choice([1, 2])} = 0"
+    stmt_a_text = rf"Đáy của mái nhà nằm trên mặt phẳng ${a_correct_text if a_correct else a_wrong_text}$."
     stmt_a = rf"{'*' if a_correct else ''}a) {stmt_a_text}"
         
     sol_a = rf"""a) {'Đúng' if a_correct else 'Sai'}.
-Ta có các điểm ở đáy mái nhà: $A(6;4;2)$, $B(6;6;2)$, $C(4;6;2)$, $D(4;4;2)$.
-Nhận thấy tọa độ z của cả bốn điểm đều bằng 2, do đó các điểm $A$, $B$, $C$, $D$ cùng nằm trên mặt phẳng $z=2$ hay $z-2=0$."""
+Ta có các điểm ở đáy mái nhà: $A{fmt_point(A)}$, $B{fmt_point(B)}$, $C{fmt_point(C)}$, $D{fmt_point(D)}$.
+Nhận thấy tọa độ z của cả bốn điểm đều bằng {z0}, do đó các điểm $A$, $B$, $C$, $D$ cùng nằm trên mặt phẳng $z={z0}$ hay $z-{z0}=0$."""
     
     # Mệnh đề B
     b_correct = random.choice([True, False])
-    stmt_b_text = context['b_stmt']
-    if b_correct:
-         stmt_b_text = stmt_b_text.replace("S(5; 4; 5)", "S(5; 5; 4)")
+    S_wrong_pt = (Ox, Oy, S_correct_pt[2] + random.choice([-1, 1]))
+    b_correct_text = rf"S{fmt_point(S_correct_pt)}"
+    b_wrong_text = rf"S{fmt_point(S_wrong_pt)}"
+    stmt_b_text = rf"Tọa độ đỉnh chóp của mái nhà là ${b_correct_text if b_correct else b_wrong_text}$."
     stmt_b = rf"{'*' if b_correct else ''}b) {stmt_b_text}"
 
     sol_b = rf"""b) {'Đúng' if b_correct else 'Sai'}.
-Tâm của hình chữ nhật $ABCD$ là $O(\frac{{6+4}}{{2}};\frac{{4+6}}{{2}};2)=(5;5;2)$.
-Do mái nhà là hình chóp có chiều cao bằng 2 và đỉnh $S$ nằm trên đường thẳng vuông góc với mặt phẳng đáy tại $O$, nên tọa độ đỉnh chóp là $S(5;5;4)$.
-{'Trong khi đó mệnh đề cho rằng $S(5;4;5)$ là tọa độ đỉnh chóp, điều này không đúng.' if not b_correct else 'Điều này khớp với mệnh đề.'}"""
+Tâm của hình vuông $ABCD$ là $O(\frac{{{A[0]}+{C[0]}}}{{2}};\frac{{{A[1]}+{C[1]}}}{{2}};{z0})={fmt_point((Ox, Oy, z0))}$.
+Do mái nhà là hình chóp có chiều cao bằng {h} và đỉnh $S$ nằm trên đường thẳng vuông góc với mặt phẳng đáy tại $O$, nên tọa độ đỉnh chóp là $S{fmt_point(S_correct_pt)}$.
+{'Trong khi đó mệnh đề cho rằng $' + b_wrong_text + '$ là tọa độ đỉnh chóp, điều này không đúng.' if not b_correct else 'Điều này khớp với mệnh đề.'}"""
     
     # Mệnh đề C
     c_correct = random.choice([True, False])
-    stmt_c_text = context['c_stmt']
-    if c_correct:
-        stmt_c_text = stmt_c_text.replace("2m", "2.8m")
+    L1 = math.sqrt(a**2 + z0**2)
+    c_A = ((v1+v2)*a/L1)**2 + ((v1-v2)*z0/L1)**2
+    c_B = -2*a*(v1+v2)*a/L1
+    c_C = 2*(a**2)
+    min_dist_sq = c_C - (c_B**2)/(4*c_A)
+    min_dist = math.sqrt(abs(min_dist_sq))
+    d_round = round(min_dist, 1)
+    d_wrong = round(min_dist + random.choice([0.5, 1.0]), 1)
+    d_value = d_round if c_correct else d_wrong
+    stmt_c_text = rf"Ông Tâm muốn một mắc hai dây đèn led một dây LED xanh nối từ $A$ đến $D^\prime$ một dây nối đỏ từ $C$ đến $B^\prime$. Trong cùng một dây hai dây đèn từ $A$ đến $D^\prime$ và từ $C$ đến $B^\prime$ phát ra hai tia sáng với tốc độ lần lượt là ${v1}cm/s$ và ${v2}cm/s$. Khi đó, khoảng cách ngắn nhất giữa hai tia sáng là ${d_value}m$ (làm tròn đến hàng phần chục)."
     stmt_c = rf"{'*' if c_correct else ''}c) {stmt_c_text}"
 
     sol_c = rf"""c) {'Đúng' if c_correct else 'Sai'}.
 Giả sử các bức tường của ngôi nhà vuông góc với mặt đất $z=0$. Lấy các điểm $A^{{\prime}}$, $B^{{\prime}}$, $C^{{\prime}}$, $D^{{\prime}}$ lần lượt là các hình chiếu vuông góc của $A$, $B$, $C$, $D$ xuống mặt phẳng $z=0$.
-Ta có $A(6;4;2)$, $C(4;6;2)$, $D^{{\prime}}(4;4;0)$, $B^{{\prime}}(6;6;0)$.
-$\overrightarrow{{AD^{{\prime}}}}=(-2;0;-2)$.
-$|\overrightarrow{{AD^{{\prime}}}}|=2\sqrt{{2}} \Rightarrow \vec{{u}}_{{1}}=(-\frac{{1}}{{\sqrt{{2}}}};0;-\frac{{1}}{{\sqrt{{2}}}})$.
-Vì $AQ=0,015t$ nên $Q(6-\frac{{0,015t}}{{\sqrt{{2}}}};4;2-\frac{{0,015t}}{{\sqrt{{2}}}})$.
-$\overrightarrow{{CB^{{\prime}}}}=(2;0;-2)$, $|\overrightarrow{{CB^{{\prime}}}}|=2\sqrt{{2}} \Rightarrow \vec{{u}}_{{2}}=(\frac{{1}}{{\sqrt{{2}}}};0;-\frac{{1}}{{\sqrt{{2}}}})$.
-$CR=0,03t$ nên $R(4+\frac{{0,03t}}{{\sqrt{{2}}}};6;2-\frac{{0,03t}}{{\sqrt{{2}}}})$.
-$QR^2=(-2-\frac{{0,045t}}{{\sqrt{{2}}}})^2+(-2)^2+(\frac{{0,015t}}{{\sqrt{{2}}}})^2=8+\frac{{0,18}}{{\sqrt{{2}}}}t+0,001125t^2$.
-$(QR^2)^{{\prime}}=\frac{{0,18}}{{\sqrt{{2}}}}+0,00225t>0 \ (t\ge0) \Rightarrow QR_{{\text{{min}}}}=QR(0)=\sqrt{{8}}=2\sqrt{{2}}\approx 2,8$ m.
-{'Khoảng cách ngắn nhất khác 2m nên mệnh đề sai.' if not c_correct else 'Khoảng cách xấp xỉ 2,8m nên mệnh đề đúng.'}"""
+Ta có $A{fmt_point(A)}$, $C{fmt_point(C)}$, $D^{{\prime}}({A[0]-a}; {A[1]}; 0)$.
+$\overrightarrow{{AD^{{\prime}}}}=(-{a}; 0; -{z0})$.
+Với $v_1={v1}$ cm/s, $v_2={v2}$ cm/s, khoảng cách ngắn nhất đạt được là $d \approx {d_round}$ m.
+{'Khoảng cách ngắn nhất khác nên mệnh đề sai.' if not c_correct else f'Khoảng cách xấp xỉ {d_round}m nên mệnh đề đúng.'}"""
     
     # Mệnh đề D
     d_correct = random.choice([True, False])
-    stmt_d_text = context['d_stmt']
-    if d_correct:
-         stmt_d_text = stmt_d_text + " là $32,55$ m."
-    else:
-         stmt_d_text = stmt_d_text + " là $30,00$ m."
+    # Wire goes I -> S (through roof hole) -> T (tree top)
+    IS_dist = h  # I is directly below S, vertical distance = h
+    S_pt = S_correct_pt  # S = (Ox, Oy, z0 + h)
+    ST_dist = math.sqrt((Tx - S_pt[0])**2 + (Ty - S_pt[1])**2 + (Th - S_pt[2])**2)
+    IT_dist = IS_dist + ST_dist
+    Mx, My = x0 - a, y0 + M_dist
+    IM_dist = math.sqrt((Mx - Ox)**2 + (My - Oy)**2)
+    unfolded_dist = math.sqrt((4*a)**2 + (2*z0 - 2*M_dist)**2)
+    total_wire = IT_dist + IM_dist + unfolded_dist
+    d_total_round = round(total_wire, 2)
+    d_total_wrong = round(total_wire + random.choice([2.0, 3.0]), 2)
+    d_total_value = d_total_round if d_correct else d_total_wrong
+
+    stmt_d_text = rf"Ông Tâm có mua một cây thông cao ${Th}m$ và trồng ở vị trí $({Tx}; {Ty}; 0)$ để trang trí cho trung tâm trong dịp giáng sinh sắp tới. Biết rằng để kéo điện thắp sáng ngôi sao trên đỉnh có chữ TED (rất đẹp), ông Tâm phải đục một lỗ nhỏ trên mái nhà và kéo điện từ hộp điện nằm ở tâm của xà nhà lên đỉnh của ngôi sao đó. Ngoài ra để cho không khí thêm ấm cúng, ông Tâm mua một dây LED cắm từ hộp điện đến một điểm $M$ cách $D$ ${M_dist}m$ rồi từ đó cuốn quanh tất cả các bức tường và lại quay trở lại $M$. Độ dài tối thiểu của dây điện và dây đèn cần dùng là làm tròn đến hàng phần trăm là ${d_total_value}$ m."
     stmt_d = rf"{'*' if d_correct else ''}d) {stmt_d_text}"
 
-    sol_d_text = r"""Phần dây điện thắp sáng ngôi sao:
+    sol_d_text = rf"""Phần dây điện thắp sáng ngôi sao:
 
-Hộp điện đặt tại tâm xà nhà (đáy nhà) $I(5;5;2).$
+Hộp điện đặt tại tâm xà nhà (đáy nhà) $I({Ox}; {Oy}; {z0}).$
 
-Cây thông ở vị trí $(-8;-8;0)$, cao $10\,\text{m}$ nên đỉnh cây thông là $T(-8;-8;10).$
+Đỉnh mái nhà là $S{fmt_point(S_pt)}$, nằm ngay phía trên $I$.
 
-Độ dài dây điện cần dùng là $\displaystyle IT = \sqrt{(-8-5)^2+(-8-5)^2+(10-2)^2} \approx 20{,}05\,\text{m}.$
+Cây thông ở vị trí $({Tx}; {Ty}; 0)$, cao ${Th}\,\text{{m}}$ nên đỉnh cây thông là $T({Tx}; {Ty}; {Th}).$
+
+Dây điện đi từ $I$ xuyên qua lỗ trên mái nhà tại $S$ rồi đến $T$:
+
+$IS = {h}\,\text{{m}}$ (khoảng cách từ tâm xà nhà lên đỉnh mái).
+
+$ST = \sqrt{{({Tx}-{S_pt[0]})^2+({Ty}-{S_pt[1]})^2+({Th}-{S_pt[2]})^2}} \approx {ST_dist:.2f}\,\text{{m}}.$
+
+Độ dài dây điện cần dùng là $IS + ST = {h} + {ST_dist:.2f} \approx {IT_dist:.2f}\,\text{{m}}.$
 
 Phần dây đèn LED:
 
 Phần dây đèn LED chia làm 2 phần: phần 1 là đoạn nối từ hộp điện đến điểm $M$ và phần 2 từ $M$ cuốn quanh các bức tường.
 
-Độ dài phần 1 chính là độ dài $IM$. Do $M$ cách $D$ $0,5m$ và thuộc đoạn $CD$ nên ta có $M(4; 4,5; 2).$ 
+Độ dài phần 1 chính là độ dài $IM$. Do $M$ cách $D$ $0,5m$ và thuộc đoạn $CD$ nên ta có $M({Mx}; {My}; {z0}).$ 
 
-Suy ra $IM=\sqrt{(4-5)^2+(4,5-5)^2+(2-2)^2} =\sqrt{1+0,25} =\sqrt{1,25}\approx 1,118\,\text{m}.$
+Suy ra $IM \approx {IM_dist:.2f}\,\text{{m}}.$
 
-Áp dụng phương pháp trải phẳng hình ta có hình sau, khi đó bài toán trở thành tìm độ dài ngắn nhất nối $M$ và $M'$ nằm trong các ô vuông:
+Áp dụng phương pháp trải phẳng hình ta có hình sau, khi đó bài toán trở thành tìm độ dài ngắn nhất nối $M$ và $M'$ nằm trong các ô vuông:""" + r"""
 \begin{center}
 \begin{tikzpicture}[x=0.75pt,y=0.75pt,yscale=-1,xscale=1,line width=0.75pt]
 \draw   (313.14,161) -- (376.43,161) -- (376.43,223.96) -- (313.14,223.96) -- cycle ;
@@ -296,12 +332,12 @@ Ta có thể quan sát được đường màu đỏ là đường ngắn nhất
 \draw (131,414.57) node [anchor=north west][inner sep=0.75pt]   [align=left] {{\fontfamily{ptm}\selectfont \textit{M'}}};
 \end{tikzpicture}
 \end{center}
+""" + rf"""
+Bằng định lý Pytago trải thẳng, ta có thể tính được độ dài các đoạn màu xanh xấp xỉ ${unfolded_dist:.3f}\,\,m.$
 
-Bằng định lý Pytago, ta có thể tính được độ dài các đoạn màu xanh xấp xỉ $11,385\,\,m.$
+Do đó độ dài đường ngắn nhất của dây đèn LED là ${unfolded_dist:.3f}+{IM_dist:.3f}={unfolded_dist+IM_dist:.3f}\,\,m.$
 
-Do đó độ dài đường ngắn nhất của dây đèn LED là $11,385+1,118=12,503$\,m.
-
-Vậy tổng độ dài phần dây điện và phần đèn LED là $12,503+20,05=32,553$\,m.
+Vậy tổng độ dài phần dây điện và phần đèn LED là ${unfolded_dist+IM_dist:.3f}+{IT_dist:.2f}={total_wire:.3f}\,\,m.$
 """
     sol_d = f"d) {'Đúng' if d_correct else 'Sai'}.\n{sol_d_text}"
 

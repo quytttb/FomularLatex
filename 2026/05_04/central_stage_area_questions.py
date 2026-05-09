@@ -272,7 +272,9 @@ $$S = 8 \\left( {s1_sqrt2_tex}\\sqrt{{2}} - {s1_const_tex} + {s2_tex} \\right) =
 Vậy giá trị của biểu thức là:
 $$T = {expr_T} = {alpha} \\cdot ({p}) + ({beta}) \\cdot ({q}) = {answer}.$$"""
 
-    return stem, solution, str(answer)
+    ans_str = str(answer)
+    display_answer = f"{ans_str} | {ans_str.replace('.', ',')}"
+    return stem, solution, display_answer
 
 def main():
     num_questions = 1
