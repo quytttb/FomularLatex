@@ -123,31 +123,27 @@ $\\vec{{F}} = \\vec{{F_1}} + \\vec{{F_2}} = {format_coord(F1)} + {format_coord(F
 Gia tốc của mặt cầu:
 $\\vec{{a}} = \\frac{{\\vec{{F}}}}{{m}} = \\frac{{{format_coord(F)}}}{{{m}}} = {format_coord(a)}$ (m/s$^2$).
 
-Phương trình chuyển động của tâm $I$ của mặt cầu:
-Mặt cầu ban đầu đứng yên nên vận tốc đầu $\\vec{{v}}_{{0S}} = \\vec{{0}}$.
-Tọa độ tâm $I$ tại thời điểm $t$: 
+Phương trình chuyển động của tâm $I(t)$ do ban đầu đứng yên ($v_{{0S}} = 0$):
 $I(t) = I_0 + \\frac{{1}}{{2}}\\vec{{a}}t^2 = ({I_poly_x}; {I_poly_y}; {I_poly_z})$.
     
-Phương trình chuyển động của thanh cứng $MN$:
-$M(t) = M_0 + \\vec{{v}}t = ({M_lin_x}; {M_lin_y}; {M_lin_z})$.
-$N(t) = N_0 + \\vec{{v}}t = ({N_lin_x}; {N_lin_y}; {N_lin_z})$.
-Gọi $E$ là trung điểm của $MN$ tại thời điểm $t$: $E(t) = ({E_lin_x}; {E_lin_y}; {E_lin_z})$.
-    
-Kiểm tra tại thời điểm $t = {t}$ (s):
-Tọa độ tâm mặt cầu: $I({t}) = {format_coord(It)}$.
-Tọa độ trung điểm $E$ của $MN$: $E({t}) = {format_coord(Et)}$.
-Vector $\\overrightarrow{{IE}} = {format_coord(n)}$, có độ dài $IE = \\sqrt{{{n[0]}^2 + {n[1]}^2 + {n[2]}^2}} = {R} = R$.
-Điều này chứng tỏ mặt cầu đi qua trung điểm $E$ của thanh $MN$ tại thời điểm $t = {t}$.
+Vận tốc của thanh $MN$ là $\\vec{{v}} = {format_coord(v)}$. Phương trình chuyển động của một điểm bất kỳ trên thanh:
+$X(t) = X(0) + \\vec{{v}}t$. Do đó thanh tịnh tiến đều. Vector chỉ phương của thanh không đổi là $\\overrightarrow{{MN}} = M_0 - N_0 = {format_coord(MN)}$.
 
-Kiểm tra tính tiếp xúc:
-Vector chỉ phương của thanh $MN$ là $\\overrightarrow{{MN}} = M_0 - N_0 = {format_coord(MN)}$.
-Ta có $\\overrightarrow{{IE}} \\cdot \\overrightarrow{{MN}} = {n[0]}\\times({MN[0]}) + {n[1]}\\times({MN[1]}) + {n[2]}\\times({MN[2]}) = 0$.
-Suy ra $IE \\perp MN$, tức là đường thẳng $MN$ tiếp xúc với mặt cầu tại $E$.
-Vì thanh $MN$ tịnh tiến đều và mặt cầu có gia tốc, khoảng cách giữa $I(t)$ và đường thẳng chứa $MN$ sẽ giảm dần cho đến khi chạm nhau tại $t = {t}$.
-Vậy $t = {t}$ (s) là thời điểm va chạm, điểm va chạm $H$ trùng với trung điểm $E$ của thanh.
-Tọa độ điểm va chạm $H{format_coord(Et)}$.
+Khi mặt cầu va chạm với thanh cứng tại thời điểm $t_0$, khoảng cách từ tâm $I(t_0)$ đến đường thẳng chứa thanh $MN$ bằng chính bán kính $R = {R}$.
+Xét tại thời điểm $t = {t}$ (s):
+Tọa độ tâm mặt cầu: $I({t}) = {format_coord(It)}$.
+Tính hình chiếu vuông góc $H$ của $I({t})$ lên đường thẳng chứa $MN$:
+Lấy một điểm $E$ trên đoạn $MN$ tại thời điểm $t$: $E({t}) = {format_coord(Et)}$. 
+Ta có vector từ điểm $I({t})$ đến $E({t})$ là $\\overrightarrow{{I({t})E({t})}} = {format_coord(n)}$.
+Kiểm tra tính vuông góc: $\\overrightarrow{{I({t})E({t})}} \\cdot \\overrightarrow{{MN}} = {n[0]}\\times({MN[0]}) + {n[1]}\\times({MN[1]}) + {n[2]}\\times({MN[2]}) = 0$.
+Suy ra $E({t})$ chính là hình chiếu vuông góc $H$ của $I({t})$ lên đường thẳng $MN$.
+Khoảng cách từ $I({t})$ đến đường thẳng $MN$ bằng độ dài $I({t})E({t}) = \\sqrt{{{n[0]}^2 + {n[1]}^2 + {n[2]}^2}} = {R} = R$.
+Điều này chứng tỏ tại $t = {t}$ (s), mặt cầu tiếp xúc hoàn hảo với thanh cứng. Đây chính là thời điểm va chạm.
+
+Điểm va chạm $H$ có tọa độ $H({Et[0]}; {Et[1]}; {Et[2]})$.
 Do đó $x_0 = {Et[0]}, y_0 = {Et[1]}, z_0 = {Et[2]}$.
-Giá trị biểu thức là: $T = t + x_0 + y_0 + z_0 = {t} + {Et[0]} + {Et[1]} + {Et[2]} = {t + Et[0] + Et[1] + Et[2]}$."""
+Giá trị biểu thức cần tính là: 
+$T = t + x_0 + y_0 + z_0 = {t} + {Et[0]} + {Et[1]} + {Et[2]} = {t + Et[0] + Et[1] + Et[2]}$."""
 
     ans_val = t + Et[0] + Et[1] + Et[2]
     key = f"{ans_val}"

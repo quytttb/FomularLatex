@@ -22,7 +22,7 @@ class ContainerMechanicsGenerator:
     """Generator cho câu hỏi cơ học container treo dây cáp"""
     
     def __init__(self):
-        self.force_magnitude = 1200  # N - cường độ lực căng cố định
+        self.force_magnitudes = [800, 1000, 1200, 1500, 1600, 2000, 2400, 2500, 3000]
         self.angle_pairs = [
             (120, 30),  # (góc hợp 2 dây, góc với mặt phẳng)
             (90, 45),
@@ -31,6 +31,9 @@ class ContainerMechanicsGenerator:
     
     def generate_question(self):
         """Tạo một câu hỏi ngẫu nhiên"""
+        # Random lực căng
+        self.force_magnitude = random.choice(self.force_magnitudes)
+        
         # Random chọn góc
         angle_pair = random.choice(self.angle_pairs)
         apex_angle, plane_angle = angle_pair
@@ -71,9 +74,9 @@ class ContainerMechanicsGenerator:
             int(correct_weight * 1.2),   # Sai công thức
             int(correct_weight * 0.5),   # Quên nhân 4
             int(correct_weight * 1.4),   # Sai góc
-            2400,  # Cố định cho góc 30°
-            4800,  # 4 × 1200
-            6000   # Sai hoàn toàn
+            int(correct_weight * 2),     # Gấp đôi
+            int(self.force_magnitude * 4),  # 4 x F
+            int(self.force_magnitude * 5)   # Sai hoàn toàn
         ]
         
         # Lọc và chọn 3 đáp án sai khác nhau
@@ -112,6 +115,7 @@ class ContainerMechanicsGenerator:
             'problem_statement': problem_statement,
             'apex_angle': apex_angle,
             'plane_angle': plane_angle,
+            'force_magnitude': self.force_magnitude,
             'correct_weight': weight,
             'all_answers': all_answers,
             'correct_index': correct_index,
@@ -133,25 +137,26 @@ class ContainerMechanicsGenerator:
         apex_angle = solution_data['apex_angle']
         plane_angle = solution_data['plane_angle']
         total_weight = solution_data['total_weight']
+        force_mag = solution_data['force_magnitude']
         
         # Compute sin fraction, EO value, and symbolic P calculation
         if plane_angle == 30:
             sin_fraction = "\\frac{1}{2}"
-            eo_value = "600"
-            p_calculation = "2400"
+            eo_value = f"{int(force_mag/2)}"
+            p_calculation = f"{int(4 * force_mag / 2)}"
         elif plane_angle == 45:
             sin_fraction = "\\frac{\\sqrt{2}}{2}"
-            eo_value = "600\\sqrt{2}"
-            p_calculation = "2400\\sqrt{2}"
+            eo_value = f"{int(force_mag/2)}\\sqrt{{2}}" if force_mag % 2 == 0 else f"\\frac{{{force_mag}\\sqrt{{2}}}}{{2}}"
+            p_calculation = f"{int(4 * force_mag / 2)}\\sqrt{{2}}"
         elif plane_angle == 60:
             sin_fraction = "\\frac{\\sqrt{3}}{2}"
-            eo_value = "600\\sqrt{3}"
-            p_calculation = "2400\\sqrt{3}"
+            eo_value = f"{int(force_mag/2)}\\sqrt{{3}}" if force_mag % 2 == 0 else f"\\frac{{{force_mag}\\sqrt{{3}}}}{{2}}"
+            p_calculation = f"{int(4 * force_mag / 2)}\\sqrt{{3}}"
         else:
             sin_value = math.sin(math.radians(plane_angle))
             sin_fraction = f"{sin_value:.3f}"
-            eo_value = f"{1200 * sin_value:.0f}"
-            p_calculation = f"{4 * 1200 * sin_value:.0f}"
+            eo_value = f"{force_mag * sin_value:.0f}"
+            p_calculation = f"{4 * force_mag * sin_value:.0f}"
         
         # Format result line for |P|: omit approximation for integer results
         if p_calculation.isdigit():
@@ -264,9 +269,9 @@ Theo đề, 4 đoạn dây cáp có độ dài bằng nhau và góc hợp bởi 
 
 \\(\\Rightarrow\\) \\(\\widehat{{EA'O}} = {plane_angle}°\\)
 
-\\(\\Rightarrow\\) \\(\\sin \\widehat{{EA'O}} = \\frac{{|\\vec{{EO}}|}}{{|\\vec{{F}}_1|}}\\) \\(\\Leftrightarrow \\sin {plane_angle}° = \\frac{{|\\vec{{EO}}|}}{{1200}}\\)
+\\(\\Rightarrow\\) \\(\\sin \\widehat{{EA'O}} = \\frac{{|\\vec{{EO}}|}}{{|\\vec{{F}}_1|}}\\) \\(\\Leftrightarrow \\sin {plane_angle}° = \\frac{{|\\vec{{EO}}|}}{{{force_mag}}}\\)
 
-\\(\\Rightarrow\\) \\( |\\vec{{EO}}| = 1200 \\cdot {sin_fraction} = {eo_value}\\)
+\\(\\Rightarrow\\) \\( |\\vec{{EO}}| = {force_mag} \\cdot {sin_fraction} = {eo_value}\\)
 
 \\(\\Rightarrow\\) {p_line}
 
@@ -288,9 +293,9 @@ Theo đề, 4 đoạn dây cáp có độ dài bằng nhau và cùng tạo với
 
 \\(\\Rightarrow\\) \\(\\widehat{{EA'O}} = {plane_angle}°\\)
 
-\\(\\Rightarrow\\) \\(\\sin \\widehat{{EA'O}} = \\frac{{|\\vec{{EO}}|}}{{|\\vec{{F}}_1|}}\\) \\(\\Leftrightarrow \\sin {plane_angle}° = \\frac{{|\\vec{{EO}}|}}{{1200}}\\)
+\\(\\Rightarrow\\) \\(\\sin \\widehat{{EA'O}} = \\frac{{|\\vec{{EO}}|}}{{|\\vec{{F}}_1|}}\\) \\(\\Leftrightarrow \\sin {plane_angle}° = \\frac{{|\\vec{{EO}}|}}{{{force_mag}}}\\)
 
-\\(\\Rightarrow\\) \\( |\\vec{{EO}}| = 1200 \\cdot {sin_fraction} = {eo_value}\\)
+\\(\\Rightarrow\\) \\( |\\vec{{EO}}| = {force_mag} \\cdot {sin_fraction} = {eo_value}\\)
 
 \\(\\Rightarrow\\) {p_line}
 
@@ -300,8 +305,9 @@ Vậy trọng lượng của thùng container = {total_weight} N."""
 
 def format_question_block(question_data, idx):
     """Trả về LaTeX phần đề bài và hình vẽ cho câu hỏi idx (1-based)"""
+    force_mag = question_data['force_magnitude']
     if question_data['question_type'] == 'apex_angle':
-        return f"""Câu {idx+1}: Một thùng hàng container được treo cân bằng bởi 4 sợi dây cáp được nối vào 4 đầu của thùng hàng (như hình vẽ minh họa). Các sợi dây cáp độ được buộc vào mốc E của chiếc cần cẩu sao cho các đoạn dây cáp EA, EB, EC, ED có độ dài bằng nhau. {question_data['problem_statement']}. Chiếc cần cẩu kéo khung sắt lên theo phương thẳng đứng. Tính trọng lượng của thùng hàng container (làm tròn đến hàng đơn vị), biết rằng các lực căng của các sợi dây cáp đều có cường độ là 1200 N.
+        return f"""Câu {idx+1}: Một thùng hàng container được treo cân bằng bởi 4 sợi dây cáp được nối vào 4 đầu của thùng hàng (như hình vẽ minh họa). Các sợi dây cáp độ được buộc vào mốc E của chiếc cần cẩu sao cho các đoạn dây cáp EA, EB, EC, ED có độ dài bằng nhau. {question_data['problem_statement']}. Chiếc cần cẩu kéo khung sắt lên theo phương thẳng đứng. Tính trọng lượng của thùng hàng container (làm tròn đến hàng đơn vị), biết rằng các lực căng của các sợi dây cáp đều có cường độ là {force_mag} N.
 
 \\begin{{tikzpicture}}[line join = round, line cap=round,>=stealth,font=\\footnotesize,scale=0.7]
  
@@ -383,7 +389,7 @@ def format_question_block(question_data, idx):
 
 """
     else:
-        return f"""Câu {idx+1}: Một thùng hàng container được treo cân bằng bởi 4 sợi dây cáp được nối vào 4 đầu của thùng hàng (như hình vẽ minh họa). Các sợi dây cáp độ được buộc vào mốc E của chiếc cần cẩu sao cho các đoạn dây cáp EA, EB, EC, ED có độ dài bằng nhau và {question_data['problem_statement']}. Chiếc cần cẩu kéo khung sắt lên theo phương thẳng đứng. Tính trọng lượng của thùng hàng container (làm tròn đến hàng đơn vị), biết rằng các lực căng của các sợi dây cáp đều có cường độ là 1200 N.
+        return f"""Câu {idx+1}: Một thùng hàng container được treo cân bằng bởi 4 sợi dây cáp được nối vào 4 đầu của thùng hàng (như hình vẽ minh họa). Các sợi dây cáp độ được buộc vào mốc E của chiếc cần cẩu sao cho các đoạn dây cáp EA, EB, EC, ED có độ dài bằng nhau và {question_data['problem_statement']}. Chiếc cần cẩu kéo khung sắt lên theo phương thẳng đứng. Tính trọng lượng của thùng hàng container (làm tròn đến hàng đơn vị), biết rằng các lực căng của các sợi dây cáp đều có cường độ là {force_mag} N.
 
 \\begin{{tikzpicture}}[line join = round, line cap=round,>=stealth,font=\\footnotesize,scale=0.7]
  

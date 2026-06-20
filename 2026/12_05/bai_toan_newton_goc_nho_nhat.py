@@ -83,13 +83,25 @@ Sau $t = 2$ giây, hai viên bi xảy ra va chạm. Để quỹ đạo viên bi 
     IB_2_x = I_B_x + 2 * aB_x
     IB_2_y = I_B_y + 2 * aB_y
 
-    solution = f"""Lực tác dụng lên B: $\\vec{{F_B}} = ({FB_x_total}; {FB_y_total}; 0) \\Rightarrow \\vec{{a_B}} = ({aB_x}; {aB_y}; 0)$.
-Vị trí tâm $B$ sau $2$s: $I_B(2) = ({I_B_x}+{2*aB_x}; {I_B_y}+{2*aB_y}; {R_B}) = ({IB_2_x}; {IB_2_y}; {R_B})$.
-Ban đầu khoảng cách bằng $R_A+R_B={13*geom_scale}$. Khi chiếu xuống $Oxy$, khoảng cách 2 tâm là $\\sqrt{{(13\\times {geom_scale})^2 - ({R_B} - {R_A})^2}} = {12*geom_scale}$.
-Đường thẳng từ gốc tọa độ tiếp xúc đường tròn tâm $(I_B(2)_x, I_B(2)_y)$ bán kính ${12*geom_scale}$ có hệ số góc nhỏ nhất là $\\frac{{3}}{{4}}$.
-Gia tốc $\\vec{{a_A}} = ({68*S_5}; {51*S_5}; 0) \\Rightarrow \\vec{{F_A}} = m_A \\vec{{a_A}} = ({FA_x_total}; {FA_y_total}; 0)$.
-Lại có $k_1 \\overrightarrow{{F_{{A1}}}} + k_2 \\overrightarrow{{F_{{A2}}}} = \\vec{{F_A}} \\Rightarrow k_1 = {k1}, k_2 = {k2}$.
-Vậy $S = {S}$."""
+    solution = f"""Gia tốc của $B$ được xác định bởi:
+$\\vec{{a_B}} = \\frac{{\\vec{{F_{{B1}}}} + \\vec{{F_{{B2}}}}}}{{m_B}} = \\frac{{({FB1_x + FB2_x}; {(FB1_y + FB2_y)}; 0)}}{{{m_B}}} = ({aB_x}; {aB_y}; 0)$ (m/s$^2$).
+Vì $B$ bắt đầu từ trạng thái nghỉ, tọa độ tâm $B$ sau $2$s là:
+$I_B(2) = I_B(0) + \\frac{{1}}{{2}}\\vec{{a_B}} \\cdot 2^2 = ({I_B_x} + 2({aB_x}); {I_B_y} + 2({aB_y}); {R_B}) = ({IB_2_x}; {IB_2_y}; {R_B})$.
+
+Khi hai bi va chạm tại $t=2$ s, khoảng cách giữa hai tâm là $I_A(2) I_B(2) = R_A+R_B={13*geom_scale}$. 
+Vì $A$ lăn trên mặt $Oxy$ với bán kính $R_A={R_A}$, tâm $I_A(2)$ nằm trên mặt phẳng $z={R_A}$. Khi chiếu vị trí $2$ tâm xuống mặt phẳng này, khoảng cách hình chiếu $d$ là:
+$d = \\sqrt{{(I_A(2) I_B(2))^2 - ({R_B} - {R_A})^2}} = \\sqrt{{({13*geom_scale})^2 - ({R_B - R_A})^2}} = {12*geom_scale}$.
+Theo hình học phẳng, quỹ đạo của $I_A$ (bắt đầu từ gốc $O$ đến $I_A(2)$) là một đường thẳng đi qua gốc tọa độ. Để khoảng cách từ $I_A(2)$ đến điểm cố định $I_B'(2)({IB_2_x}; {IB_2_y})$ bằng $d$, $I_A(2)$ phải nằm trên đường tròn bán kính $d={12*geom_scale}$ có tâm $I_B'(2)$. 
+Góc do quỹ đạo $A$ tạo với trục $Ox$ nhỏ nhất khi đường thẳng chứa quỹ đạo của $A$ chính là tiếp tuyến vẽ từ gốc $O$ đến đường tròn tâm $I_B'(2)$. Qua đó tính được hệ số góc là $\\frac{{3}}{{4}}$, suy ra gia tốc của $A$: $\\vec{{a_A}} = ({68*S_5}; {51*S_5}; 0)$.
+
+Lực tổng hợp tác dụng lên $A$ là $\\vec{{F_A}} = m_A \\vec{{a_A}} = ({FA_x_total}; {FA_y_total}; 0)$ (N).
+Lại có: $k_1 \\overrightarrow{{F_{{A1}}}} + k_2 \\overrightarrow{{F_{{A2}}}} = \\vec{{F_A}}$, ta có hệ phương trình:
+\\begin{{cases}}
+{x1}k_1 + {x2}k_2 = {FA_x_total} \\\\
+{y1}k_1 + {y2}k_2 = {FA_y_total}
+\\end{{cases}}
+Giải hệ trên ta thu được $k_1 = {k1}, k_2 = {k2}$.
+Vậy giá trị biểu thức là $S = {expr_S} = {S}$."""
 
     ans_val = S
     if isinstance(ans_val, int) or (isinstance(ans_val, float) and ans_val.is_integer()):

@@ -160,8 +160,8 @@ def generate_shape_5():
     \draw (0.1,{k}) -- (-0.1,{k}) node[above left] {{${k}$}};
 \end{{tikzpicture}}
 \end{{center}}"""
-    inc = []
-    dec = [rf"(-\infty; {h})", rf"({h}; +\infty)"]
+    inc = [rf"(-\infty; {h})", rf"({h}; +\infty)"]
+    dec = []
     return code, inc, dec
 
 def generate_shape_6():
@@ -192,8 +192,8 @@ def generate_shape_6():
     \draw (0.1,{k}) -- (-0.1,{k}) node[above left] {{${k}$}};
 \end{{tikzpicture}}
 \end{{center}}"""
-    inc = [rf"(-\infty; {h})", rf"({h}; +\infty)"]
-    dec = []
+    inc = []
+    dec = [rf"(-\infty; {h})", rf"({h}; +\infty)"]
     return code, inc, dec
 
 def generate_question(seed=None, force_sample=False):
