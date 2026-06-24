@@ -35,6 +35,11 @@ This skill guides the agent to properly convert a sample math problem into a fun
 - Define exact TikZ drawings in `TIKZ_DIAGRAM` and `TIKZ_SOLUTION`. Keep it parameterized by ensuring variables map correctly inside the raw string or utilizing python string templates.
 - Define `TEMPLATE_QUESTION` describing the context and formatting statements (a, b, c, d).
 - Define `TEMPLATE_SOLUTION` outlining the step-by-step mathematical reasoning.
+- **LaTeX Formatting Rules**:
+  - Always use `\overrightarrow` instead of `\vv` for vectors to ensure broad platform compatibility (e.g., Azota).
+  - When writing vectors with fraction coordinates, always wrap them in `\left(` and `\right)` (e.g., `\left( \dfrac{1}{2}; 3 \right)`).
+  - Do NOT use `\textbf` for texts like "Lời giải", "Đúng", or "Sai" in the generated LaTeX strings. Keep the text normal.
+  - Do NOT generate a standalone "Đáp án" line at the end of the `Lời giải` block for True/False (Đúng/Sai) format. However, STILL print the "Đáp án" line at the end of the solution for Short Answer / Essay (Trả lời ngắn / Tự luận) format.
 
 ### 5. Define the Generator Function
 - **Do NOT use OOP (classes, ABC, or inheritance).** Scripts run independently and do not need heavy architectural boilerplate.
