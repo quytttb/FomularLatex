@@ -39,40 +39,55 @@ def generate_question(seed=None, force_sample=False):
         E = random.randint(-4, 4)
         F = random.randint(-5, 5)
         
-        # We need A = a_p / D to be integer => a_p must be a multiple of D
-        # A = a_p / D => a_p = A * D
+        # y = (Ax^2 + Bx + C) e^{Dx+E} + F
+        # y' = (DAx^2 + (2A+DB)x + (B+DC)) e^{Dx+E}
+        # We want y' polynomial = a_p(x - x1)(x - x2) = a_p*x^2 - a_p(x1+x2)x + a_p*x1*x2
+        # So: a_p = DA, B = (-a_p(x1+x2) - 2A)/D, C = (a_p*x1*x2 - B)/D
+        # B is always integer (since 2A/D is integer for D in {-2,-1,1,2}).
+        # C requires B % D == 0. B = -A(x1+x2) - 2A/D.
+        # For |D|=2: B = -A(x1+x2) ∓ A = -A(x1+x2 ± 1).
+        #   B % 2 == 0 iff A*(x1+x2 ± 1) is even, which holds when x1+x2 is odd.
+        # For |D|=1: B % 1 == 0 always.
+        
         A = random.choice([-2, -1, 1, 2])
         a_p = A * D
-        
-        # We need B = (-a_p(x1 + x2) - 2A) / D = -A(x1 + x2) - 2A/D
-        # For B to be integer, A * (x1 + x2) + 2A/D must be integer.
-        # Let's just generate x1, x2 and force B to be integer by carefully picking.
-        # Actually it's simpler to directly generate A, B, C, D, E, F and find roots?
-        # No, roots must be nice. 
-        # So we choose x1, x2, D, and then find A such that B is integer.
-        # But wait, B = -A*(x1+x2) - 2A/D. So 2A/D must be integer.
-        # Since D is from {-2, -1, 1, 2}, if we pick A such that 2A/D is integer.
-        if D in [-1, 1]:
-            # 2A/D is always integer.
-            pass
-        elif D == 2:
-            # 2A/2 = A, always integer.
-            pass
-        elif D == -2:
-            # 2A/(-2) = -A, always integer.
-            pass
         
         x1 = random.randint(-4, 2)
         x2 = random.randint(x1 + 1, 4)
         
+        # When |D|=2, ensure x1+x2 is odd so that C is an integer
+        if abs(D) == 2 and (x1 + x2) % 2 == 0:
+            # Shift x2 by 1 to make sum odd
+            if x2 + 1 <= 4:
+                x2 += 1
+            elif x1 - 1 >= -4 and x1 - 1 < x2:
+                x1 -= 1
+            else:
+                x2 -= 1
+                if x1 >= x2:
+                    x1 = x2 - 1
+        
+    # Exact divisions - no truncation allowed
+    assert a_p % D == 0, f"a_p={a_p} not divisible by D={D}"
     A = a_p // D
-    B = (-a_p * (x1 + x2) - 2 * A) // D
-    C = (a_p * x1 * x2 - B) // D
     
-    # Recalculate a_p, b_p, c_p to be sure
+    B_num = -a_p * (x1 + x2) - 2 * A
+    assert B_num % D == 0, f"B numerator={B_num} not divisible by D={D}"
+    B = B_num // D
+    
+    C_num = a_p * x1 * x2 - B
+    assert C_num % D == 0, f"C numerator={C_num} not divisible by D={D} (B={B}, x1={x1}, x2={x2})"
+    C = C_num // D
+    
+    # Verify: recalculate derivative coefficients and check they match intended roots
     A_p = D * A
     B_p = 2 * A + D * B
     C_p = B + D * C
+    
+    # Verify the derivative polynomial has the correct roots
+    assert A_p == a_p, f"A_p mismatch: {A_p} != {a_p}"
+    assert B_p == -a_p * (x1 + x2), f"B_p mismatch: {B_p} != {-a_p*(x1+x2)}"
+    assert C_p == a_p * x1 * x2, f"C_p mismatch: {C_p} != {a_p*x1*x2}"
     
     poly_str = format_poly(A, B, C)
     exponent_str = ""
@@ -129,16 +144,25 @@ def generate_question(seed=None, force_sample=False):
     # Calculate derivative
     poly_deriv = format_poly(A_p, B_p, C_p)
     deriv_part1 = format_poly(0, 2*A, B)
+    # Build the second term of derivative with proper sign handling
+    # y' = (2Ax+B)e^{Dx+E} + D(Ax^2+Bx+C)e^{Dx+E}
     if D == 1:
-        deriv_part2 = rf"({poly_str})e^{{{exponent_str}}}"
+        deriv_connector = " + "
+        deriv_part2_coef = ""
     elif D == -1:
-        deriv_part2 = rf"-({poly_str})e^{{{exponent_str}}}"
-    else:
-        deriv_part2 = rf"{D}({poly_str})e^{{{exponent_str}}}"
+        deriv_connector = " - "
+        deriv_part2_coef = ""
+    elif D > 0:
+        deriv_connector = " + "
+        deriv_part2_coef = str(D)
+    else:  # D < -1
+        deriv_connector = " - "
+        deriv_part2_coef = str(-D)
+    deriv_part2 = rf"{deriv_part2_coef}({poly_str})e^{{{exponent_str}}}"
         
     sign_str = "> 0" if A_p > 0 else "< 0"
     sol = rf"""Tập xác định: $D = \mathbb{{R}}$.
-Đạo hàm: $y' = ({deriv_part1})e^{{{exponent_str}}} + {deriv_part2} = ({poly_deriv})e^{{{exponent_str}}}$.
+Đạo hàm: $y' = ({deriv_part1})e^{{{exponent_str}}}{deriv_connector}{deriv_part2} = ({poly_deriv})e^{{{exponent_str}}}$.
 Cho $y' = 0 \Leftrightarrow {poly_deriv} = 0 \Leftrightarrow \left[ \begin{{array}}{{l}} x = {x1} \\ x = {x2} \end{{array}} \right.$.
 Ta có bảng xét dấu $y'$ (dấu của $y'$ phụ thuộc vào tam thức bậc hai $f(x) = {poly_deriv}$ có hệ số $a = {A_p} {sign_str}$):
 """

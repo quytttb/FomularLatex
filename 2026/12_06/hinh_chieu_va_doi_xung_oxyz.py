@@ -31,10 +31,12 @@ def get_reflection(pt, target):
 def generate_question(config: GeneratorConfig = GeneratorConfig()):
     if config.seed is not None:
         random.seed(config.seed)
-        
-    x, y, z = random.randint(-10, 10), random.randint(-10, 10), random.randint(-10, 10)
+
+    point_name = random.choice(["M", "A", "B", "C", "N", "P", "Q", "E", "F", "G", "H", "I", "K"])
+    lo, hi = -15, 15
+    x, y, z = random.randint(lo, hi), random.randint(lo, hi), random.randint(lo, hi)
     while x == 0 or y == 0 or z == 0 or abs(x) == abs(y) or abs(y) == abs(z) or abs(x) == abs(z):
-        x, y, z = random.randint(-10, 10), random.randint(-10, 10), random.randint(-10, 10)
+        x, y, z = random.randint(lo, hi), random.randint(lo, hi), random.randint(lo, hi)
         
     pt = (x, y, z)
     
@@ -42,7 +44,7 @@ def generate_question(config: GeneratorConfig = GeneratorConfig()):
     if question_type == "projection":
         target = random.choice(["(Oxy)", "(Oyz)", "(Oxz)", "Ox", "Oy", "Oz"])
         ans_pt = get_projection(pt, target)
-        question_text = f"Trong không gian với hệ tọa độ $Oxyz$, cho điểm $M{format_point(pt)}$. Hình chiếu vuông góc của $M$ lên {('mặt phẳng ' if '(' in target else 'trục ')}${target}$ có tọa độ là:"
+        question_text = f"Trong không gian với hệ tọa độ $Oxyz$, cho điểm ${point_name}{format_point(pt)}$. Hình chiếu vuông góc của ${point_name}$ lên {('mặt phẳng ' if '(' in target else 'trục ')}${target}$ có tọa độ là:"
     else:
         target = random.choice(["(Oxy)", "(Oyz)", "(Oxz)", "Ox", "Oy", "Oz", "O"])
         ans_pt = get_reflection(pt, target)
@@ -50,7 +52,7 @@ def generate_question(config: GeneratorConfig = GeneratorConfig()):
             tgt_str = "gốc tọa độ $O$"
         else:
             tgt_str = f"{('mặt phẳng ' if '(' in target else 'trục ')}${target}$"
-        question_text = f"Trong không gian với hệ tọa độ $Oxyz$, cho điểm $M{format_point(pt)}$. Điểm đối xứng của $M$ qua {tgt_str} có tọa độ là:"
+        question_text = f"Trong không gian với hệ tọa độ $Oxyz$, cho điểm ${point_name}{format_point(pt)}$. Điểm đối xứng của ${point_name}$ qua {tgt_str} có tọa độ là:"
         
     options = [ans_pt]
     while len(options) < 4:
