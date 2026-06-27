@@ -374,16 +374,24 @@ Mệnh đề đã đảo vai trò của $\overrightarrow{{BA}}$ và $\overrighta
     d_num_exact = abs(n1_val * a + n2_val * b)
     d_C_exact = d_num_exact / norm_n
 
+    dot_n_AC = n1f * a + n2f * b
+
     sol_b = rf"""b) {'Đúng' if b_correct else 'Sai'}.
 
-Mặt phẳng $(AEF)$ đi qua $A=(0;0;0)$ với các véctơ:
-$\overrightarrow{{AE}} = {AE_tex}$,\quad $\overrightarrow{{AF}} = {AF_tex}$.
+Ta tính khoảng cách $d(C;(AEF))$ thông qua thể tích khối tứ diện $C.AEF$:
+$d(C;(AEF)) = \dfrac{{3V_{{C.AEF}}}}{{S_{{AEF}}}}$
 
-Véctơ pháp tuyến $\vec{{n}} = \overrightarrow{{AE}} \times \overrightarrow{{AF}} = \left({frac_str(n1f)};\ {frac_str(n2f)};\ {frac_str(n3f)}\right)$.
+Diện tích tam giác $AEF$:
+$\overrightarrow{{AE}} = {AE_tex}$, $\overrightarrow{{AF}} = {AF_tex}$.
+Tích có hướng $[\overrightarrow{{AE}}, \overrightarrow{{AF}}] = \left({frac_str(n1f)};\ {frac_str(n2f)};\ {frac_str(n3f)}\right)$.
+$S_{{AEF}} = \dfrac{{1}}{{2}} |[\overrightarrow{{AE}}, \overrightarrow{{AF}}]| = \dfrac{{1}}{{2}} \sqrt{{\left({frac_str(n1f)}\right)^2 + \left({frac_str(n2f)}\right)^2 + \left({frac_str(n3f)}\right)^2}} \approx {norm_n/2:.4f}$.
 
-Phương trình mặt phẳng $(AEF)$: ${frac_str(n1f)}x + {frac_str(n2f)}y + {frac_str(n3f)}z = 0$ (qua gốc $A$).
+Thể tích tứ diện $C.AEF$:
+Với $\overrightarrow{{AC}} = ({a}; {b}; 0)$, ta có:
+$V_{{C.AEF}} = \dfrac{{1}}{{6}} |[\overrightarrow{{AE}}, \overrightarrow{{AF}}] \cdot \overrightarrow{{AC}}| = \dfrac{{1}}{{6}} |{frac_str(n1f)}({a}) + {frac_str(n2f)}({b}) + {frac_str(n3f)}(0)| = {frac_str(abs(dot_n_AC)/6)}$.
 
-$d(C;(AEF)) = \dfrac{{|{frac_str(n1f)} \cdot {a} + {frac_str(n2f)} \cdot {b}|}}{{\sqrt{{{frac_str(n1f)}^2 + {frac_str(n2f)}^2 + {frac_str(n3f)}^2}}}} \approx {d_C_AEF:.4f} \approx {d_C_AEF_rounded:.2f}$.
+Khoảng cách:
+$d(C;(AEF)) = \dfrac{{3 \times {frac_str(abs(dot_n_AC)/6)}}}{{{norm_n/2:.4f}}} \approx {d_C_AEF:.4f} \approx {d_C_AEF_rounded:.2f}$.
 
 Vậy mệnh đề là {'Đúng' if b_correct else 'Sai'}."""
 

@@ -384,17 +384,29 @@ Vậy mệnh đề là {'Đúng' if b_correct else 'Sai'}."""
     vol2_f = abs(det3(EB_f, EC_f, ECp_f)) / 6
     vol_exact_f = vol1_f + vol2_f
 
+    v_E_ABC = Fraction(1, 3) * Fraction(p * q, 2) * Ez
+    v_E_ApBpCp = Fraction(1, 3) * Fraction(p * q, 2) * (Fraction(h) - Ez)
+    v_E_ABBpAp = Fraction(1, 3) * (p * h) * Ey
+
     sol_c = rf"""c) {'Đúng' if c_correct else 'Sai'}.
 
-Thể tích lăng trụ $ABC.A'B'C'$: $V_{{ABC.A'B'C'}} = \dfrac{{1}}{{2}} \cdot AB \cdot AC \cdot AA' = \dfrac{{1}}{{2}} \cdot {p} \cdot {q} \cdot {h} = {frac_str(v_prism)}$.
+Thể tích khối chóp $E.B'C'BC$ được tính bằng cách lấy thể tích lăng trụ trừ đi các phần xung quanh:
+$V_{{E.B'C'BC}} = V_{{lăng\,trụ}} - V_{{E.ABC}} - V_{{E.A'B'C'}} - V_{{E.ABB'A'}}$
 
-Tách khối $E.B'C'BC$ thành hai tứ diện:
-$V_{{E.BB'C'}} = \dfrac{{1}}{{6}} |\det(\overrightarrow{{EB}}, \overrightarrow{{EB'}}, \overrightarrow{{EC'}})| = {frac_str(vol1_f)}$.
+Thể tích lăng trụ: $V_{{lăng\,trụ}} = S_{{ABC}} \cdot AA' = \left(\dfrac{{1}}{{2}} \cdot {p} \cdot {q}\right) \cdot {h} = {frac_str(v_prism)}$.
 
-$V_{{E.BCC'}} = \dfrac{{1}}{{6}} |\det(\overrightarrow{{EB}}, \overrightarrow{{EC}}, \overrightarrow{{EC'}})| = {frac_str(vol2_f)}$.
+Thể tích $V_{{E.ABC}}$: Khoảng cách từ $E$ đến đáy $(ABC)$ là $z_E = {frac_str(Ez)}$.
+$V_{{E.ABC}} = \dfrac{{1}}{{3}} \cdot S_{{ABC}} \cdot d(E; (ABC)) = \dfrac{{1}}{{3}} \cdot {frac_str(Fraction(p*q, 2))} \cdot {frac_str(Ez)} = {frac_str(v_E_ABC)}$.
 
-$V_{{E.B'C'BC}} = {frac_str(vol1_f)} + {frac_str(vol2_f)} = {frac_str(vol_exact_f)}$.
+Thể tích $V_{{E.A'B'C'}}$: Khoảng cách từ $E$ đến đáy $(A'B'C')$ là $AA' - z_E = {h} - {frac_str(Ez)} = {frac_str(Fraction(h) - Ez)}$.
+$V_{{E.A'B'C'}} = \dfrac{{1}}{{3}} \cdot S_{{A'B'C'}} \cdot d(E; (A'B'C')) = \dfrac{{1}}{{3}} \cdot {frac_str(Fraction(p*q, 2))} \cdot {frac_str(Fraction(h) - Ez)} = {frac_str(v_E_ApBpCp)}$.
 
+Thể tích $V_{{E.ABB'A'}}$: Khoảng cách từ $E$ đến mặt bên $(ABB'A')$ là tung độ $y_E = {frac_str(Ey)}$. Diện tích hình chữ nhật $ABB'A'$ là ${p} \cdot {h} = {p*h}$.
+$V_{{E.ABB'A'}} = \dfrac{{1}}{{3}} \cdot S_{{ABB'A'}} \cdot d(E; (ABB'A')) = \dfrac{{1}}{{3}} \cdot {p*h} \cdot {frac_str(Ey)} = {frac_str(v_E_ABBpAp)}$.
+
+Vậy $V_{{E.B'C'BC}} = {frac_str(v_prism)} - {frac_str(v_E_ABC)} - {frac_str(v_E_ApBpCp)} - {frac_str(v_E_ABBpAp)} = {frac_str(vol_exact_f)} \approx {float(vol_exact_f):.2f}$.
+
+Mệnh đề đưa ra là $V_{{E.B'C'BC}} = {vol_display_str_stmt}$.
 Vậy mệnh đề là {'Đúng' if c_correct else 'Sai'}."""
 
     # d(E; plane A'BC)
@@ -402,19 +414,34 @@ Vậy mệnh đề là {'Đúng' if c_correct else 'Sai'}."""
     # Plane eq: qhx + phy + pqz = pqh
     num_d_f = abs(Fraction(q*h)*Ex + Fraction(p*h)*Ey + Fraction(p*q)*Ez - Fraction(p*q*h))
 
+    S_ABC = Fraction(p * q, 2)
+    cos_phi = float(p * q) / math.sqrt((q*h)**2 + (p*h)**2 + (p*q)**2)
+    S_ApBC = float(S_ABC) / cos_phi
+    ratio_EM_AM = abs(Fraction(1, 2) - Fraction(1, k)) / Fraction(1, 2)
+    V_A_ApBC = Fraction(1, 3) * S_ABC * h
+    V_E_ApBC = ratio_EM_AM * V_A_ApBC
+
     sol_d = rf"""d) {'Đúng' if d_correct else 'Sai'}.
 
-Mặt phẳng $(A'BC)$ chứa $A'=(0;0;{h})$, $B=({p};0;0)$, $C=(0;{q};0)$.
+Ta dùng phương pháp bắc cầu thể tích khối chóp $E.A'BC$:
+$d(E; (A'BC)) = \dfrac{{3 \cdot V_{{E.A'BC}}}}{{S_{{A'BC}}}}$
 
-$\overrightarrow{{A'B}} = ({p};0;{-h})$, $\overrightarrow{{A'C}} = (0;{q};{-h})$.
+Bước 1: Tính diện tích tam giác $A'BC$
+Mặt phẳng $(A'BC)$ cắt các trục tại $B({p};0;0), C(0;{q};0), A'(0;0;{h})$ có phương trình đoạn chắn $\dfrac{{x}}{{{p}}} + \dfrac{{y}}{{{q}}} + \dfrac{{z}}{{{h}}} = 1 \Leftrightarrow {q*h}x + {p*h}y + {p*q}z - {p*q*h} = 0$.
+Vectơ pháp tuyến $\vec{{n}} = ({q*h}; {p*h}; {p*q})$. Diện tích tam giác đáy hình chiếu $S_{{ABC}} = {frac_str(S_ABC)}$.
+$S_{{A'BC}} = \dfrac{{S_{{ABC}}}}{{\cos \varphi}} = \dfrac{{{frac_str(S_ABC)}}}{{\dfrac{{{p*q}}}{{\sqrt{{{q*h}^2+{p*h}^2+{p*q}^2}}}}}} \approx {S_ApBC:.4f}$
 
-Véctơ pháp tuyến $\vec{{n}} = \overrightarrow{{A'B}} \times \overrightarrow{{A'C}} = ({q*h};\ {p*h};\ {p*q})$.
+Bước 2: Tính thể tích khối chóp $E.A'BC$
+Đường thẳng $AC'$ cắt mặt phẳng $(A'BC)$ tại trung điểm $M$ của đoạn $A'C$.
+Do $AC' = {k}AE \Rightarrow AE = \dfrac{{1}}{{{k}}}AC'$. Mà $AM = \dfrac{{1}}{{2}}AC'$.
+Suy ra $\dfrac{{EM}}{{AM}} = \dfrac{{|\frac{{1}}{{2}} - \frac{{1}}{{{k}}}|}}{{\frac{{1}}{{2}}}} = {frac_str(ratio_EM_AM)}$.
+Vì vậy khoảng cách từ $E$ đến $(A'BC)$ bằng ${frac_str(ratio_EM_AM)}$ khoảng cách từ $A$ đến $(A'BC)$.
+Bắc cầu qua thể tích khối chóp $A.A'BC$:
+$V_{{A.A'BC}} = \dfrac{{1}}{{3}} \cdot S_{{ABC}} \cdot AA' = \dfrac{{1}}{{3}} \cdot {frac_str(S_ABC)} \cdot {h} = {frac_str(V_A_ApBC)}$
+$\Rightarrow V_{{E.A'BC}} = {frac_str(ratio_EM_AM)} \cdot V_{{A.A'BC}} = {frac_str(ratio_EM_AM)} \cdot {frac_str(V_A_ApBC)} = {frac_str(V_E_ApBC)}$
 
-Phương trình $(A'BC)$: ${q*h}x + {p*h}y + {p*q}z = {p*q*h}$.
-
-$d(E;(A'BC)) = \dfrac{{|{q*h} \cdot 0 + {p*h} \cdot {frac_str(Ey)} + {p*q} \cdot {frac_str(Ez)} - {p*q*h}|}}{{\sqrt{{{q*h}^2 + {p*h}^2 + {p*q}^2}}}}$
-
-$= \dfrac{{{frac_str(num_d_f)}}}{{\sqrt{{{(q*h)**2+(p*h)**2+(p*q)**2}}}}} \approx {d_E_ApBC:.3f}$.
+Bước 3: Tính khoảng cách
+$d(E; (A'BC)) = \dfrac{{3 \cdot {frac_str(V_E_ApBC)}}}{{{S_ApBC:.4f}}} \approx {d_E_ApBC:.3f} \approx {d_E_rounded:.3f}$.
 
 Vậy mệnh đề là {'Đúng' if d_correct else 'Sai'}."""
 
