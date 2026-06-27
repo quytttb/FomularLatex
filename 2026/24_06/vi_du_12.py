@@ -155,26 +155,12 @@ def poly_tex(a, b, c):
     return " ".join(parts) if parts else "0"
 
 
-def poly_with_m_tex(base_val, c_coeff, pos_char, var_label):
-    """
-    Format the expression for the term containing m.
-    base_val = true value when m = m_true
-    c_coeff  = coefficient of m
-    returns LaTeX for the full numerator/denominator string
-    """
-    # k = base_val - c_coeff * m_true → not needed here; caller builds num/den strings
-    pass
-
-
-def build_num_tex(a_true, b_true, c_val, c_coeff, pos, m_true):
-    """Build the numerator LaTeX, substituting the m-expression back."""
-    k_offset_a = a_true - c_coeff * m_true  # so A = c_coeff*m + k_offset_a
-    k_offset_b = b_true - c_coeff * m_true
-
+def build_poly_m_tex(c_a, k_a, c_b, k_b, c_c, k_c):
     def m_expr_str(c, k):
-        """Format c*m + k as a LaTeX string (no outer parens)."""
+        if c == 0:
+            return str(k)
         if k == 0:
-            return f"{c}m" if c != 1 else "m"
+            return f"{c}m" if c not in (1, -1) else ("m" if c == 1 else "-m")
         if c == 1:
             return f"m + {k}" if k > 0 else f"m - {abs(k)}"
         if c == -1:
@@ -182,55 +168,82 @@ def build_num_tex(a_true, b_true, c_val, c_coeff, pos, m_true):
         return f"{c}m + {k}" if k > 0 else f"{c}m - {abs(k)}"
 
     def needs_parens(expr_str):
-        """Return True if expr contains + or - (after first char) → wrap in parens."""
-        return '+' in expr_str or '-' in expr_str[1:]
+        if '+' in expr_str: return True
+        if '-' in expr_str[1:]: return True
+        return False
 
-    if pos == 'A':
-        expr = m_expr_str(c_coeff, k_offset_a)
-        wrapped = f"({expr})" if needs_parens(expr) else expr
-        a_part = f"{wrapped}x^2"
-        bc = poly_tex(0, b_true, c_val)
-        if bc and bc != "0":
-            sep = " + " if b_true > 0 else " "
-            return a_part + sep + bc
-        return a_part
-    elif pos == 'B':
-        expr = m_expr_str(c_coeff, k_offset_b)
-        wrapped = f"({expr})" if needs_parens(expr) else expr
-        a_part = poly_tex(a_true, 0, 0)
-        b_part = f"{wrapped}x"
-        c_part = f" + {c_val}" if c_val > 0 else (f" - {abs(c_val)}" if c_val < 0 else "")
-        return f"{a_part} + {b_part}{c_part}"
-    else:
-        # pos == 'D', numerator is fully numeric
-        return poly_tex(a_true, b_true, c_val)
-
-
-def build_den_tex(d_true, c_coeff, pos, m_true):
-    """Build the denominator LaTeX."""
-    k_offset_d = d_true - c_coeff * m_true
-
-    if pos != 'D':
-        # denominator is fully numeric
-        if d_true == 0:
-            return "x"
-        if d_true > 0:
-            return f"x + {d_true}"
-        return f"x - {abs(d_true)}"
-    else:
-        # D = c_coeff*m + k_offset_d
-        if k_offset_d == 0:
-            d_expr = f"{c_coeff}m" if c_coeff != 1 else "m"
-        elif c_coeff == 1:
-            d_expr = f"m + {k_offset_d}" if k_offset_d > 0 else f"m - {abs(k_offset_d)}"
-        elif c_coeff == -1:
-            d_expr = f"-m + {k_offset_d}" if k_offset_d > 0 else f"-m - {abs(k_offset_d)}"
+    parts = []
+    # A term
+    expr_a = m_expr_str(c_a, k_a)
+    if expr_a != "0":
+        if needs_parens(expr_a):
+            parts.append(f"({expr_a})x^2")
         else:
-            d_expr = f"{c_coeff}m + {k_offset_d}" if k_offset_d > 0 else f"{c_coeff}m - {abs(k_offset_d)}"
-        # Use + sign if d_expr is purely positive-looking, else just append
-        if d_expr.startswith('-'):
-            return f"x {d_expr}"
-        return f"x + {d_expr}"
+            if expr_a == "1": parts.append("x^2")
+            elif expr_a == "-1": parts.append("-x^2")
+            else: parts.append(f"{expr_a}x^2")
+            
+    # B term
+    expr_b = m_expr_str(c_b, k_b)
+    if expr_b != "0":
+        if not parts:
+            if needs_parens(expr_b):
+                parts.append(f"({expr_b})x")
+            else:
+                if expr_b == "1": parts.append("x")
+                elif expr_b == "-1": parts.append("-x")
+                else: parts.append(f"{expr_b}x")
+        else:
+            if needs_parens(expr_b):
+                parts.append(f"+ ({expr_b})x")
+            else:
+                if expr_b.startswith('-'):
+                    if expr_b == "-1": parts.append("- x")
+                    else: parts.append(f"- {expr_b[1:]}x")
+                else:
+                    if expr_b == "1": parts.append("+ x")
+                    else: parts.append(f"+ {expr_b}x")
+                    
+    # C term
+    expr_c = m_expr_str(c_c, k_c)
+    if expr_c != "0":
+        if not parts:
+            if needs_parens(expr_c):
+                parts.append(f"({expr_c})")
+            else:
+                parts.append(expr_c)
+        else:
+            if needs_parens(expr_c):
+                parts.append(f"+ ({expr_c})")
+            else:
+                if expr_c.startswith('-'):
+                    parts.append(f"- {expr_c[1:]}")
+                else:
+                    parts.append(f"+ {expr_c}")
+                    
+    if not parts:
+        return "0"
+    return " ".join(parts)
+
+
+def build_den_m_tex(c_d, k_d):
+    def m_expr_str(c, k):
+        if c == 0:
+            return str(k)
+        if k == 0:
+            return f"{c}m" if c not in (1, -1) else ("m" if c == 1 else "-m")
+        if c == 1:
+            return f"m + {k}" if k > 0 else f"m - {abs(k)}"
+        if c == -1:
+            return f"-m + {k}" if k > 0 else f"-m - {abs(k)}"
+        return f"{c}m + {k}" if k > 0 else f"{c}m - {abs(k)}"
+
+    expr_d = m_expr_str(c_d, k_d)
+    if expr_d == "0":
+        return "x"
+    if expr_d.startswith('-'):
+        return f"x - {expr_d[1:]}"
+    return f"x + {expr_d}"
 
 
 def generate_question(seed=None) -> Tuple[str, str, str]:
@@ -239,14 +252,41 @@ def generate_question(seed=None) -> Tuple[str, str, str]:
 
     a, b, c, d, c_coeff, pos, x_A, m_true = random.choice(PARAM_SETS)
 
+    attempts_coeffs = 0
+    while True:
+        attempts_coeffs += 1
+        c_a = random.choice([0, 1, 2, -1, -2])
+        c_b = random.choice([0, 1, 2, -1, -2])
+        c_c = random.choice([0, 1, 2, -1, -2])
+        c_d = random.choice([0, 1, 2, -1, -2])
+        
+        non_zeros = sum(1 for x in [c_a, c_b, c_c, c_d] if x != 0)
+        if non_zeros < 2:
+            continue
+            
+        if c_a * c_d != 0:
+            continue # avoid quadratic in m
+            
+        # coefficient of m in y_A = A(m)x_A + B(m) - A(m)D(m)
+        m_coeff = c_a * x_A + c_b - a * c_d - d * c_a
+        if m_coeff == 0:
+            continue
+            
+        break
+
+    k_a = a - c_a * m_true
+    k_b = b - c_b * m_true
+    k_c = c - c_c * m_true
+    k_d = d - c_d * m_true
+
     # Oblique asymptote: y = a*x + (b - a*d)
     slope = a
     intercept = b - a * d
     y_A = slope * x_A + intercept
 
     # Build LaTeX for function
-    num_tex = build_num_tex(a, b, c, c_coeff, pos, m_true)
-    den_tex = build_den_tex(d, c_coeff, pos, m_true)
+    num_tex = build_poly_m_tex(c_a, k_a, c_b, k_b, c_c, k_c)
+    den_tex = build_den_m_tex(c_d, k_d)
     func_tex = rf"y = \dfrac{{{num_tex}}}{{{den_tex}}}"
 
     # Build 4 answer options (A, B, C, D)
