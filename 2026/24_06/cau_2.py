@@ -122,9 +122,11 @@ def generate_question(seed=None) -> Tuple[str, str, str]:
     if seed is not None:
         random.seed(seed)
 
-    p, q, h, k = random.choice(PARAM_SETS)
+    p = random.randint(2, 10)
+    q = random.randint(2, 10)
+    h = random.randint(2, 10)
 
-    # Coordinates (exact fractions for E)
+    # Coordinates
     A  = (0, 0, 0)
     B  = (p, 0, 0)
     C  = (0, q, 0)
@@ -132,25 +134,87 @@ def generate_question(seed=None) -> Tuple[str, str, str]:
     Bp = (p, 0, h)
     Cp = (0, q, h)
 
-    # E on AC': AE = (1/k)*AC', so AC' = k*AE
-    # AC' vector = C' - A = (0, q, h)
-    Ex = Fraction(0)
-    Ey = Fraction(q, k)
-    Ez = Fraction(h, k)
+    pts_exact = {
+        'A': (Fraction(0), Fraction(0), Fraction(0)),
+        'B': (Fraction(p), Fraction(0), Fraction(0)),
+        'C': (Fraction(0), Fraction(q), Fraction(0)),
+        "A'": (Fraction(0), Fraction(0), Fraction(h)),
+        "B'": (Fraction(p), Fraction(0), Fraction(h)),
+        "C'": (Fraction(0), Fraction(q), Fraction(h))
+    }
+    base_vertices = list(pts_exact.keys())
 
-    # G = centroid(A, B, C') = ((0+p+0)/3, (0+0+q)/3, (0+0+h)/3)
-    Gx = Fraction(p, 3)
-    Gy = Fraction(q, 3)
-    Gz = Fraction(h, 3)
+    # Randomize segment for E: E on P1_E P2_E
+    P1_E, P2_E = random.sample(base_vertices, 2)
+    k_num = random.randint(1, 4)
+    k_den = k_num + random.randint(1, 4)
+    ratio = Fraction(k_num, k_den)
+    
+    P1_ex = pts_exact[P1_E]
+    P2_ex = pts_exact[P2_E]
+    
+    Ex = P1_ex[0] + ratio * (P2_ex[0] - P1_ex[0])
+    Ey = P1_ex[1] + ratio * (P2_ex[1] - P1_ex[1])
+    Ez = P1_ex[2] + ratio * (P2_ex[2] - P1_ex[2])
+    pts_exact['E'] = (Ex, Ey, Ez)
 
-    # ---- Statement a: angle between A'G and BE ----
-    ApG = (float(Gx - 0), float(Gy - 0), float(Gz - h))  # G - A'
-    BE  = (float(Ex - p), float(Ey - 0), float(Ez - 0))   # E - B
+    # G = centroid of a random triangle
+    G_pts = random.sample(base_vertices + ['E'], 3)
+    T1, T2, T3 = G_pts
+    Gx = (pts_exact[T1][0] + pts_exact[T2][0] + pts_exact[T3][0]) / Fraction(3)
+    Gy = (pts_exact[T1][1] + pts_exact[T2][1] + pts_exact[T3][1]) / Fraction(3)
+    Gz = (pts_exact[T1][2] + pts_exact[T2][2] + pts_exact[T3][2]) / Fraction(3)
+    pts_exact['G'] = (Gx, Gy, Gz)
 
-    cos_a = dot(ApG, BE) / (norm(ApG) * norm(BE))
-    cos_a = max(-1.0, min(1.0, cos_a))
-    # Angle between lines (always acute or right)
-    angle_a_deg = math.degrees(math.acos(abs(cos_a)))
+    pts_labels = list(pts_exact.keys())
+    
+    def cross_frac(u, v):
+        return (
+            u[1]*v[2] - u[2]*v[1],
+            u[2]*v[0] - u[0]*v[2],
+            u[0]*v[1] - u[1]*v[0],
+        )
+
+    def dot_frac(u, v):
+        return u[0]*v[0] + u[1]*v[1] + u[2]*v[2]
+
+    def sub_frac(u, v):
+        return (u[0]-v[0], u[1]-v[1], u[2]-v[2])
+
+    def norm_float(u):
+        return math.sqrt(float(u[0])**2 + float(u[1])**2 + float(u[2])**2)
+
+    # ---- Statement a: angle between two vectors/lines ----
+    while True:
+        pool = [pt for pt in pts_labels if pt not in ['E', 'G']]
+        rem = random.sample(pool, 2)
+        
+        pair1 = ['E', rem[0]]
+        pair2 = ['G', rem[1]]
+        random.shuffle(pair1)
+        random.shuffle(pair2)
+        
+        if random.choice([True, False]):
+            pt_a1, pt_a2, pt_a3, pt_a4 = pair1[0], pair1[1], pair2[0], pair2[1]
+        else:
+            pt_a1, pt_a2, pt_a3, pt_a4 = pair2[0], pair2[1], pair1[0], pair1[1]
+            
+        v1 = sub_frac(pts_exact[pt_a2], pts_exact[pt_a1])
+        v2 = sub_frac(pts_exact[pt_a4], pts_exact[pt_a3])
+        if norm_float(v1) > 1e-9 and norm_float(v2) > 1e-9:
+            break
+
+    is_vector_angle = random.choice([True, False])
+    v1_f = (float(v1[0]), float(v1[1]), float(v1[2]))
+    v2_f = (float(v2[0]), float(v2[1]), float(v2[2]))
+    cos_a_raw = dot(v1_f, v2_f) / (norm(v1_f) * norm(v2_f))
+    cos_a_raw = max(-1.0, min(1.0, cos_a_raw))
+    
+    if is_vector_angle:
+        angle_a_deg = math.degrees(math.acos(cos_a_raw))
+    else:
+        angle_a_deg = math.degrees(math.acos(abs(cos_a_raw)))
+
     angle_a_rounded = round(angle_a_deg, 1)
 
     a_correct = random.choice([True, False])
@@ -159,289 +223,173 @@ def generate_question(seed=None) -> Tuple[str, str, str]:
     else:
         perturb = random.choice([-10, 10, -15, 15, -20, 20, -5, 5, -25, 25])
         angle_a_display = round(angle_a_rounded + perturb, 1)
-        if angle_a_display < 0 or angle_a_display > 90:
+        if angle_a_display < 0 or (is_vector_angle and angle_a_display > 180) or (not is_vector_angle and angle_a_display > 90):
             angle_a_display = round(angle_a_rounded + (5 if angle_a_rounded < 45 else -5), 1)
 
-    # ---- Statement b: vec(A'E) · vec(EC) ----
-    # A'E = E - A' = (Ex-0, Ey-0, Ez-h)
-    # EC  = C - E  = (0-Ex, q-Ey, 0-Ez)
-    ApE = (float(Ex - 0), float(Ey - 0), float(Ez - h))
-    EC  = (float(0 - Ex), float(q - Ey), float(0 - Ez))
+    # ---- Statement b: dot product ----
+    while True:
+        pool = [pt for pt in pts_labels if pt not in ['E']]
+        rem = random.sample(pool, 3)
+        pair1 = ['E', rem[0]]
+        pair2 = [rem[1], rem[2]]
+        random.shuffle(pair1)
+        random.shuffle(pair2)
+        if random.choice([True, False]):
+            pt_b1, pt_b2, pt_b3, pt_b4 = pair1[0], pair1[1], pair2[0], pair2[1]
+        else:
+            pt_b1, pt_b2, pt_b3, pt_b4 = pair2[0], pair2[1], pair1[0], pair1[1]
 
-    dot_prod = dot(ApE, EC)
-    dot_frac = Fraction(dot_prod).limit_denominator(1000)
+        vb1 = sub_frac(pts_exact[pt_b2], pts_exact[pt_b1])
+        vb2 = sub_frac(pts_exact[pt_b4], pts_exact[pt_b3])
+        dot_exact_frac = dot_frac(vb1, vb2)
+        if dot_exact_frac != 0:
+            break
 
     b_correct = random.choice([True, False])
     if b_correct:
-        dot_display = dot_frac
+        dot_display = dot_exact_frac
     else:
-        # Perturb by adding a fraction
         perturb_opts = [Fraction(1), Fraction(-1), Fraction(1, 2), Fraction(-1, 2),
                         Fraction(3, 2), Fraction(-3, 2), Fraction(2), Fraction(-2),
                         Fraction(3), Fraction(-3), Fraction(5, 2), Fraction(-5, 2)]
-        dot_display = dot_frac + random.choice(perturb_opts)
+        dot_display = dot_exact_frac + random.choice(perturb_opts)
 
-    # ---- Statement c: V_{E.B'C'BC} ----
-    # The solid E.B'C'BC is a pyramid with base B'C'BC (a rectangle) and apex E.
-    # Base B'C'BC: B=(p,0,0), C=(0,q,0), C'=(0,q,h), B'=(p,0,h) - this is a rectangle
-    # Area of base B'C'BC:
-    #   BC = C - B = (-p, q, 0), BB' = B' - B = (0, 0, h)
-    #   No wait - the base is quadrilateral B'C'BC which is a rectangle with sides BC and BB'
-    #   Area = BC * h (since BB' is perpendicular to base plane... actually BC is not perp to h)
-    #   Let's compute properly: B'C'BC is rectangle with sides BC and BB'
-    #   BC vector: C-B = (-p, q, 0), |BC| = sqrt(p²+q²)
-    #   BB' vector: B'-B = (0,0,h), |BB'| = h
-    #   Since BC ⊥ BB', area = |BC|*|BB'| = h*sqrt(p²+q²)
-    #
-    # For pyramid E.B'C'BC:
-    # Volume = (1/3) * Area_base * height from E to plane(B'C'BC)
-    # Plane B'C'BC: contains B, normal = BC × BB' = (-p,q,0)×(0,0,h) = (qh, ph, 0)
-    #   simplified normal: (q, p, 0)
-    # Equation: q(x-p) + p(y-0) + 0*(z-0) = 0 → qx + py = qp
-    # d(E; plane B'C'BC) = |q*Ex + p*Ey - qp| / sqrt(q²+p²)
-    #   = |q*0 + p*(q/k) - qp| / sqrt(p²+q²)
-    #   = |pq/k - pq| / sqrt(p²+q²)
-    #   = pq|1/k - 1| / sqrt(p²+q²)
-    #   = pq*(k-1)/k / sqrt(p²+q²)
-
-    area_base = h * math.sqrt(p**2 + q**2)
-    d_E_to_BCCB = abs(float(Fraction(q*0) + Fraction(p*q, k) - q*p)) / math.sqrt(p**2 + q**2)
-    # = p*q*(k-1)/k / sqrt(p²+q²)
-    vol_E_BCBC = (1/3) * area_base * d_E_to_BCCB
-
-    # Simpler alternative: use the fact that the prism ABC.A'B'C' has volume (1/2)*p*q*h
-    # E.B'C'BC is one part of the prism. 
-    # Actually, let's compute using coordinates directly.
-    # Split B'C'BC into two triangles or use the formula for a general pyramid.
-    # V = (1/3)|det([B-E, B'-E, C-E])| for tetrahedron E,B,B',C ... then add E,B',C',C
-
-    def tetra_vol(P1, P2, P3, P4):
-        """Volume of tetrahedron with vertices P1,P2,P3,P4."""
-        v1 = (P2[0]-P1[0], P2[1]-P1[1], P2[2]-P1[2])
-        v2 = (P3[0]-P1[0], P3[1]-P1[1], P3[2]-P1[2])
-        v3 = (P4[0]-P1[0], P4[1]-P1[1], P4[2]-P1[2])
-        cr = cross(v2, v3)
-        return abs(dot(v1, cr)) / 6.0
-
-    E_f = (float(Ex), float(Ey), float(Ez))
-    # Pyramid E.B'C'BC = tetra(E,B,C,B') + tetra(E,B',C,C')
-    vol1 = tetra_vol(E_f, B, C, Bp)
-    vol2 = tetra_vol(E_f, Bp, C, Cp)
-    vol_total = vol1 + vol2
-
-    # Check with exact computation:
-    # V_prism(ABC.A'B'C') = (1/2)*p*q*h
-    # E divides AC' in ratio 1:(k-1), so the pyramid E.ABC part etc.
-    vol_exact = vol_total
-    vol_rounded = round(vol_exact, 2)
-    # Check if integer
-    vol_int = int(round(vol_exact))
-    if abs(vol_exact - vol_int) < 0.001:
-        vol_display_str = str(vol_int)
-        vol_exact_nice = vol_int
-    else:
-        vol_display_str = f"{vol_rounded:.2f}".replace('.', ',')
-        vol_exact_nice = vol_rounded
-
+    # ---- Statement c: Volume of a tetrahedron ----
+    while True:
+        v_pts = ['E'] + random.sample([p for p in pts_labels if p != 'E'], 3)
+        random.shuffle(v_pts)
+        v1_c = sub_frac(pts_exact[v_pts[1]], pts_exact[v_pts[0]])
+        v2_c = sub_frac(pts_exact[v_pts[2]], pts_exact[v_pts[0]])
+        v3_c = sub_frac(pts_exact[v_pts[3]], pts_exact[v_pts[0]])
+        cr = cross_frac(v1_c, v2_c)
+        vol_exact = abs(dot_frac(cr, v3_c)) / Fraction(6)
+        if vol_exact > 0:
+            break
+            
     c_correct = random.choice([True, False])
     if c_correct:
-        vol_display = vol_exact_nice
-        vol_display_str_stmt = str(vol_display) if isinstance(vol_display, int) else f"{vol_display:.2f}".replace('.', ',')
+        vol_display = vol_exact
     else:
-        perturb_v = random.choice([1, -1, 2, -2, 3, -3, 0.5, -0.5])
-        vol_wrong = vol_exact_nice + perturb_v
-        if vol_wrong <= 0:
-            vol_wrong = vol_exact_nice + abs(perturb_v) + 1
-        vol_display = vol_wrong
-        if isinstance(vol_wrong, int) or (isinstance(vol_wrong, float) and vol_wrong == int(vol_wrong)):
-            vol_display_str_stmt = str(int(vol_wrong))
-        else:
-            vol_display_str_stmt = f"{vol_wrong:.1f}".replace('.', ',')
+        perturb_v = random.choice([Fraction(1), Fraction(-1), Fraction(2), Fraction(-2), Fraction(1,2), Fraction(-1,2)])
+        vol_display = vol_exact + perturb_v
+        if vol_display <= 0:
+            vol_display = vol_exact + abs(perturb_v) + Fraction(1)
 
-    # ---- Statement d: d(E; plane A'BC) ----
-    # Plane A'BC contains A'=(0,0,h), B=(p,0,0), C=(0,q,0)
-    # A'B = B - A' = (p,0,-h)
-    # A'C = C - A' = (0,q,-h)
-    # Normal = A'B × A'C
-    ApB = (p, 0, -h)
-    ApC = (0, q, -h)
-    n_ApBC = cross(ApB, ApC)  # = (0*(-h)-(-h)*q, (-h)*0-p*(-h), p*q-0*0) = (qh, ph, pq)
-    # n = (qh, ph, pq)
-    # Plane through A'=(0,0,h): qh*(x-0) + ph*(y-0) + pq*(z-h) = 0
-    # → qhx + phy + pqz = pqh
-
-    # d(E; plane A'BC) = |qh*Ex + ph*Ey + pq*Ez - pqh| / sqrt((qh)²+(ph)²+(pq)²)
-    num_d = abs(q*h*float(Ex) + p*h*float(Ey) + p*q*float(Ez) - p*q*h)
-    den_d = math.sqrt((q*h)**2 + (p*h)**2 + (p*q)**2)
-    d_E_ApBC = num_d / den_d
-    d_E_rounded = round(d_E_ApBC, 3)
+    # ---- Statement d: Distance from a point to a plane ----
+    while True:
+        pt_d = random.choice(['E', 'G'])
+        plane_pts = random.sample([v for v in pts_labels if v != pt_d], 3)
+        v1_d = sub_frac(pts_exact[plane_pts[1]], pts_exact[plane_pts[0]])
+        v2_d = sub_frac(pts_exact[plane_pts[2]], pts_exact[plane_pts[0]])
+        n_d = cross_frac(v1_d, v2_d)
+        if norm_float(n_d) > 1e-9:
+            break
+            
+    v_d = sub_frac(pts_exact[pt_d], pts_exact[plane_pts[0]])
+    d_exact_num = abs(dot_frac(n_d, v_d))
+    d_exact_den = norm_float(n_d)
+    d_actual = float(d_exact_num) / d_exact_den
+    d_rounded = round(d_actual, 2)
 
     d_correct = random.choice([True, False])
     if d_correct:
-        d_display = d_E_rounded
+        d_display = d_rounded
     else:
         perturb_d = random.choice([-0.1, 0.1, -0.2, 0.2, -0.3, 0.3, -0.5, 0.5])
-        d_wrong = round(d_E_rounded + perturb_d, 3)
+        d_wrong = round(d_rounded + perturb_d, 2)
         if d_wrong <= 0:
-            d_wrong = d_E_rounded + 0.1
-        d_display = round(d_wrong, 3)
+            d_wrong = d_rounded + 0.1
+        d_display = round(d_wrong, 2)
 
     # ---- Build question text ----
-    # Condition: AC' = k*AE
-    dot_display_str = frac_str(dot_display)
-
-    if isinstance(d_display, float):
-        d_display_str = f"{d_display:.3f}"
+    if is_vector_angle:
+        a_stmt_text = rf"Góc giữa hai véc tơ $\overrightarrow{{{pt_a1}{pt_a2}}}$ và $\overrightarrow{{{pt_a3}{pt_a4}}}$"
     else:
-        d_display_str = str(d_display)
+        a_stmt_text = rf"Góc giữa hai đường thẳng ${pt_a1}{pt_a2}$ và ${pt_a3}{pt_a4}$"
+        
+    dot_display_str = frac_str(dot_display)
+    if isinstance(vol_display, Fraction):
+        vol_display_str = frac_str(vol_display)
+    else:
+        vol_display_str = str(vol_display)
+    d_display_str = f"{d_display:.2f}".replace('.', ',')
 
     stem = (
         rf"Cho hình lăng trụ đứng $ABC.A'B'C'$ có tam giác đáy $ABC$ vuông tại $A$ "
         rf"với $AB={p}$, $AC={q}$, $AA'={h}$. "
-        rf"Điểm $E$ trên $AC'$ sao cho $AC'={k}AE$, "
-        rf"$G$ là trọng tâm $\Delta ABC'$."
+        rf"Trên đoạn thẳng ${P1_E}{P2_E}$ lấy điểm $E$ sao cho ${k_den} \overrightarrow{{{P1_E}E}} = {k_num} \overrightarrow{{{P1_E}{P2_E}}}$, "
+        rf"$G$ là trọng tâm $\Delta {T1}{T2}{T3}$."
     )
 
-    stmt_a = (
-        rf"{'*' if a_correct else ''}a) "
-        rf"Góc giữa $A'G$ và $BE$ là $\approx {angle_a_display:.1f}^\circ$"
-        r"   (có đảo điểm)"
-    )
-    stmt_b = (
-        rf"{'*' if b_correct else ''}b) "
-        rf"$\overrightarrow{{A'E}} \cdot \overrightarrow{{EC}} = {dot_display_str}$"
-        r"       (có đảo điểm)"
-    )
-    stmt_c = (
-        rf"{'*' if c_correct else ''}c) "
-        rf"$V_{{E.B'C'BC}} = {vol_display_str_stmt}$"
-        r"       (có đảo đỉnh)"
-    )
-    stmt_d = (
-        rf"{'*' if d_correct else ''}d) "
-        rf"$d(E; (A'BC)) \approx {d_display_str}$"
-        r"       (có đảo điểm và mặt phẳng)"
-    )
+    stmt_a = rf"{'*' if a_correct else ''}a) {a_stmt_text} là $\approx {angle_a_display:.1f}^\circ$"
+    stmt_b = rf"{'*' if b_correct else ''}b) $\overrightarrow{{{pt_b1}{pt_b2}}} \cdot \overrightarrow{{{pt_b3}{pt_b4}}} = {dot_display_str}$"
+    stmt_c = rf"{'*' if c_correct else ''}c) Thể tích khối tứ diện ${v_pts[0]}.{v_pts[1]}{v_pts[2]}{v_pts[3]}$ là ${vol_display_str}$"
+    stmt_d = rf"{'*' if d_correct else ''}d) Khoảng cách từ ${pt_d}$ đến mặt phẳng $({plane_pts[0]}{plane_pts[1]}{plane_pts[2]})$ là $\approx {d_display_str}$"
 
     # ---- Solutions ----
     sol_a = rf"""a) {'Đúng' if a_correct else 'Sai'}.
 
-Đặt hệ trục tọa độ: $A=(0;0;0)$, $B=({p};0;0)$, $C=(0;{q};0)$,
-$A'=(0;0;{h})$, $B'=({p};0;{h})$, $C'=(0;{q};{h})$.
+Đặt hệ trục tọa độ: $A=(0;0;0)$, $B=({p};0;0)$, $C=(0;{q};0)$, $A'=(0;0;{h})$, $B'=({p};0;{h})$, $C'=(0;{q};{h})$.
 
-$E$ trên $AC'$ với $AC'={k}AE \Rightarrow AE = \dfrac{{1}}{{{k}}}AC'$:
-$E = A + \dfrac{{1}}{{{k}}}\overrightarrow{{AC'}} = \left(0;\ {frac_str(Ey)};\ {frac_str(Ez)}\right)$.
+$E = {P1_E} + \dfrac{{{k_num}}}{{{k_den}}}\overrightarrow{{{P1_E}{P2_E}}} = \left({frac_str(Ex)};\ {frac_str(Ey)};\ {frac_str(Ez)}\right)$.
 
-$G = $ trọng tâm $\Delta ABC' = \left(\dfrac{{0+{p}+0}}{{3}};\ \dfrac{{0+0+{q}}}{{3}};\ \dfrac{{0+0+{h}}}{{3}}\right) = \left({frac_str(Gx)};\ {frac_str(Gy)};\ {frac_str(Gz)}\right)$.
+$G = \dfrac{{{T1} + {T2} + {T3}}}{{3}} = \left({frac_str(Gx)};\ {frac_str(Gy)};\ {frac_str(Gz)}\right)$.
 
-$\overrightarrow{{A'G}} = G - A' = \left({frac_str(Gx)};\ {frac_str(Gy)};\ {frac_str(Gz - h)}\right)$.
+$\overrightarrow{{{pt_a1}{pt_a2}}} = \left({frac_str(v1[0])};\ {frac_str(v1[1])};\ {frac_str(v1[2])}\right)$.
 
-$\overrightarrow{{BE}} = E - B = \left({frac_str(-p)};\ {frac_str(Ey)};\ {frac_str(Ez)}\right)$.
+$\overrightarrow{{{pt_a3}{pt_a4}}} = \left({frac_str(v2[0])};\ {frac_str(v2[1])};\ {frac_str(v2[2])}\right)$.
 
-$\cos\alpha = \dfrac{{|\overrightarrow{{A'G}} \cdot \overrightarrow{{BE}}|}}{{|\overrightarrow{{A'G}}||\overrightarrow{{BE}}|}} \approx {abs(cos_a):.4f}$.
+{a_stmt_text}:
+$\cos\alpha = \dfrac{{|\overrightarrow{{{pt_a1}{pt_a2}}} \cdot \overrightarrow{{{pt_a3}{pt_a4}}}|}}{{|\overrightarrow{{{pt_a1}{pt_a2}}}||\overrightarrow{{{pt_a3}{pt_a4}}}|}}$ (nếu góc giữa hai đường thẳng thì lấy trị tuyệt đối).
+$\approx {abs(cos_a_raw) if not is_vector_angle else cos_a_raw:.4f}$.
 
 $\alpha \approx {angle_a_deg:.1f}^\circ$.
 
 Vậy mệnh đề là {'Đúng' if a_correct else 'Sai'}."""
 
-    # Exact dot product computation
-    ApE_frac = (Ex - 0, Ey - 0, Ez - Fraction(h))
-    EC_frac  = (Fraction(0) - Ex, Fraction(q) - Ey, Fraction(0) - Ez)
-    dot_exact = ApE_frac[0]*EC_frac[0] + ApE_frac[1]*EC_frac[1] + ApE_frac[2]*EC_frac[2]
-
     sol_b = rf"""b) {'Đúng' if b_correct else 'Sai'}.
 
-$\overrightarrow{{A'E}} = E - A' = \left(0;\ {frac_str(Ey)};\ {frac_str(Ez - h)}\right)$.
+$\overrightarrow{{{pt_b1}{pt_b2}}} = \left({frac_str(vb1[0])};\ {frac_str(vb1[1])};\ {frac_str(vb1[2])}\right)$.
 
-$\overrightarrow{{EC}} = C - E = \left(0;\ {frac_str(Fraction(q) - Ey)};\ {frac_str(-Ez)}\right)$.
+$\overrightarrow{{{pt_b3}{pt_b4}}} = \left({frac_str(vb2[0])};\ {frac_str(vb2[1])};\ {frac_str(vb2[2])}\right)$.
 
-$\overrightarrow{{A'E}} \cdot \overrightarrow{{EC}} = 0 \cdot 0 + {frac_str(Ey)} \cdot {frac_str(Fraction(q)-Ey)} + {frac_str(Ez-h)} \cdot {frac_str(-Ez)}$
-
-$= {frac_str(Ey * (Fraction(q) - Ey))} + {frac_str((Ez - h)*(-Ez))} = {frac_str(dot_exact)}$.
+$\overrightarrow{{{pt_b1}{pt_b2}}} \cdot \overrightarrow{{{pt_b3}{pt_b4}}} = {frac_str(vb1[0])} \cdot {frac_str(vb2[0])} + {frac_str(vb1[1])} \cdot {frac_str(vb2[1])} + {frac_str(vb1[2])} \cdot {frac_str(vb2[2])} = {frac_str(dot_exact_frac)}$.
 
 Vậy mệnh đề là {'Đúng' if b_correct else 'Sai'}."""
 
-    # Volume solution
-    # V_prism = (1/2)*p*q*h
-    v_prism = Fraction(p*q*h, 2)
-    # E.B'C'BC: use the complement method if possible, or direct formula
-    # V_{E.B'C'BC}: Let's split into E.BB'C' + E.BCC'
-    # Tetra E,B,B',C': volume = (1/6)|det[EB, EB', EC']|
-    # EB = B-E = (p, -q/k, -h/k)
-    # EB' = B'-E = (p, -q/k, h-h/k) = (p, -q/k, h(k-1)/k)
-    # EC' = C'-E = (0, q-q/k, h-h/k) = (0, q(k-1)/k, h(k-1)/k)
-    EB_f = (Fraction(p), -Ey, -Ez)
-    EBp_f = (Fraction(p), -Ey, Fraction(h) - Ez)
-    ECp_f = (Fraction(0), Fraction(q) - Ey, Fraction(h) - Ez)
-    EC_f = (Fraction(0), Fraction(q) - Ey, -Ez)
-
-    def det3(a, b, c):
-        return (a[0]*(b[1]*c[2]-b[2]*c[1])
-                - a[1]*(b[0]*c[2]-b[2]*c[0])
-                + a[2]*(b[0]*c[1]-b[1]*c[0]))
-
-    vol1_f = abs(det3(EB_f, EBp_f, ECp_f)) / 6
-    vol2_f = abs(det3(EB_f, EC_f, ECp_f)) / 6
-    vol_exact_f = vol1_f + vol2_f
-
-    v_E_ABC = Fraction(1, 3) * Fraction(p * q, 2) * Ez
-    v_E_ApBpCp = Fraction(1, 3) * Fraction(p * q, 2) * (Fraction(h) - Ez)
-    v_E_ABBpAp = Fraction(1, 3) * (p * h) * Ey
-
     sol_c = rf"""c) {'Đúng' if c_correct else 'Sai'}.
 
-Thể tích khối chóp $E.B'C'BC$ được tính bằng cách lấy thể tích lăng trụ trừ đi các phần xung quanh:
-$V_{{E.B'C'BC}} = V_{{lăng\,trụ}} - V_{{E.ABC}} - V_{{E.A'B'C'}} - V_{{E.ABB'A'}}$
+Ta có các véc tơ:
+$\overrightarrow{{{v_pts[0]}{v_pts[1]}}} = \left({frac_str(v1_c[0])};\ {frac_str(v1_c[1])};\ {frac_str(v1_c[2])}\right)$
+$\overrightarrow{{{v_pts[0]}{v_pts[2]}}} = \left({frac_str(v2_c[0])};\ {frac_str(v2_c[1])};\ {frac_str(v2_c[2])}\right)$
+$\overrightarrow{{{v_pts[0]}{v_pts[3]}}} = \left({frac_str(v3_c[0])};\ {frac_str(v3_c[1])};\ {frac_str(v3_c[2])}\right)$
 
-Thể tích lăng trụ: $V_{{lăng\,trụ}} = S_{{ABC}} \cdot AA' = \left(\dfrac{{1}}{{2}} \cdot {p} \cdot {q}\right) \cdot {h} = {frac_str(v_prism)}$.
+Tích có hướng $[\overrightarrow{{{v_pts[0]}{v_pts[1]}}}, \overrightarrow{{{v_pts[0]}{v_pts[2]}}}] = \left({frac_str(cr[0])};\ {frac_str(cr[1])};\ {frac_str(cr[2])}\right)$.
 
-Thể tích $V_{{E.ABC}}$: Khoảng cách từ $E$ đến đáy $(ABC)$ là $z_E = {frac_str(Ez)}$.
-$V_{{E.ABC}} = \dfrac{{1}}{{3}} \cdot S_{{ABC}} \cdot d(E; (ABC)) = \dfrac{{1}}{{3}} \cdot {frac_str(Fraction(p*q, 2))} \cdot {frac_str(Ez)} = {frac_str(v_E_ABC)}$.
+Thể tích khối tứ diện:
+$V = \dfrac{{1}}{{6}} \left|[\overrightarrow{{{v_pts[0]}{v_pts[1]}}}, \overrightarrow{{{v_pts[0]}{v_pts[2]}}}] \cdot \overrightarrow{{{v_pts[0]}{v_pts[3]}}}\right| = \dfrac{{1}}{{6}} \left|{frac_str(dot_frac(cr, v3_c))}\right| = {frac_str(vol_exact)}$.
 
-Thể tích $V_{{E.A'B'C'}}$: Khoảng cách từ $E$ đến đáy $(A'B'C')$ là $AA' - z_E = {h} - {frac_str(Ez)} = {frac_str(Fraction(h) - Ez)}$.
-$V_{{E.A'B'C'}} = \dfrac{{1}}{{3}} \cdot S_{{A'B'C'}} \cdot d(E; (A'B'C')) = \dfrac{{1}}{{3}} \cdot {frac_str(Fraction(p*q, 2))} \cdot {frac_str(Fraction(h) - Ez)} = {frac_str(v_E_ApBpCp)}$.
-
-Thể tích $V_{{E.ABB'A'}}$: Khoảng cách từ $E$ đến mặt bên $(ABB'A')$ là tung độ $y_E = {frac_str(Ey)}$. Diện tích hình chữ nhật $ABB'A'$ là ${p} \cdot {h} = {p*h}$.
-$V_{{E.ABB'A'}} = \dfrac{{1}}{{3}} \cdot S_{{ABB'A'}} \cdot d(E; (ABB'A')) = \dfrac{{1}}{{3}} \cdot {p*h} \cdot {frac_str(Ey)} = {frac_str(v_E_ABBpAp)}$.
-
-Vậy $V_{{E.B'C'BC}} = {frac_str(v_prism)} - {frac_str(v_E_ABC)} - {frac_str(v_E_ApBpCp)} - {frac_str(v_E_ABBpAp)} = {frac_str(vol_exact_f)} \approx {float(vol_exact_f):.2f}$.
-
-Mệnh đề đưa ra là $V_{{E.B'C'BC}} = {vol_display_str_stmt}$.
 Vậy mệnh đề là {'Đúng' if c_correct else 'Sai'}."""
 
-    # d(E; plane A'BC)
-    # Normal to A'BC: n = A'B × A'C = (qh, ph, pq)
-    # Plane eq: qhx + phy + pqz = pqh
-    num_d_f = abs(Fraction(q*h)*Ex + Fraction(p*h)*Ey + Fraction(p*q)*Ez - Fraction(p*q*h))
-
-    S_ABC = Fraction(p * q, 2)
-    cos_phi = float(p * q) / math.sqrt((q*h)**2 + (p*h)**2 + (p*q)**2)
-    S_ApBC = float(S_ABC) / cos_phi
-    ratio_EM_AM = abs(Fraction(1, 2) - Fraction(1, k)) / Fraction(1, 2)
-    V_A_ApBC = Fraction(1, 3) * S_ABC * h
-    V_E_ApBC = ratio_EM_AM * V_A_ApBC
-
+    d_exact_num_frac_str = frac_str(abs(dot_frac(n_d, v_d)) / Fraction(6))
+    
     sol_d = rf"""d) {'Đúng' if d_correct else 'Sai'}.
 
-Ta dùng phương pháp bắc cầu thể tích khối chóp $E.A'BC$:
-$d(E; (A'BC)) = \dfrac{{3 \cdot V_{{E.A'BC}}}}{{S_{{A'BC}}}}$
+Ta tính khoảng cách từ ${pt_d}$ đến mặt phẳng $({plane_pts[0]}{plane_pts[1]}{plane_pts[2]})$ thông qua thể tích khối tứ diện ${pt_d}.{plane_pts[0]}{plane_pts[1]}{plane_pts[2]}$:
+$d({pt_d};({plane_pts[0]}{plane_pts[1]}{plane_pts[2]})) = \dfrac{{3V_{{{pt_d}.{plane_pts[0]}{plane_pts[1]}{plane_pts[2]}}}}}{{S_{{{plane_pts[0]}{plane_pts[1]}{plane_pts[2]}}}}}$
 
-Bước 1: Tính diện tích tam giác $A'BC$
-Mặt phẳng $(A'BC)$ cắt các trục tại $B({p};0;0), C(0;{q};0), A'(0;0;{h})$ có phương trình đoạn chắn $\dfrac{{x}}{{{p}}} + \dfrac{{y}}{{{q}}} + \dfrac{{z}}{{{h}}} = 1 \Leftrightarrow {q*h}x + {p*h}y + {p*q}z - {p*q*h} = 0$.
-Vectơ pháp tuyến $\vec{{n}} = ({q*h}; {p*h}; {p*q})$. Diện tích tam giác đáy hình chiếu $S_{{ABC}} = {frac_str(S_ABC)}$.
-$S_{{A'BC}} = \dfrac{{S_{{ABC}}}}{{\cos \varphi}} = \dfrac{{{frac_str(S_ABC)}}}{{\dfrac{{{p*q}}}{{\sqrt{{{q*h}^2+{p*h}^2+{p*q}^2}}}}}} \approx {S_ApBC:.4f}$
+Diện tích tam giác ${plane_pts[0]}{plane_pts[1]}{plane_pts[2]}$:
+$\overrightarrow{{{plane_pts[0]}{plane_pts[1]}}} = \left({frac_str(v1_d[0])};\ {frac_str(v1_d[1])};\ {frac_str(v1_d[2])}\right)$
+$\overrightarrow{{{plane_pts[0]}{plane_pts[2]}}} = \left({frac_str(v2_d[0])};\ {frac_str(v2_d[1])};\ {frac_str(v2_d[2])}\right)$
+Tích có hướng $[\overrightarrow{{{plane_pts[0]}{plane_pts[1]}}}, \overrightarrow{{{plane_pts[0]}{plane_pts[2]}}}] = \left({frac_str(n_d[0])};\ {frac_str(n_d[1])};\ {frac_str(n_d[2])}\right)$.
+$S_{{{plane_pts[0]}{plane_pts[1]}{plane_pts[2]}}} = \dfrac{{1}}{{2}} |[\overrightarrow{{{plane_pts[0]}{plane_pts[1]}}}, \overrightarrow{{{plane_pts[0]}{plane_pts[2]}}}]| \approx {d_exact_den/2:.4f}$.
 
-Bước 2: Tính thể tích khối chóp $E.A'BC$
-Đường thẳng $AC'$ cắt mặt phẳng $(A'BC)$ tại trung điểm $M$ của đoạn $A'C$.
-Do $AC' = {k}AE \Rightarrow AE = \dfrac{{1}}{{{k}}}AC'$. Mà $AM = \dfrac{{1}}{{2}}AC'$.
-Suy ra $\dfrac{{EM}}{{AM}} = \dfrac{{|\frac{{1}}{{2}} - \frac{{1}}{{{k}}}|}}{{\frac{{1}}{{2}}}} = {frac_str(ratio_EM_AM)}$.
-Vì vậy khoảng cách từ $E$ đến $(A'BC)$ bằng ${frac_str(ratio_EM_AM)}$ khoảng cách từ $A$ đến $(A'BC)$.
-Bắc cầu qua thể tích khối chóp $A.A'BC$:
-$V_{{A.A'BC}} = \dfrac{{1}}{{3}} \cdot S_{{ABC}} \cdot AA' = \dfrac{{1}}{{3}} \cdot {frac_str(S_ABC)} \cdot {h} = {frac_str(V_A_ApBC)}$
-$\Rightarrow V_{{E.A'BC}} = {frac_str(ratio_EM_AM)} \cdot V_{{A.A'BC}} = {frac_str(ratio_EM_AM)} \cdot {frac_str(V_A_ApBC)} = {frac_str(V_E_ApBC)}$
+Thể tích tứ diện ${pt_d}.{plane_pts[0]}{plane_pts[1]}{plane_pts[2]}$:
+Với $\overrightarrow{{{plane_pts[0]}{pt_d}}} = \left({frac_str(v_d[0])};\ {frac_str(v_d[1])};\ {frac_str(v_d[2])}\right)$, ta có:
+$V_{{{pt_d}.{plane_pts[0]}{plane_pts[1]}{plane_pts[2]}}} = \dfrac{{1}}{{6}} |[\overrightarrow{{{plane_pts[0]}{plane_pts[1]}}}, \overrightarrow{{{plane_pts[0]}{plane_pts[2]}}}] \cdot \overrightarrow{{{plane_pts[0]}{pt_d}}}| = {d_exact_num_frac_str}$.
 
-Bước 3: Tính khoảng cách
-$d(E; (A'BC)) = \dfrac{{3 \cdot {frac_str(V_E_ApBC)}}}{{{S_ApBC:.4f}}} \approx {d_E_ApBC:.3f} \approx {d_E_rounded:.3f}$.
+Khoảng cách:
+$d = \dfrac{{3 \times {d_exact_num_frac_str}}}{{{d_exact_den/2:.4f}}} \approx {d_actual:.4f} \approx {d_rounded:.2f}$.
 
 Vậy mệnh đề là {'Đúng' if d_correct else 'Sai'}."""
 

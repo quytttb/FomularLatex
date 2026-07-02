@@ -2,8 +2,43 @@ import math
 import random
 import sys
 from typing import List, Tuple
-import sympy as sp
 from scipy.optimize import minimize_scalar
+
+
+# Tất cả đường chéo của hình hộp ABCD.A'B'C'D' (mỗi đường chéo một hướng)
+ALL_DIAGONALS = [
+    # Mặt ABB'A' (y=0)
+    ("B'", "A"), ("B", "A'"),
+    # Mặt DCC'D' (y=AD)
+    ("C", "D'"), ("D", "C'"),
+    # Mặt ADD'A' (x=0)
+    ("A", "D'"), ("D", "A'"),
+    # Mặt BCC'B' (x=AB)
+    ("B", "C'"), ("C", "B'"),
+    # Mặt đáy ABCD (z=0)
+    ("A", "C"), ("B", "D"),
+    # Mặt trên A'B'C'D' (z=AA')
+    ("A'", "C'"), ("B'", "D'"),
+    # Đường chéo không gian
+    ("A", "C'"), ("B", "D'"), ("C", "A'"), ("D", "B'"),
+]
+
+# Tọa độ 2D chiếu của các đỉnh trong hình TikZ
+TIKZ_2D_COORDS = {
+    "A": (1.5, 1.5), "B": (0.0, 0.0), "C": (4.0, 0.0), "D": (5.5, 1.5),
+    "A'": (1.5, 4.5), "B'": (0.0, 3.0), "C'": (4.0, 3.0), "D'": (5.5, 4.5),
+}
+
+
+def latex_vertex(label: str) -> str:
+    """Chuyển nhãn đỉnh A' thành LaTeX an toàn (tránh lỗi parser Azota)."""
+    if label.endswith("'"):
+        return label[:-1] + r"^{\prime}"
+    return label
+
+
+def latex_segment(start: str, end: str) -> str:
+    return latex_vertex(start) + latex_vertex(end)
 
 
 # =============================
@@ -19,64 +54,63 @@ class BoxDistanceQuestion:
         self.AA_prime = random.randint(8, 20)
         self.v_M = round(random.uniform(1.0, 3.0), 1)
         self.v_N = round(random.uniform(1.5, 3.5), 1)
+
+        # Chọn ngẫu nhiên 2 đường chéo khác nhau cho M và N
+        chosen = random.sample(ALL_DIAGONALS, 2)
+        # Ngẫu nhiên đổi chiều mỗi đường chéo
+        self.diag_M = chosen[0] if random.random() < 0.5 else (chosen[0][1], chosen[0][0])
+        self.diag_N = chosen[1] if random.random() < 0.5 else (chosen[1][1], chosen[1][0])
+
         self.calculate_process_variables()
 
+    def get_3d_coord(self, label):
+        coords = {
+            "A":  (0,        0,        0),
+            "B":  (self.AB,  0,        0),
+            "C":  (self.AB,  self.AD,  0),
+            "D":  (0,        self.AD,  0),
+            "A'": (0,        0,        self.AA_prime),
+            "B'": (self.AB,  0,        self.AA_prime),
+            "C'": (self.AB,  self.AD,  self.AA_prime),
+            "D'": (0,        self.AD,  self.AA_prime),
+        }
+        return coords[label]
+
     def calculate_process_variables(self):
-        self.A = (0, 0, 0)
-        self.B = (self.AB, 0, 0)
-        self.C = (self.AB, self.AD, 0)
-        self.D = (0, self.AD, 0)
-        self.B_prime = (self.AB, 0, self.AA_prime)
-        self.D_prime = (0, self.AD, self.AA_prime)
+        s_M, e_M = self.diag_M
+        s_N, e_N = self.diag_N
 
-        # Vector và độ dài cho kiến M (B' -> A)
-        self.vec_B_prime_A = (-self.AB, 0, -self.AA_prime)
-        self.distance_B_prime_A = math.sqrt(self.AB ** 2 + self.AA_prime ** 2)
+        self.start_M = self.get_3d_coord(s_M)
+        self.end_M   = self.get_3d_coord(e_M)
+        self.start_N = self.get_3d_coord(s_N)
+        self.end_N   = self.get_3d_coord(e_N)
 
-        # Vector và độ dài cho kiến N (C -> D')
-        self.vec_C_D_prime = (-self.AB, 0, self.AA_prime)  # D' - C = (0,AD,AA') - (AB,AD,0)
-        self.distance_C_D_prime = math.sqrt(self.AB ** 2 + self.AA_prime ** 2)
+        self.vec_M = tuple(e - s for s, e in zip(self.start_M, self.end_M))
+        self.vec_N = tuple(e - s for s, e in zip(self.start_N, self.end_N))
 
-        # Hệ số vận tốc cho kiến M
-        self.coefficient_Mx = self.v_M * self.AB / self.distance_B_prime_A
-        self.coefficient_Mz = self.v_M * self.AA_prime / self.distance_B_prime_A
+        self.dist_M = math.sqrt(sum(x ** 2 for x in self.vec_M))
+        self.dist_N = math.sqrt(sum(x ** 2 for x in self.vec_N))
 
-        # FIXED: Hệ số vận tốc cho kiến N
-        self.coefficient_Nx = self.v_N * self.AB / self.distance_C_D_prime
-        self.coefficient_Nz = self.v_N * self.AA_prime / self.distance_C_D_prime
+        self.vel_M = tuple(self.v_M * x / self.dist_M for x in self.vec_M)
+        self.vel_N = tuple(self.v_N * x / self.dist_N for x in self.vec_N)
 
         self.calculate_minimum_distance()
 
     def position_M(self, t):
-        """Vị trí con kiến M tại thời điểm t"""
-        x = self.AB - self.coefficient_Mx * t
-        y = 0
-        z = self.AA_prime - self.coefficient_Mz * t
-        return (x, y, z)
+        return tuple(s + v * t for s, v in zip(self.start_M, self.vel_M))
 
     def position_N(self, t):
-        """Vị trí con kiến N tại thời điểm t"""
-        x = self.AB - self.coefficient_Nx * t  # Di chuyển từ AB về 0
-        y = self.AD  # Không đổi
-        z = self.coefficient_Nz * t  # Di chuyển từ 0 lên AA_prime
-        return (x, y, z)
+        return tuple(s + v * t for s, v in zip(self.start_N, self.vel_N))
 
     def distance_function(self, t):
-        """Hàm khoảng cách giữa hai con kiến tại thời điểm t"""
         pos_M = self.position_M(t)
         pos_N = self.position_N(t)
-        dx = pos_M[0] - pos_N[0]
-        dy = pos_M[1] - pos_N[1]
-        dz = pos_M[2] - pos_N[2]
-        return math.sqrt(dx ** 2 + dy ** 2 + dz ** 2)
+        return math.sqrt(sum((a - b) ** 2 for a, b in zip(pos_M, pos_N)))
 
     def calculate_minimum_distance(self):
-        """Tính khoảng cách nhỏ nhất và thời điểm tương ứng"""
-        t_max_M = self.distance_B_prime_A / self.v_M
-        t_max_N = self.distance_C_D_prime / self.v_N
+        t_max_M = self.dist_M / self.v_M
+        t_max_N = self.dist_N / self.v_N
         t_max = min(t_max_M, t_max_N)
-
-        # Tìm minimum trong khoảng [0, t_max]
         result = minimize_scalar(self.distance_function, bounds=(0, t_max), method='bounded')
         self.t_optimal = result.x
         self.d_min = result.fun
@@ -91,12 +125,38 @@ class BoxDistanceQuestion:
                 wrong_answers.add(wrong)
         return list(wrong_answers)
 
-    def generate_question_text(self):
-        question = r'''
-Với một hình hộp chữ nhật \(ABCD.A'B'C'D'\) có \(AB=%d\), \(AD=%d\), \(AA'=%d\) như hình vẽ. Ở cùng một thời điểm hai con kiến coi như bò chuyển động thẳng đều, con kiến \(M\) bò từ \(B'\) đến điểm \(A\) với tốc độ \(%s\,\mathrm{cm/s}\) và con kiến \(N\) bò từ \(C\) đến \(D'\) với tốc độ bằng \(%s\,\mathrm{cm/s}\). Hãy tính khoảng cách nhỏ nhất giữa hai con kiến theo đơn vị centimet (làm tròn kết quả đến hàng phần mười)?
+    def _fmt_signed(self, base, coeff):
+        """Trả về chuỗi 'base + coeff*t' hoặc 'base - |coeff|*t' cho đẹp."""
+        if coeff >= 0:
+            return rf"{base} + {coeff:.4f}t"
+        else:
+            return rf"{base} - {abs(coeff):.4f}t"
 
-\begin{tikzpicture}[scale=1.0]
-%% Định nghĩa các đỉnh của hình hộp với phép chiếu đúng
+    def generate_tikz_picture(self):
+        s_M, e_M = self.diag_M
+        s_N, e_N = self.diag_N
+
+        sx_M, sy_M = TIKZ_2D_COORDS[s_M]
+        ex_M, ey_M = TIKZ_2D_COORDS[e_M]
+        sx_N, sy_N = TIKZ_2D_COORDS[s_N]
+        ex_N, ey_N = TIKZ_2D_COORDS[e_N]
+
+        mx_M, my_M = (sx_M + ex_M) / 2, (sy_M + ey_M) / 2
+        mx_N, my_N = (sx_N + ex_N) / 2, (sy_N + ey_N) / 2
+
+        ax_M = sx_M + (ex_M - sx_M) * 0.10
+        ay_M = sy_M + (ey_M - sy_M) * 0.10
+        bx_M = sx_M + (ex_M - sx_M) * 0.30
+        by_M = sy_M + (ey_M - sy_M) * 0.30
+
+        ax_N = sx_N + (ex_N - sx_N) * 0.10
+        ay_N = sy_N + (ey_N - sy_N) * 0.10
+        bx_N = sx_N + (ex_N - sx_N) * 0.30
+        by_N = sy_N + (ey_N - sy_N) * 0.30
+
+        return rf"""
+\begin{{tikzpicture}}[scale=1.0]
+%% Các đỉnh hình hộp
 \coordinate (B) at (0,0);
 \coordinate (C) at (4,0);
 \coordinate (A) at (1.5,1.5);
@@ -105,29 +165,28 @@ Với một hình hộp chữ nhật \(ABCD.A'B'C'D'\) có \(AB=%d\), \(AD=%d\),
 \coordinate (C') at (4,3);
 \coordinate (A') at (1.5,4.5);
 \coordinate (D') at (5.5,4.5);
-%% Vẽ các cạnh nhìn thấy của hình hộp
+%% Cạnh nhìn thấy
 \draw (B) -- (C);
 \draw (B') -- (C') -- (D') -- (A') -- cycle;
 \draw (B) -- (B');
 \draw (C) -- (C');
 \draw (C) -- (D);
 \draw (D) -- (D');
-%% Vẽ các cạnh ẩn bằng đường đứt nét
+%% Cạnh ẩn
 \draw[dashed] (B) -- (A);
 \draw[dashed] (A) -- (D);
 \draw[dashed] (A') -- (A);
-%% Định nghĩa điểm M trên đường chéo AB'
-\coordinate (M) at (0.75,2.25);
-%% Định nghĩa điểm N trên cạnh CD'
-\coordinate (N) at (4.75,2.25);
-%% Vẽ đường chéo AB' bằng đường đứt nét đỏ (nhưng dùng màu đen theo yêu cầu)
-\draw[dashed, thick] (A) -- (B');
-%% Vẽ đường từ C đến N đến D' (đường xanh trong gốc, nhưng dùng màu đen)
-\draw[thick] (C) -- (N) -- (D');
-%% Vẽ các mũi tên
-\draw[->, thick] (0.1,2.7) -- (0.5,2.3);  %% Mũi tên từ B' về phía M
-\draw[->, thick] (4.17,0.3) -- (4.57,1.4);
-%% Đánh dấu các điểm
+%% Điểm M và N (giữa đường chéo tương ứng)
+\coordinate (M) at ({mx_M:.2f},{my_M:.2f});
+\coordinate (N) at ({mx_N:.2f},{my_N:.2f});
+%% Đường đi của M (đứt nét)
+\draw[dashed, thick] ({s_M}) -- ({e_M});
+%% Đường đi của N
+\draw[thick] ({s_N}) -- ({e_N});
+%% Mũi tên chỉ hướng di chuyển
+\draw[->, thick] ({ax_M:.2f},{ay_M:.2f}) -- ({bx_M:.2f},{by_M:.2f});
+\draw[->, thick] ({ax_N:.2f},{ay_N:.2f}) -- ({bx_N:.2f},{by_N:.2f});
+%% Đánh dấu các đỉnh
 \fill (A) circle (1.2pt);
 \fill (B) circle (1.2pt);
 \fill (C) circle (1.2pt);
@@ -138,72 +197,114 @@ Với một hình hộp chữ nhật \(ABCD.A'B'C'D'\) có \(AB=%d\), \(AD=%d\),
 \fill (D') circle (1.2pt);
 \fill (M) circle (1.2pt);
 \fill (N) circle (1.2pt);
-%% Gắn nhãn cho các điểm
-\node[below right] at (A) {\(A\)};
-\node[below left] at (B) {\(B\)};
-\node[below right] at (C) {\(C\)};
-\node[below right] at (D) {\(D\)};
-\node[above right] at (A') {\(A'\)};
-\node[above left] at (B') {\(B'\)};
-\node[above left] at (C') {\(C'\)};
-\node[above right] at (D') {\(D'\)};
-\node[right] at (M) {\(M\)};
-\node[right] at (N) {\(N\)};
-\end{tikzpicture}
-''' % (self.AB, self.AD, self.AA_prime, self.v_M, self.v_N)
+%% Nhãn
+\node[below right] at (A) {{\(A\)}};
+\node[below left] at (B) {{\(B\)}};
+\node[below right] at (C) {{\(C\)}};
+\node[below right] at (D) {{\(D\)}};
+\node[above right] at (A') {{\(A'\)}};
+\node[above left] at (B') {{\(B'\)}};
+\node[above left] at (C') {{\(C'\)}};
+\node[above right] at (D') {{\(D'\)}};
+\node[right] at (M) {{\(M\)}};
+\node[right] at (N) {{\(N\)}};
+\end{{tikzpicture}}"""
+
+    def generate_question_text(self):
+        s_M, e_M = self.diag_M
+        s_N, e_N = self.diag_N
+        tikz = self.generate_tikz_picture()
+        ls_M, le_M = latex_vertex(s_M), latex_vertex(e_M)
+        ls_N, le_N = latex_vertex(s_N), latex_vertex(e_N)
+
+        question = rf"""
+Với một hình hộp chữ nhật $ABCD.A^{{\prime}}B^{{\prime}}C^{{\prime}}D^{{\prime}}$ có $AB={self.AB}$, $AD={self.AD}$, $AA^{{\prime}}={self.AA_prime}$ như hình vẽ. Ở cùng một thời điểm hai con kiến coi như bò chuyển động thẳng đều, con kiến $M$ bò từ ${ls_M}$ đến ${le_M}$ với tốc độ ${self.v_M}\,\mathrm{{cm/s}}$ và con kiến $N$ bò từ ${ls_N}$ đến ${le_N}$ với tốc độ ${self.v_N}\,\mathrm{{cm/s}}$. Hãy tính khoảng cách nhỏ nhất giữa hai con kiến theo đơn vị centimet (làm tròn kết quả đến hàng phần mười)?
+
+{tikz}
+"""
         return question
 
-        # latex_BC = sp.latex(self.BC)
-        # latex_BD = sp.latex(self.BD)
-
     def generate_solution(self):
-        # AD là cạnh vuông góc với AB, thay cho AC và BC
-        latex_AD = sp.latex(self.AD)
+        s_M, e_M = self.diag_M
+        s_N, e_N = self.diag_N
+        ls_M, le_M = latex_vertex(s_M), latex_vertex(e_M)
+        ls_N, le_N = latex_vertex(s_N), latex_vertex(e_N)
+        seg_M = latex_segment(s_M, e_M)
+        seg_N = latex_segment(s_N, e_N)
+
+        sx_M, sy_M, sz_M = self.start_M
+        ex_M, ey_M, ez_M = self.end_M
+        sx_N, sy_N, sz_N = self.start_N
+        ex_N, ey_N, ez_N = self.end_N
+
+        vx_M, vy_M, vz_M = self.vel_M
+        vx_N, vy_N, vz_N = self.vel_N
+
+        dist_M_sq = int(round(sum(x ** 2 for x in self.vec_M)))
+        dist_N_sq = int(round(sum(x ** 2 for x in self.vec_N)))
+
+        vec_M_str = f"({self.vec_M[0]},\\ {self.vec_M[1]},\\ {self.vec_M[2]})"
+        vec_N_str = f"({self.vec_N[0]},\\ {self.vec_N[1]},\\ {self.vec_N[2]})"
+
+        pos_M_str = (
+            f"\\left({self._fmt_signed(sx_M, vx_M)},\\;"
+            f" {self._fmt_signed(sy_M, vy_M)},\\;"
+            f" {self._fmt_signed(sz_M, vz_M)}\\right)"
+        )
+        pos_N_str = (
+            f"\\left({self._fmt_signed(sx_N, vx_N)},\\;"
+            f" {self._fmt_signed(sy_N, vy_N)},\\;"
+            f" {self._fmt_signed(sz_N, vz_N)}\\right)"
+        )
+
         solution = rf"""
-Dữ kiện:\\
-+ Hình hộp chữ nhật \(ABCD.A'B'C'D'\) có:\\
+Dữ kiện:
++ Hình hộp chữ nhật $ABCD.A^{{\prime}}B^{{\prime}}C^{{\prime}}D^{{\prime}}$ có:
 \[
-AB = {self.AB},\quad AD = {self.AD},\quad AA' = {self.AA_prime}
+AB = {self.AB},\quad AD = {self.AD},\quad AA^{{\prime}} = {self.AA_prime}
 \]
 + Gán tọa độ:
 \[
-A = (0, 0, 0),\quad B = ({self.AB}, 0, 0),\quad D = (0, {self.AD}, 0),\quad B' = ({self.AB}, 0, {self.AA_prime}),\quad D' = (0, {self.AD}, {self.AA_prime})
+A=(0,0,0),\quad B=({self.AB},0,0),\quad C=({self.AB},{self.AD},0),\quad D=(0,{self.AD},0)
 \]
-+ Con kiến \(M\) bò từ \(B'\) đến \(A\) với tốc độ \({self.v_M}\, \text{{cm/s}}\)\\
-+ Con kiến \(N\) bò từ \(C\) đến \(D'\) với tốc độ \({self.v_N}\, \text{{cm/s}}\)\\
-Bước 1: Phương trình chuyển động\\
-Con kiến \(M\):\\
-Vector chỉ phương đường đi:
 \[
-\overrightarrow{{B'A}} = (0, 0, 0) - ({self.AB}, 0, {self.AA_prime}) = ( {-self.AB}, 0, {-self.AA_prime} )
+A^{{\prime}}=(0,0,{self.AA_prime}),\quad B^{{\prime}}=({self.AB},0,{self.AA_prime}),\quad C^{{\prime}}=({self.AB},{self.AD},{self.AA_prime}),\quad D^{{\prime}}=(0,{self.AD},{self.AA_prime})
 \]
-Chiều dài đoạn \(B'A\):
++ Con kiến $M$ bò từ ${ls_M}=({sx_M},{sy_M},{sz_M})$ đến ${le_M}=({ex_M},{ey_M},{ez_M})$ với tốc độ ${self.v_M}\,\text{{cm/s}}$
++ Con kiến $N$ bò từ ${ls_N}=({sx_N},{sy_N},{sz_N})$ đến ${le_N}=({ex_N},{ey_N},{ez_N})$ với tốc độ ${self.v_N}\,\text{{cm/s}}$
+
+Bước 1: Phương trình chuyển động
+Con kiến $M$: Vector chỉ phương:
 \[
-|\overrightarrow{{B'A}}| = \sqrt{{{self.AB}^2 + {self.AA_prime}^2}} = \sqrt{{{self.AB ** 2} + {self.AA_prime ** 2}}} = \sqrt{{{self.AB ** 2 + self.AA_prime ** 2}}}
+\overrightarrow{{{seg_M}}} = ({ex_M}-{sx_M},\; {ey_M}-{sy_M},\; {ez_M}-{sz_M}) = {vec_M_str}
 \]
-Trong một giây con kiến tại \(M\) đi được \(\frac{{{self.v_M}}}{{\sqrt{{{self.AB ** 2 + self.AA_prime ** 2}}}}}\) lần \(\overrightarrow{{B'A}}\)\\
-Véctơ vận tốc của con kiến tại \(M\) là:
+Chiều dài ${seg_M}$:
 \[
-\overrightarrow{{v}}_M = \frac{{{self.v_M}}}{{\sqrt{{{self.AB ** 2 + self.AA_prime ** 2}}}}} \cdot ( {-self.AB}, 0, {-self.AA_prime} )
+|{seg_M}| = \sqrt{{{dist_M_sq}}} \approx {self.dist_M:.4f}
 \]
-Vị trí tại thời điểm \(t\):
+Vị trí tại thời điểm $t$:
 \[
-M(t) = ({self.AB}, 0, {self.AA_prime}) + t \cdot \frac{{{self.v_M}}}{{\sqrt{{{self.AB ** 2 + self.AA_prime ** 2}}}}} \cdot ( {-self.AB}, 0, {-self.AA_prime} )
-= \left( {self.AB} - \frac{{{self.coefficient_Mx:.1f}t}}{{\sqrt{{{self.AB ** 2 + self.AA_prime ** 2}}}}},\; 0,\; {self.AA_prime} - \frac{{{self.coefficient_Mz:.1f}t}}{{\sqrt{{{self.AB ** 2 + self.AA_prime ** 2}}}}} \right)
+M(t) = ({sx_M},{sy_M},{sz_M}) + \frac{{{self.v_M}}}{{\sqrt{{{dist_M_sq}}}}} \cdot t \cdot {vec_M_str} = {pos_M_str}
 \]
-Con kiến \(N\): Làm tương tự ta có:\\
-Vị trí tại thời điểm \(t\):
+Con kiến $N$: Vector chỉ phương:
 \[
-N(t) = ({self.AB}, {self.AD}, 0) + t \cdot \frac{{{self.v_N}}}{{\sqrt{{{self.AB ** 2 + self.AA_prime ** 2}}}}} \cdot ({-self.AB}, 0, {self.AA_prime})
-= \left( {self.AB} - \frac{{{self.coefficient_Nx:.1f}t}}{{\sqrt{{{self.AB ** 2 + self.AA_prime ** 2}}}}},\; {self.AD},\; \frac{{{self.coefficient_Nz:.1f}t}}{{\sqrt{{{self.AB ** 2 + self.AA_prime ** 2}}}}} \right)
+\overrightarrow{{{seg_N}}} = ({ex_N}-{sx_N},\; {ey_N}-{sy_N},\; {ez_N}-{sz_N}) = {vec_N_str}
 \]
-Bước 2: Tính khoảng cách giữa hai con kiến tại thời điểm \(t\)
+Chiều dài ${seg_N}$:
 \[
-d(t) = \sqrt{{\left({self.AB} - \frac{{{self.coefficient_Mx:.1f}t}}{{\sqrt{{{self.AB ** 2 + self.AA_prime ** 2}}}}}\right)^2 + {self.AD}^2 + \left({self.AA_prime} - \frac{{{self.coefficient_Mz:.1f}t}}{{\sqrt{{{self.AB ** 2 + self.AA_prime ** 2}}}}} - {self.v_N}t\right)^2}}
+|{seg_N}| = \sqrt{{{dist_N_sq}}} \approx {self.dist_N:.4f}
+\]
+Vị trí tại thời điểm $t$:
+\[
+N(t) = ({sx_N},{sy_N},{sz_N}) + \frac{{{self.v_N}}}{{\sqrt{{{dist_N_sq}}}}} \cdot t \cdot {vec_N_str} = {pos_N_str}
+\]
+Bước 2: Khoảng cách giữa hai con kiến
+\[
+d(t) = \sqrt{{(x_M-x_N)^2 + (y_M-y_N)^2 + (z_M-z_N)^2}}
 \]
 Bước 3: Tìm khoảng cách nhỏ nhất
 \[
-d'(t)=0\Leftrightarrow t \approx {self.t_optimal:.2f} \Rightarrow d_{{min}}={self.d_min:.1f}cm\
+d'(t)=0 \Leftrightarrow t \approx {self.t_optimal:.2f}\,\text{{s}} \Rightarrow d_{{\min}} \approx {self.d_min:.1f}\,\text{{cm}}
 \]
 """
         return solution
